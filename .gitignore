@@ -1,0 +1,97 @@
+# --------------------
+# OS / 시스템 파일
+# --------------------
+.DS_Store
+Thumbs.db
+
+# --------------------
+# 환경 변수 / 민감 정보
+# --------------------
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+config/secrets.json
+
+# --------------------
+# 로그 파일
+# --------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --------------------
+# Node.js / React (프론트엔드)
+# --------------------
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# --------------------
+# Java / Spring Boot (백엔드)
+# --------------------
+target/
+*.iml
+.idea/
+*.class
+*.war
+*.jar
+
+# --------------------
+# Python (크롤러 / AI)
+# --------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --------------------
+# Docker / 컨테이너
+# --------------------
+/docker-data/
+*.pid
+
+# --------------------
+# 데이터베이스 / 임시 파일
+# --------------------
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+*.dump
+
+# --------------------
+# VSCode / IDE 설정
+# --------------------
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# --------------------
+# 테스트 결과
+# --------------------
+coverage/
+coverage.xml
+*.lcov
+
+# --------------------
+# 이미지 / 파일 업로드
+# --------------------
+uploads/
+tmp/

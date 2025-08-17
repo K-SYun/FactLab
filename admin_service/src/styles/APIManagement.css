@@ -1,0 +1,385 @@
+/* APIManagement.css - API 관리 페이지 전용 스타일 */
+
+/* API 엔드포인트 카드 */
+.admin-api-endpoint-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 16px;
+  border-left: 4px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.admin-api-endpoint-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-api-endpoint-card.get {
+  border-left-color: #10b981;
+}
+
+.admin-api-endpoint-card.post {
+  border-left-color: #3b82f6;
+}
+
+.admin-api-endpoint-card.put {
+  border-left-color: #f59e0b;
+}
+
+.admin-api-endpoint-card.delete {
+  border-left-color: #ef4444;
+}
+
+/* HTTP 메서드 배지 */
+.admin-api-method-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-api-method-badge.get {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-api-method-badge.post {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-api-method-badge.put {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.admin-api-method-badge.delete {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+/* API 통계 */
+.admin-api-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-api-stat-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+}
+
+.admin-api-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.admin-api-stat-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.admin-api-stat-change {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.admin-api-stat-change.positive {
+  color: #059669;
+}
+
+.admin-api-stat-change.negative {
+  color: #dc2626;
+}
+
+/* API 키 관리 */
+.admin-api-key-container {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.admin-api-key-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-api-key-item:last-child {
+  margin-bottom: 0;
+}
+
+.admin-api-key-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+
+.admin-api-key-info {
+  flex: 1;
+}
+
+.admin-api-key-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.admin-api-key-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.admin-api-key-value {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: #374151;
+  user-select: all;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-api-key-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* API 로그 뷰어 */
+.admin-api-log-viewer {
+  background: #1f2937;
+  border-radius: 8px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.admin-api-log-header {
+  background: #374151;
+  padding: 16px 20px;
+  border-radius: 8px 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-api-log-content {
+  padding: 16px 20px;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.admin-api-log-entry {
+  color: #e5e7eb;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-api-log-timestamp {
+  color: #9ca3af;
+  min-width: 120px;
+}
+
+.admin-api-log-method {
+  min-width: 60px;
+  font-weight: 600;
+}
+
+.admin-api-log-method.get {
+  color: #34d399;
+}
+
+.admin-api-log-method.post {
+  color: #60a5fa;
+}
+
+.admin-api-log-method.put {
+  color: #fbbf24;
+}
+
+.admin-api-log-method.delete {
+  color: #f87171;
+}
+
+.admin-api-log-path {
+  color: #d1d5db;
+  flex: 1;
+}
+
+.admin-api-log-status {
+  min-width: 50px;
+  font-weight: 600;
+}
+
+.admin-api-log-status.success {
+  color: #34d399;
+}
+
+.admin-api-log-status.error {
+  color: #f87171;
+}
+
+.admin-api-log-status.warning {
+  color: #fbbf24;
+}
+
+/* API 문서 섹션 */
+.admin-api-docs {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.admin-api-docs-header {
+  background: #f9fafb;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-api-docs-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.admin-api-docs-description {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.admin-api-docs-content {
+  padding: 20px;
+}
+
+.admin-api-endpoint-section {
+  margin-bottom: 32px;
+}
+
+.admin-api-endpoint-section:last-child {
+  margin-bottom: 0;
+}
+
+.admin-api-endpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-api-endpoint-path {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+  color: #374151;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 4px;
+  flex: 1;
+}
+
+/* API 테스트 도구 */
+.admin-api-tester {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.admin-api-tester-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.admin-api-tester-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-api-tester-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 120px;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-api-tester-response {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .admin-api-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .admin-api-tester-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-api-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-api-key-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .admin-api-key-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .admin-api-endpoint-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

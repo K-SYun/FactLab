@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신고하기 - FactLab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .header {
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 0;
+        }
+        
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-menu a {
+            color: #333;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        
+        .page-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .required {
+            color: #ff0000;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            font-family: inherit;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            background-color: white;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .radio-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .radio-item input[type="radio"] {
+            margin: 0;
+        }
+        
+        .radio-label {
+            flex: 1;
+            font-size: 12px;
+        }
+        
+        .radio-desc {
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .textarea {
+            width: 100%;
+            height: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-size: 12px;
+            font-family: inherit;
+        }
+        
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: #0066cc;
+            background-color: #f0f8ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .uploaded-files {
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            font-size: 11px;
+        }
+        
+        .file-remove {
+            color: #cc0000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .help-text {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .warning-box {
+            background-color: #fff8dc;
+            border: 1px solid #ffcc00;
+            border-left: 4px solid #ffcc00;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        
+        .warning-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #cc6600;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 8px;
+        }
+        
+        .btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-primary {
+            background-color: #cc0000;
+            color: white;
+            border-color: #cc0000;
+        }
+        
+        .btn-primary:hover {
+            background-color: #aa0000;
+        }
+        
+        .form-footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .report-history {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .history-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .history-list {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 11px;
+        }
+        
+        .history-list th {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .history-list td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        .status-processing {
+            color: #ff6600;
+            font-weight: bold;
+        }
+        
+        .status-completed {
+            color: #009900;
+            font-weight: bold;
+        }
+        
+        .status-rejected {
+            color: #cc0000;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .radio-group {
+                gap: 5px;
+            }
+            
+            .radio-item {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">FactLab</a>
+            <div class="nav-menu">
+                <a href="index.html">홈</a>
+                <a href="board_list.html">게시판</a>
+                <a href="news_feed.html">뉴스</a>
+                <a href="login.html">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            🚨 신고하기
+        </div>
+        
+        <!-- Warning -->
+        <div class="warning-box">
+            <div class="warning-title">⚠️ 신고 전 확인사항</div>
+            <ul style="margin-left: 15px; line-height: 1.4;">
+                <li>허위신고는 제재 대상이 될 수 있습니다.</li>
+                <li>신고 내용은 관리자가 검토한 후 처리됩니다.</li>
+                <li>처리 결과는 알림을 통해 안내됩니다.</li>
+                <li>중복 신고는 하나로 처리됩니다.</li>
+            </ul>
+        </div>
+        
+        <form id="reportForm">
+            <!-- Report Type -->
+            <div class="form-section">
+                <div class="section-title">신고 대상 선택</div>
+                
+                <div class="form-group">
+                    <label class="form-label">신고 유형 <span class="required">*</span></label>
+                    <select class="form-select" name="target_type" required onchange="toggleTargetInfo()">
+                        <option value="">선택하세요</option>
+                        <option value="post">게시글</option>
+                        <option value="comment">댓글</option>
+                        <option value="user">사용자</option>
+                        <option value="news">뉴스</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="targetInfo" style="display: none;">
+                    <label class="form-label">대상 URL 또는 ID</label>
+                    <input type="text" class="form-input" name="target_url" placeholder="신고할 게시글/댓글/사용자의 URL이나 ID를 입력하세요">
+                    <div class="help-text">예: https://factlab.com/post/1234 또는 게시글 번호</div>
+                </div>
+            </div>
+            
+            <!-- Report Reason -->
+            <div class="form-section">
+                <div class="section-title">신고 사유</div>
+                
+                <div class="form-group">
+                    <label class="form-label">신고 사유 선택 <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="spam" required>
+                            <div class="radio-label">
+                                스팸 / 광고
+                                <div class="radio-desc">상업적 광고, 도배, 반복 게시물</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="hate" required>
+                            <div class="radio-label">
+                                혐오 표현
+                                <div class="radio-desc">특정 집단에 대한 차별, 혐오, 비하 발언</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="false_info" required>
+                            <div class="radio-label">
+                                허위 정보
+                                <div class="radio-desc">사실과 다른 정보, 가짜뉴스, 조작된 내용</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="inappropriate" required>
+                            <div class="radio-label">
+                                부적절한 콘텐츠
+                                <div class="radio-desc">음란물, 폭력적 내용, 미성년자 유해 콘텐츠</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="personal_attack" required>
+                            <div class="radio-label">
+                                개인 공격 / 명예훼손
+                                <div class="radio-desc">특정 개인에 대한 인신공격, 사생활 침해</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="copyright" required>
+                            <div class="radio-label">
+                                저작권 침해
+                                <div class="radio-desc">무단 복제, 도용, 저작권 위반 콘텐츠</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="privacy" required>
+                            <div class="radio-label">
+                                개인정보 노출
+                                <div class="radio-desc">개인정보 무단 공개, 사생활 침해</div>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-item">
+                            <input type="radio" name="reason" value="other" required>
+                            <div class="radio-label">
+                                기타
+                                <div class="radio-desc">위 항목에 해당하지 않는 기타 사유</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Report Details -->
+            <div class="form-section">
+                <div class="section-title">신고 상세 내용</div>
+                
+                <div class="form-group">
+                    <label class="form-label">상세 설명 <span class="required">*</span></label>
+                    <textarea class="textarea" name="description" placeholder="신고 사유에 대한 구체적인 설명을 입력해주세요. 정확한 신고 처리를 위해 자세히 작성해주시기 바랍니다." required></textarea>
+                    <div class="help-text">최소 20자 이상 입력해주세요.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">증빙 자료 첨부</label>
+                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                        📎 파일을 클릭하여 업로드<br>
+                        <small>스크린샷, 캡처 이미지 등 (최대 5MB, 이미지 파일만)</small>
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+                    <div class="uploaded-files" id="uploadedFiles"></div>
+                </div>
+            </div>
+            
+            <!-- Reporter Info -->
+            <div class="form-section">
+                <div class="section-title">신고자 정보</div>
+                
+                <div class="form-group">
+                    <label class="form-label">연락처 (선택)</label>
+                    <input type="email" class="form-input" name="contact" placeholder="처리 결과 안내를 받을 이메일 주소">
+                    <div class="help-text">입력하지 않으면 사이트 알림으로만 안내됩니다.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">추가 요청사항</label>
+                    <textarea class="textarea" name="additional" placeholder="신고 처리와 관련하여 추가로 요청하실 사항이 있으면 입력해주세요." style="height: 60px;"></textarea>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Form Footer -->
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary" form="reportForm">신고 접수</button>
+            <button type="button" class="btn" onclick="resetForm()">초기화</button>
+            <button type="button" class="btn" onclick="goBack()">취소</button>
+        </div>
+        
+        <!-- Report History -->
+        <div class="report-history">
+            <div class="history-title">📋 내 신고 내역</div>
+            
+            <table class="history-list">
+                <thead>
+                    <tr>
+                        <th width="60">번호</th>
+                        <th>신고 대상</th>
+                        <th width="80">신고 사유</th>
+                        <th width="80">처리 상태</th>
+                        <th width="80">신고일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>3</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            게시글: "정치적 편향성이 심한 가짜뉴스 게시물"
+                        </td>
+                        <td>허위정보</td>
+                        <td><span class="status-processing">처리중</span></td>
+                        <td>07-09</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            댓글: "특정 지역 주민들에 대한 혐오 발언"
+                        </td>
+                        <td>혐오표현</td>
+                        <td><span class="status-completed">조치완료</span></td>
+                        <td>07-07</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            게시글: "상업적 광고성 도배 게시물"
+                        </td>
+                        <td>스팸/광고</td>
+                        <td><span class="status-completed">조치완료</span></td>
+                        <td>07-05</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        
+        // 신고 대상 선택 시 추가 정보 표시
+        function toggleTargetInfo() {
+            const targetType = document.querySelector('[name="target_type"]').value;
+            const targetInfo = document.getElementById('targetInfo');
+            
+            if (targetType) {
+                targetInfo.style.display = 'block';
+                targetInfo.querySelector('input').required = true;
+            } else {
+                targetInfo.style.display = 'none';
+                targetInfo.querySelector('input').required = false;
+            }
+        }
+        
+        // 파일 업로드 처리
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            Array.from(e.target.files).forEach(file => {
+                if (validateFile(file)) {
+                    uploadedFiles.push(file);
+                    displayFile(file);
+                }
+            });
+        });
+        
+        // 파일 유효성 검사
+        function validateFile(file) {
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드 가능합니다.');
+                return false;
+            }
+            
+            if (file.size > maxSize) {
+                alert('파일 크기는 5MB 이하만 가능합니다.');
+                return false;
+            }
+            
+            if (uploadedFiles.length >= 3) {
+                alert('최대 3개의 파일만 업로드 가능합니다.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 파일 표시
+        function displayFile(file) {
+            const container = document.getElementById('uploadedFiles');
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>${file.name} (${(file.size / 1024).toFixed(1)}KB)</span>
+                <span class="file-remove" onclick="removeFile(this, '${file.name}')">×</span>
+            `;
+            container.appendChild(fileItem);
+        }
+        
+        // 파일 제거
+        function removeFile(element, fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            element.parentElement.remove();
+        }
+        
+        // 폼 제출
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('target_type', document.querySelector('[name="target_type"]').value);
+            formData.append('target_url', document.querySelector('[name="target_url"]').value);
+            formData.append('reason', document.querySelector('[name="reason"]:checked').value);
+            formData.append('description', document.querySelector('[name="description"]').value);
+            formData.append('contact', document.querySelector('[name="contact"]').value);
+            formData.append('additional', document.querySelector('[name="additional"]').value);
+            
+            // 파일 추가
+            uploadedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            // 실제로는 서버에 전송
+            console.log('신고 접수:', Object.fromEntries(formData));
+            alert('신고가 접수되었습니다. 검토 후 처리 결과를 알려드리겠습니다.');
+            
+            // 폼 초기화
+            resetForm();
+        });
+        
+        // 폼 유효성 검사
+        function validateForm() {
+            const targetType = document.querySelector('[name="target_type"]').value;
+            const targetUrl = document.querySelector('[name="target_url"]').value;
+            const reason = document.querySelector('[name="reason"]:checked');
+            const description = document.querySelector('[name="description"]').value;
+            
+            if (!targetType) {
+                alert('신고 유형을 선택하세요.');
+                return false;
+            }
+            
+            if (!targetUrl.trim()) {
+                alert('신고 대상의 URL 또는 ID를 입력하세요.');
+                return false;
+            }
+            
+            if (!reason) {
+                alert('신고 사유를 선택하세요.');
+                return false;
+            }
+            
+            if (description.trim().length < 20) {
+                alert('상세 설명을 20자 이상 입력하세요.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 폼 초기화
+        function resetForm() {
+            if (confirm('입력한 내용이 모두 삭제됩니다. 계속하시겠습니까?')) {
+                document.getElementById('reportForm').reset();
+                document.getElementById('targetInfo').style.display = 'none';
+                document.getElementById('uploadedFiles').innerHTML = '';
+                uploadedFiles = [];
+            }
+        }
+        
+        // 취소
+        function goBack() {
+            if (confirm('신고 작성을 취소하시겠습니까?')) {
+                window.history.back();
+            }
+        }
+        
+        // 라디오 버튼 클릭 처리
+        document.querySelectorAll('.radio-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+    </script>
+</body>
+</html>

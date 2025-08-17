@@ -1,0 +1,249 @@
+/* News.css - News 관리 페이지 전용 스타일 */
+
+/* 뉴스 ID 뱃지 */
+.admin-news-id-badge {
+  background-color: #6366f1;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 뉴스 링크 스타일 */
+.admin-news-link {
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: inline-block;
+  text-decoration: none;
+  color: #2563eb;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.admin-news-link:hover {
+  color: #1d4ed8;
+  background-color: #f1f5f9;
+}
+
+.admin-news-link .fa-external-link-alt {
+  font-size: 10px;
+}
+
+/* AI 분석 요약 박스 */
+.admin-ai-summary {
+  font-size: 14px;
+  color: #1f2937;
+  background-color: #eff6ff;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.admin-ai-summary-placeholder {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* 키워드 태그 */
+.admin-keyword-tag {
+  padding: 4px 10px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 16px;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-keyword-tag .fa-tag {
+  font-size: 8px;
+}
+
+.admin-keyword-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 32px;
+  align-items: center;
+}
+
+.admin-keyword-placeholder {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* AI 분석 결과 카드 */
+.admin-analysis-card {
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.admin-analysis-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.admin-analysis-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* 신뢰도 배지 */
+.admin-reliability-badge {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* 신뢰도 색상 - 90% 이상 (녹색) */
+.admin-reliability-high {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* 신뢰도 80-89% (주황색) */
+.admin-reliability-medium {
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* 신뢰도 70-79% (빨간색) */
+.admin-reliability-low {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* 신뢰도 70% 미만 (회색) */
+.admin-reliability-very-low {
+  color: #6b7280;
+  background-color: rgba(107, 114, 128, 0.2);
+  border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* 프로세싱 상태 배지 */
+.admin-processing-badge {
+  color: #f59e0b;
+  background-color: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #fcd34d;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* AI 분석 완료 배지 */
+.admin-ai-completed-badge {
+  color: #059669;
+  background-color: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 거부 사유 박스 */
+.admin-rejection-reason {
+  background-color: #fef2f2;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+.admin-rejection-reason-text {
+  font-size: 14px;
+  color: #b91c1c;
+}
+
+/* 탭 네비게이션 */
+.admin-tab-nav {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-tab-container {
+  display: flex;
+  gap: 32px;
+}
+
+.admin-tab-button {
+  padding: 12px 0;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.admin-tab-button.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+  font-weight: 600;
+}
+
+.admin-tab-button:not(.active) {
+  color: #6b7280;
+}
+
+/* 빈 상태 메시지 */
+.admin-empty-state {
+  padding: 48px;
+  text-align: center;
+}
+
+.admin-empty-state-icon {
+  color: #6b7280;
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.admin-empty-state-text {
+  color: #6b7280;
+}
+
+/* AI 재분석 버튼 */
+.admin-btn-info {
+  background-color: #06b6d4;
+  border-color: #06b6d4;
+  color: white;
+}
+
+.admin-btn-info:hover {
+  background-color: #0891b2;
+}
+
+/* 삭제 버튼 */
+.admin-btn-delete {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.admin-btn-delete:hover {
+  background-color: #b91c1c;
+}
+
+/* 처리중 상태 텍스트 */
+.admin-processing-text {
+  font-size: 14px;
+  color: #ea580c;
+  padding: 8px;
+  align-self: center;
+}

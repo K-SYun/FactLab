@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정치토론 - FactLab</title>
+    <link rel="stylesheet" href="Common.css">
+    <style>
+        /* factlab_board_detail.html 전용 스타일 */
+        .news-container {
+            max-width: 1200px; /* 공통 컨테이너 너비에 맞춤 */
+            margin: 10px auto;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        
+        .news-board-header { /* 기존 .board-header */
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        
+        .news-board-title { /* 기존 .board-title */
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .news-board-info { /* 기존 .board-info */
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .news-control-area { /* 기존 .control-area */
+            padding: 8px 10px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .news-sort-options { /* 기존 .sort-options */
+            display: flex;
+            gap: 8px;
+        }
+        
+        .news-sort-btn { /* 기존 .sort-btn */
+            padding: 3px 8px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 11px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .news-sort-btn.active {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .news-search-form { /* 기존 .search-form */
+            display: flex;
+            gap: 3px;
+        }
+        
+        .news-search-select { /* 기존 .search-select */
+            padding: 3px;
+            border: 1px solid #ccc;
+            font-size: 11px;
+        }
+        
+        .news-search-input { /* 기존 .search-input */
+            padding: 3px 5px;
+            border: 1px solid #ccc;
+            font-size: 11px;
+            width: 150px;
+        }
+        
+        .news-post-list { /* 기존 .post-list */
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+        }
+        
+        .news-post-list th {
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 5px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .news-post-list td {
+            border-bottom: 1px solid #eee;
+            padding: 6px 5px;
+            text-align: center;
+        }
+        
+        .news-post-list tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .news-title-cell { /* 기존 .title-cell */
+            text-align: left !important;
+            max-width: 400px;
+        }
+        
+        .news-post-title { /* 기존 .post-title */
+            color: #333;
+            text-decoration: none;
+            display: inline-block;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .news-post-title:hover {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        
+        .news-comment-count { /* 기존 .comment-count */
+            color: #ff6600;
+            font-size: 10px;
+            margin-left: 3px;
+        }
+        
+        .news-hot-icon { /* 기존 .hot-icon */
+            color: #ff0000;
+            font-size: 10px;
+            margin-right: 3px;
+        }
+        
+        .news-new-icon { /* 기존 .new-icon */
+            color: #00aa00;
+            font-size: 10px;
+            margin-right: 3px;
+        }
+        
+        .news-author-cell { /* 기존 .author-cell */
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .news-date-cell { /* 기존 .date-cell */
+            color: #999;
+            font-size: 10px;
+        }
+        
+        .news-pagination { /* 기존 .pagination */
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+        
+        .news-page-btn { /* 기존 .page-btn */
+            display: inline-block;
+            padding: 3px 6px;
+            margin: 0 1px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            font-size: 11px;
+        }
+        
+        .news-page-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .news-page-btn.current {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .news-write-area { /* 기존 .write-area */
+            padding: 10px;
+            text-align: right;
+            border-top: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        
+        .news-notice-row { /* 기존 .notice-row */
+            background-color: #fff8dc !important;
+        }
+        
+        .news-notice-row:hover {
+            background-color: #fff0b8 !important;
+        }
+        
+        @media (max-width: 768px) {
+            .news-post-list th:nth-child(3),
+            .news-post-list td:nth-child(3),
+            .news-post-list th:nth-child(4),
+            .news-post-list td:nth-child(4) {
+                display: none; /* 작성자, 조회수 숨김 */
+            }
+            
+            .news-control-area {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+            
+            .news-search-input {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="news-header">
+        <div class="news-header-content">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <div class="news-auth-buttons">
+                <a href="factlab_main.html" class="news-btn">홈</a>
+                <a href="factlab_board_list.html" class="news-btn news-btn-primary">게시판</a>
+                <a href="factlab_news_feed.html" class="news-btn">뉴스</a>
+                <a href="factlab_login.html" class="news-btn">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="news-container">
+        <!-- Board Header -->
+        <div class="news-board-header">
+            <div class="news-board-title">정치토론</div>
+            <div class="news-board-info">
+                <span>정치 관련 이슈와 정책에 대해 토론하는 공간입니다.</span>
+                <span>총 1,234개 글 | 오늘 +45개</span>
+            </div>
+        </div>
+        
+        <!-- Control Area -->
+        <div class="news-control-area">
+            <div class="news-sort-options">
+                <a href="#" class="news-sort-btn active" data-sort="latest">최신순</a>
+                <a href="#" class="news-sort-btn" data-sort="popular">인기순</a>
+                <a href="#" class="news-sort-btn" data-sort="comments">댓글순</a>
+                <a href="#" class="news-sort-btn" data-sort="views">조회순</a>
+            </div>
+            
+            <div class="news-search-form">
+                <select class="news-search-select">
+                    <option value="all">전체</option>
+                    <option value="title">제목</option>
+                    <option value="content">내용</option>
+                    <option value="author">작성자</option>
+                </select>
+                <input type="text" class="news-search-input" placeholder="검색어">
+                <button class="news-btn">검색</button>
+            </div>
+        </div>
+        
+        <!-- Post List -->
+        <table class="news-post-list">
+            <thead>
+                <tr>
+                    <th width="60">번호</th>
+                    <th>제목</th>
+                    <th width="80">작성자</th>
+                    <th width="60">조회</th>
+                    <th width="80">작성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 공지사항 -->
+                <tr class="news-notice-row">
+                    <td>공지</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=notice1" class="news-post-title">
+                            📢 게시판 이용 규칙 안내
+                        </a>
+                    </td>
+                    <td class="news-author-cell">관리자</td>
+                    <td>1,245</td>
+                    <td class="news-date-cell">2024-07-01</td>
+                </tr>
+                
+                <!-- 일반 게시글 -->
+                <tr>
+                    <td>1234</td>
+                    <td class="news-title-cell">
+                        <span class="news-hot-icon">🔥</span>
+                        <a href="factlab_board_view.html?id=1234" class="news-post-title">
+                            새로운 정부 정책에 대한 여러분의 의견은?
+                        </a>
+                        <span class="news-comment-count">[67]</span>
+                    </td>
+                    <td class="news-author-cell">정치관심러</td>
+                    <td>2,156</td>
+                    <td class="news-date-cell">07-09 14:23</td>
+                </tr>
+                
+                <tr>
+                    <td>1233</td>
+                    <td class="news-title-cell">
+                        <span class="news-new-icon">🆕</span>
+                        <a href="factlab_board_view.html?id=1233" class="news-post-title">
+                            오늘 발표된 경제 정책 분석해보겠습니다
+                        </a>
+                        <span class="news-comment-count">[23]</span>
+                    </td>
+                    <td class="news-author-cell">경제분석가</td>
+                    <td>892</td>
+                    <td class="news-date-cell">07-09 13:45</td>
+                </tr>
+                
+                <tr>
+                    <td>1232</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1232" class="news-post-title">
+                            선거제도 개편안에 대한 토론
+                        </a>
+                        <span class="news-comment-count">[156]</span>
+                    </td>
+                    <td class="news-author-cell">민주주의자</td>
+                    <td>3,427</td>
+                    <td class="news-date-cell">07-09 12:18</td>
+                </tr>
+                
+                <tr>
+                    <td>1231</td>
+                    <td class="news-title-cell">
+                        <span class="news-hot-icon">🔥</span>
+                        <a href="factlab_board_view.html?id=1231" class="news-post-title">
+                            지방자치단체 예산 편성 방향에 대해
+                        </a>
+                        <span class="news-comment-count">[89]</span>
+                    </td>
+                    <td class="news-author-cell">시민1234</td>
+                    <td>1,756</td>
+                    <td class="news-date-cell">07-09 11:32</td>
+                </tr>
+                
+                <tr>
+                    <td>1230</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1230" class="news-post-title">
+                            외교 정책의 변화가 미치는 영향
+                        </a>
+                        <span class="news-comment-count">[34]</span>
+                    </td>
+                    <td class="news-author-cell">외교전문가</td>
+                    <td>654</td>
+                    <td class="news-date-cell">07-09 10:45</td>
+                </tr>
+                
+                <tr>
+                    <td>1229</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1229" class="news-post-title">
+                            국정감사 결과에 대한 시민들의 반응
+                        </a>
+                        <span class="news-comment-count">[78]</span>
+                    </td>
+                    <td class="news-author-cell">국감지켜보기</td>
+                    <td>1,234</td>
+                    <td class="news-date-cell">07-09 09:15</td>
+                </tr>
+                
+                <tr>
+                    <td>1228</td>
+                    <td class="news-title-cell">
+                        <span class="news-new-icon">🆕</span>
+                        <a href="factlab_board_view.html?id=1228" class="news-post-title">
+                            정당 개편 논의 현황 정리
+                        </a>
+                        <span class="news-comment-count">[12]</span>
+                    </td>
+                    <td class="news-author-cell">정치분석러</td>
+                    <td>432</td>
+                    <td class="news-date-cell">07-09 08:30</td>
+                </tr>
+                
+                <tr>
+                    <td>1227</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1227" class="news-post-title">
+                            청년 정책의 실효성에 대한 의견
+                        </a>
+                        <span class="news-comment-count">[45]</span>
+                    </td>
+                    <td class="news-author-cell">청년대표</td>
+                    <td>876</td>
+                    <td class="news-date-cell">07-08 22:45</td>
+                </tr>
+                
+                <tr>
+                    <td>1226</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1226" class="news-post-title">
+                            국회 의정활동 모니터링 결과
+                        </a>
+                        <span class="news-comment-count">[67]</span>
+                    </td>
+                    <td class="news-author-cell">시민감시단</td>
+                    <td>1,098</td>
+                    <td class="news-date-cell">07-08 21:12</td>
+                </tr>
+                
+                <tr>
+                    <td>1225</td>
+                    <td class="news-title-cell">
+                        <a href="factlab_board_view.html?id=1225" class="news-post-title">
+                            시민참여 예산제도 개선 방안
+                        </a>
+                        <span class="news-comment-count">[23]</span>
+                    </td>
+                    <td class="news-author-cell">예산지킴이</td>
+                    <td>567</td>
+                    <td class="news-date-cell">07-08 19:45</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="news-pagination">
+            <a href="#" class="news-page-btn">처음</a>
+            <a href="#" class="news-page-btn">이전</a>
+            <a href="#" class="news-page-btn">1</a>
+            <a href="#" class="news-page-btn">2</a>
+            <a href="#" class="news-page-btn current">3</a>
+            <a href="#" class="news-page-btn">4</a>
+            <a href="#" class="news-page-btn">5</a>
+            <a href="#" class="news-page-btn">다음</a>
+            <a href="#" class="news-page-btn">끝</a>
+        </div>
+        
+        <!-- Write Area -->
+        <div class="news-write-area">
+            <a href="factlab_board_write.html" class="news-btn news-btn-primary">글쓰기</a>
+            <a href="factlab_board_list.html" class="news-btn">목록</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="news-footer">
+        <div class="news-footer-content">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="report.html">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 정렬 기능
+        document.querySelectorAll('.news-sort-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 활성 버튼 변경
+                document.querySelectorAll('.news-sort-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 정렬 로직 (실제로는 서버에서 처리)
+                const sortType = this.dataset.sort;
+                console.log('정렬:', sortType);
+                
+                // alert(`${this.textContent}로 정렬합니다.`); // alert 대신 console.log
+                console.log(`${this.textContent}로 정렬합니다.`);
+            });
+        });
+        
+        // 검색 기능
+        document.querySelector('.news-search-form .news-btn').addEventListener('click', function() {
+            const searchType = document.querySelector('.news-search-select').value;
+            const searchTerm = document.querySelector('.news-search-input').value;
+            
+            if (!searchTerm.trim()) {
+                // alert('검색어를 입력하세요.'); // alert 대신 console.log
+                console.log('검색어를 입력하세요.');
+                return;
+            }
+            
+            console.log('검색:', searchType, searchTerm);
+            // alert(`${searchTerm}로 검색합니다.`); // alert 대신 console.log
+            console.log(`${searchTerm}로 검색합니다.`);
+            
+            // 실제로는 API 호출하여 검색 결과 표시
+        });
+        
+        // 엔터키 검색
+        document.querySelector('.news-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.querySelector('.news-search-form .news-btn').click();
+            }
+        });
+        
+        // 페이지 버튼 클릭
+        document.querySelectorAll('.news-page-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (this.textContent.match(/\d+/)) {
+                    // 페이지 번호 클릭
+                    const parent = this.closest('.news-pagination');
+                    parent.querySelectorAll('.news-page-btn').forEach(b => b.classList.remove('current'));
+                    this.classList.add('current');
+                }
+                
+                console.log('페이지 이동:', this.textContent);
+            });
+        });
+        
+        // 게시글 행 클릭
+        document.querySelectorAll('.news-post-list tr').forEach(row => {
+            if (row.querySelector('td')) {
+                row.addEventListener('click', function(e) {
+                    // 링크가 아닌 곳을 클릭했을 때만 동작
+                    if (e.target.tagName !== 'A') {
+                        const link = this.querySelector('.news-post-title');
+                        if (link) {
+                            window.location.href = link.href;
+                        }
+                    }
+                });
+                
+                row.style.cursor = 'pointer';
+            }
+        });
+        
+        // 실시간 업데이트 시뮬레이션
+        setInterval(function() {
+            // 랜덤하게 조회수 증가
+            const viewCells = document.querySelectorAll('.news-post-list tbody tr td:nth-child(4)');
+            viewCells.forEach(cell => {
+                if (Math.random() < 0.05) { // 5% 확률
+                    const currentViews = parseInt(cell.textContent.replace(',', ''));
+                    cell.textContent = (currentViews + 1).toLocaleString();
+                }
+            });
+        }, 5000);
+        
+        // 새 글 알림 (실시간 시뮬레이션)
+        let newPostCount = 0;
+        setInterval(function() {
+            if (Math.random() < 0.1) { // 10% 확률
+                newPostCount++;
+                const boardInfo = document.querySelector('.news-board-info span:last-child');
+                boardInfo.textContent = `총 ${1234 + newPostCount}개 글 | 오늘 +${45 + newPostCount}개`;
+                
+                // 페이지 제목에 알림 표시
+                document.title = `(+${newPostCount}) 정치토론 - FactLab`;
+            }
+        }, 10000);
+        
+        // 페이지 포커스 시 제목 원래대로
+        window.addEventListener('focus', function() {
+            document.title = '정치토론 - FactLab';
+            newPostCount = 0;
+        });
+    </script>
+</body>
+</html>

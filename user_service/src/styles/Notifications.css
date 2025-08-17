@@ -1,0 +1,224 @@
+/* Notifications.css - 알림 페이지 전용 스타일 */
+
+.news-notification-container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.news-notification-page-header {
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-notification-page-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.news-notification-stats {
+    font-size: 11px;
+    color: #666;
+}
+
+.news-notification-filter-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    background-color: #f8f8f8;
+    border-radius: 0.375rem 0.375rem 0 0;
+    overflow: hidden;
+}
+
+.news-notification-filter-tab {
+    padding: 10px 15px;
+    border-right: 1px solid #ddd;
+    background-color: #f8f8f8;
+    color: #666;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    position: relative;
+}
+
+.news-notification-filter-tab:last-child {
+    border-right: none;
+}
+
+.news-notification-filter-tab.active {
+    background-color: white;
+    color: #333;
+    font-weight: bold;
+}
+
+.news-notification-filter-tab:hover {
+    background-color: #e8e8e8;
+}
+
+.news-notification-actions {
+    padding: 10px 15px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.news-notification-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.news-notification-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.news-notification-item:hover {
+    background-color: #f9f9f9;
+}
+
+.news-notification-item.unread {
+    background-color: #f0f8ff;
+    border-left: 3px solid #0066cc;
+}
+
+.news-notification-item.unread:hover {
+    background-color: #e6f3ff;
+}
+
+.news-notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+}
+
+.news-notification-type {
+    background-color: #ddd;
+    color: #666;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 9px;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.news-notification-type.comment {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.news-notification-type.vote {
+    background-color: #2196F3;
+    color: white;
+}
+
+.news-notification-type.system {
+    background-color: #FF9800;
+    color: white;
+}
+
+.news-notification-type.news {
+    background-color: #9C27B0;
+    color: white;
+}
+
+.news-notification-time {
+    font-size: 10px;
+    color: #999;
+}
+
+.news-notification-content {
+    font-size: 12px;
+    line-height: 1.4;
+    margin-bottom: 3px;
+}
+
+.news-notification-link {
+    font-size: 10px;
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.news-notification-link:hover {
+    text-decoration: underline;
+}
+
+.news-notification-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 13px;
+}
+
+.news-notification-load-more {
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+.news-notification-unread-count {
+    background-color: #ff0000;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    margin-left: 5px;
+    display: inline-block;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .news-notification-container {
+        margin: 10px;
+    }
+    
+    .news-notification-page-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .news-notification-filter-tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .news-notification-filter-tab {
+        flex: 1 1 auto;
+        text-align: center;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .news-notification-filter-tab:last-child {
+        border-bottom: none;
+    }
+    
+    .news-notification-header {
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .news-notification-actions {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .news-notification-actions .news-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://factlab.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1

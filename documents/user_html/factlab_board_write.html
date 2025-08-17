@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기 - FactLab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .header {
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 0;
+        }
+        
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-menu a {
+            color: #333;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 10px auto;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        
+        .page-header {
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .write-form {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .required {
+            color: #ff0000;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            font-family: inherit;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        
+        .form-select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            background-color: white;
+            min-width: 150px;
+        }
+        
+        .content-editor {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #0066cc;
+            background-color: #f0f8ff;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #0066cc;
+            background-color: #e6f3ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .uploaded-files {
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            font-size: 11px;
+        }
+        
+        .file-remove {
+            color: #cc0000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tag-input {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            padding: 5px;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 35px;
+        }
+        
+        .tag-item {
+            background-color: #e0e0e0;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tag-remove {
+            color: #666;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tag-field {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            font-size: 12px;
+        }
+        
+        .editor-toolbar {
+            border: 1px solid #ccc;
+            border-bottom: none;
+            padding: 8px;
+            background-color: #f8f8f8;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-btn {
+            padding: 5px 8px;
+            border: 1px solid #ccc;
+            background-color: white;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .toolbar-btn:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .toolbar-btn.active {
+            background-color: #0066cc;
+            color: white;
+        }
+        
+        .form-footer {
+            padding: 15px 20px;
+            background-color: #fafafa;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-primary {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .btn-secondary {
+            background-color: #666;
+            color: white;
+            border-color: #666;
+        }
+        
+        .form-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 11px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .help-text {
+            font-size: 10px;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .auto-save-status {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 5px;
+            }
+            
+            .form-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .form-options {
+                justify-content: center;
+            }
+            
+            .editor-toolbar {
+                gap: 3px;
+            }
+            
+            .toolbar-btn {
+                padding: 3px 5px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">FactLab</a>
+            <div class="nav-menu">
+                <a href="index.html">홈</a>
+                <a href="board_list.html">게시판</a>
+                <a href="news_feed.html">뉴스</a>
+                <a href="login.html">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            글쓰기
+        </div>
+        
+        <form class="write-form" id="writeForm">
+            <!-- 게시판 선택 -->
+            <div class="form-group">
+                <label class="form-label">게시판 선택 <span class="required">*</span></label>
+                <select class="form-select" name="board_id" required>
+                    <option value="">게시판을 선택하세요</option>
+                    <option value="1">정치토론</option>
+                    <option value="2">사회이슈</option>
+                    <option value="3">경제뉴스</option>
+                    <option value="4">과학기술</option>
+                    <option value="5">문화생활</option>
+                    <option value="6">스포츠</option>
+                    <option value="7">국제뉴스</option>
+                </select>
+            </div>
+            
+            <!-- 제목 -->
+            <div class="form-group">
+                <label class="form-label">제목 <span class="required">*</span></label>
+                <input type="text" class="form-input" name="title" placeholder="제목을 입력하세요" required maxlength="100">
+                <div class="help-text">최대 100자</div>
+            </div>
+            
+            <!-- 작성자 표시 -->
+            <div class="form-group">
+                <label class="form-label">작성자</label>
+                <input type="text" class="form-input" value="닉네임" readonly>
+                <div class="help-text">닉네임으로 표시됩니다</div>
+            </div>
+            
+            <!-- 내용 에디터 -->
+            <div class="form-group">
+                <label class="form-label">내용 <span class="required">*</span></label>
+                
+                <!-- 에디터 툴바 -->
+                <div class="editor-toolbar">
+                    <button type="button" class="toolbar-btn" onclick="formatText('bold')" title="굵게">
+                        <strong>B</strong>
+                    </button>
+                    <button type="button" class="toolbar-btn" onclick="formatText('italic')" title="기울임">
+                        <em>I</em>
+                    </button>
+                    <button type="button" class="toolbar-btn" onclick="formatText('underline')" title="밑줄">
+                        <u>U</u>
+                    </button>
+                    <button type="button" class="toolbar-btn" onclick="insertLink()" title="링크">
+                        🔗
+                    </button>
+                    <button type="button" class="toolbar-btn" onclick="insertImage()" title="이미지">
+                        🖼️
+                    </button>
+                    <button type="button" class="toolbar-btn" onclick="insertList()" title="목록">
+                        📝
+                    </button>
+                </div>
+                
+                <textarea class="content-editor" name="content" placeholder="내용을 입력하세요..." required></textarea>
+                <div class="help-text">Ctrl+Enter로 저장할 수 있습니다</div>
+            </div>
+            
+            <!-- 파일 첨부 -->
+            <div class="form-group">
+                <label class="form-label">파일 첨부</label>
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div>📁 파일을 드래그하거나 클릭하여 업로드</div>
+                    <div class="help-text">이미지: 10MB 이하, GIF 포함 | 일반 파일: 5MB 이하</div>
+                </div>
+                <input type="file" id="fileInput" class="file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+                <div class="uploaded-files" id="uploadedFiles"></div>
+            </div>
+            
+            <!-- 태그 -->
+            <div class="form-group">
+                <label class="form-label">태그</label>
+                <div class="tag-input" id="tagInput">
+                    <input type="text" class="tag-field" placeholder="태그를 입력하고 Enter를 누르세요">
+                </div>
+                <div class="help-text">최대 5개의 태그를 추가할 수 있습니다</div>
+            </div>
+        </form>
+        
+        <!-- 폼 하단 -->
+        <div class="form-footer">
+            <div class="form-options">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="autoSave" checked>
+                    <label for="autoSave">자동 저장</label>
+                </div>
+                <div class="auto-save-status" id="autoSaveStatus">
+                    자동 저장됨 (30초 전)
+                </div>
+            </div>
+            
+            <div>
+                <button type="button" class="btn btn-secondary" onclick="saveDraft()">임시저장</button>
+                <button type="button" class="btn" onclick="preview()">미리보기</button>
+                <button type="button" class="btn" onclick="goBack()">취소</button>
+                <button type="submit" class="btn btn-primary" form="writeForm">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tags = [];
+        let uploadedFiles = [];
+        let autoSaveInterval;
+        
+        // 폼 초기화
+        document.getElementById('writeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('board_id', document.querySelector('[name="board_id"]').value);
+            formData.append('title', document.querySelector('[name="title"]').value);
+            formData.append('content', document.querySelector('[name="content"]').value);
+            formData.append('tags', JSON.stringify(tags));
+            
+            // 파일 추가
+            uploadedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            // 실제로는 서버에 전송
+            console.log('게시글 등록:', Object.fromEntries(formData));
+            alert('게시글이 등록되었습니다.');
+            window.location.href = 'board_detail.html';
+        });
+        
+        // 폼 유효성 검사
+        function validateForm() {
+            const board = document.querySelector('[name="board_id"]').value;
+            const title = document.querySelector('[name="title"]').value.trim();
+            const content = document.querySelector('[name="content"]').value.trim();
+            
+            if (!board) {
+                alert('게시판을 선택하세요.');
+                return false;
+            }
+            
+            if (!title) {
+                alert('제목을 입력하세요.');
+                return false;
+            }
+            
+            if (!content) {
+                alert('내용을 입력하세요.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 텍스트 포맷팅
+        function formatText(command) {
+            const textarea = document.querySelector('[name="content"]');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            
+            let formattedText = '';
+            switch(command) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+                case 'underline':
+                    formattedText = `__${selectedText}__`;
+                    break;
+            }
+            
+            textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+            textarea.focus();
+        }
+        
+        // 링크 삽입
+        function insertLink() {
+            const url = prompt('링크 URL을 입력하세요:');
+            const text = prompt('링크 텍스트를 입력하세요:');
+            
+            if (url && text) {
+                const textarea = document.querySelector('[name="content"]');
+                const link = `[${text}](${url})`;
+                insertTextAtCursor(textarea, link);
+            }
+        }
+        
+        // 이미지 삽입
+        function insertImage() {
+            document.getElementById('fileInput').click();
+        }
+        
+        // 목록 삽입
+        function insertList() {
+            const textarea = document.querySelector('[name="content"]');
+            const listText = '\n- 항목 1\n- 항목 2\n- 항목 3\n';
+            insertTextAtCursor(textarea, listText);
+        }
+        
+        // 커서 위치에 텍스트 삽입
+        function insertTextAtCursor(textarea, text) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + text.length;
+            textarea.focus();
+        }
+        
+        // 파일 업로드 처리
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+        
+        // 드래그 앤 드롭 처리
+        const uploadArea = document.querySelector('.file-upload-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+        
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+        
+        uploadArea.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+        
+        // 파일 처리
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (validateFile(file)) {
+                    uploadedFiles.push(file);
+                    displayFile(file);
+                }
+            });
+        }
+        
+        // 파일 유효성 검사
+        function validateFile(file) {
+            const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+            
+            if (file.size > maxSize) {
+                alert(`파일 크기가 너무 큽니다. (최대 ${maxSize / 1024 / 1024}MB)`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 파일 표시
+        function displayFile(file) {
+            const container = document.getElementById('uploadedFiles');
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>${file.name} (${(file.size / 1024).toFixed(1)}KB)</span>
+                <span class="file-remove" onclick="removeFile(this, '${file.name}')">×</span>
+            `;
+            container.appendChild(fileItem);
+        }
+        
+        // 파일 제거
+        function removeFile(element, fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            element.parentElement.remove();
+        }
+        
+        // 태그 처리
+        const tagInput = document.getElementById('tagInput');
+        const tagField = tagInput.querySelector('.tag-field');
+        
+        tagField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag(this.value.trim());
+                this.value = '';
+            }
+        });
+        
+        function addTag(tagText) {
+            if (!tagText || tags.length >= 5 || tags.includes(tagText)) {
+                return;
+            }
+            
+            tags.push(tagText);
+            
+            const tagItem = document.createElement('div');
+            tagItem.className = 'tag-item';
+            tagItem.innerHTML = `
+                ${tagText}
+                <span class="tag-remove" onclick="removeTag(this, '${tagText}')">×</span>
+            `;
+            
+            tagInput.insertBefore(tagItem, tagField);
+        }
+        
+        function removeTag(element, tagText) {
+            tags = tags.filter(tag => tag !== tagText);
+            element.parentElement.remove();
+        }
+        
+        // 임시저장
+        function saveDraft() {
+            const draftData = {
+                board_id: document.querySelector('[name="board_id"]').value,
+                title: document.querySelector('[name="title"]').value,
+                content: document.querySelector('[name="content"]').value,
+                tags: tags,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('factlab_draft', JSON.stringify(draftData));
+            document.getElementById('autoSaveStatus').textContent = '임시저장됨 (방금 전)';
+            alert('임시저장되었습니다.');
+        }
+        
+        // 자동저장
+        function enableAutoSave() {
+            autoSaveInterval = setInterval(() => {
+                if (document.getElementById('autoSave').checked) {
+                    const title = document.querySelector('[name="title"]').value;
+                    const content = document.querySelector('[name="content"]').value;
+                    
+                    if (title.trim() || content.trim()) {
+                        saveDraft();
+                        document.getElementById('autoSaveStatus').textContent = '자동저장됨 (방금 전)';
+                    }
+                }
+            }, 30000); // 30초마다
+        }
+        
+        // 임시저장 불러오기
+        function loadDraft() {
+            const savedDraft = localStorage.getItem('factlab_draft');
+            if (savedDraft) {
+                const draftData = JSON.parse(savedDraft);
+                const timeDiff = new Date() - new Date(draftData.timestamp);
+                
+                // 1일 이내의 임시저장만 복원
+                if (timeDiff < 24 * 60 * 60 * 1000) {
+                    if (confirm('임시저장된 글이 있습니다. 불러오시겠습니까?')) {
+                        document.querySelector('[name="board_id"]').value = draftData.board_id || '';
+                        document.querySelector('[name="title"]').value = draftData.title || '';
+                        document.querySelector('[name="content"]').value = draftData.content || '';
+                        
+                        if (draftData.tags) {
+                            draftData.tags.forEach(tag => addTag(tag));
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 미리보기
+        function preview() {
+            const title = document.querySelector('[name="title"]').value;
+            const content = document.querySelector('[name="content"]').value;
+            
+            if (!title || !content) {
+                alert('제목과 내용을 입력하세요.');
+                return;
+            }
+            
+            const previewWindow = window.open('', 'preview', 'width=800,height=600');
+            previewWindow.document.write(`
+                <html>
+                <head><title>미리보기</title></head>
+                <body style="font-family: Malgun Gothic; padding: 20px;">
+                    <h2>${title}</h2>
+                    <hr>
+                    <div style="white-space: pre-wrap;">${content}</div>
+                </body>
+                </html>
+            `);
+        }
+        
+        // 취소
+        function goBack() {
+            if (confirm('작성 중인 내용이 사라집니다. 계속하시겠습니까?')) {
+                window.history.back();
+            }
+        }
+        
+        // Ctrl+Enter 저장
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('writeForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // 페이지 나가기 전 경고
+        window.addEventListener('beforeunload', function(e) {
+            const title = document.querySelector('[name="title"]').value;
+            const content = document.querySelector('[name="content"]').value;
+            
+            if (title.trim() || content.trim()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDraft();
+            enableAutoSave();
+        });
+    </script>
+</body>
+</html>

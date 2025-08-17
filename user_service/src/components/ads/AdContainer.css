@@ -1,0 +1,245 @@
+/* AdContainer.css - 광고 레이아웃 컨테이너 스타일 */
+
+.ad_container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* 상단 배너 섹션 */
+.ad_section.ad_header {
+  width: 100%;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 메인 레이아웃 */
+.ad_main_layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* 사이드바 */
+.ad_sidebar {
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+}
+
+.ad_sidebar_left {
+  order: 1;
+}
+
+.ad_sidebar_right {
+  order: 3;
+}
+
+/* 콘텐츠 래퍼 */
+.ad_content_wrapper {
+  flex: 1;
+  order: 2;
+  min-width: 0; /* flexbox overflow 방지 */
+}
+
+/* 콘텐츠 상단 광고 */
+.ad_section.ad_content_top {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 메인 콘텐츠 */
+.ad_main_content {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* 콘텐츠 중간 광고 */
+.ad_section.ad_content_middle {
+  margin: 20px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 콘텐츠 하단 광고 */
+.ad_section.ad_content_bottom {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 하단 배너 섹션 */
+.ad_section.ad_footer {
+  width: 100%;
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 네이티브 피드 광고 */
+.ad_section.ad_native_feed {
+  margin: 24px 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* 태블릿 반응형 */
+@media (max-width: 1024px) {
+  .ad_container {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+  
+  .ad_main_layout {
+    gap: 16px;
+  }
+  
+  .ad_sidebar {
+    width: 140px;
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .ad_container {
+    padding: 0 12px;
+  }
+  
+  /* 모바일에서는 사이드바 숨김 */
+  .ad_main_layout {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .ad_sidebar {
+    display: none;
+  }
+  
+  .ad_content_wrapper {
+    order: 1;
+    width: 100%;
+  }
+  
+  .ad_main_content {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .ad_section.ad_header,
+  .ad_section.ad_footer {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+  
+  .ad_section.ad_content_top,
+  .ad_section.ad_content_bottom {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+  
+  .ad_section.ad_content_middle {
+    justify-content: center;
+    margin: 16px -16px;
+  }
+}
+
+/* 작은 모바일 화면 */
+@media (max-width: 480px) {
+  .ad_container {
+    padding: 0 8px;
+  }
+  
+  .ad_main_content {
+    padding: 12px;
+    border-radius: 4px;
+  }
+  
+  .ad_section.ad_header,
+  .ad_section.ad_footer {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+}
+
+/* 광고 섹션 애니메이션 */
+.ad_section {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 스크롤 시 사이드바 고정 효과 */
+.ad_sidebar {
+  transition: all 0.3s ease;
+}
+
+.ad_sidebar.sticky {
+  position: fixed;
+  top: 20px;
+  z-index: 100;
+}
+
+/* 콘텐츠 영역 포커스 시 광고 투명도 조정 */
+.ad_main_content:focus-within ~ .ad_section {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+/* 인쇄 시 광고 숨김 */
+@media print {
+  .ad_section,
+  .ad_sidebar {
+    display: none !important;
+  }
+  
+  .ad_main_layout {
+    flex-direction: column;
+  }
+  
+  .ad_content_wrapper {
+    width: 100%;
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .ad_main_content {
+    border: 2px solid #000;
+  }
+}
+
+/* 애니메이션 감소 모드 지원 */
+@media (prefers-reduced-motion: reduce) {
+  .ad_section {
+    animation: none;
+  }
+  
+  .ad_sidebar {
+    transition: none;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .ad_main_content {
+    background: #2d3748;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+}

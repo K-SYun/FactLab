@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판 - FactLab</title>
+    <link rel="stylesheet" href="Common.css">
+    <style>
+        /* factlab_board_list.html 전용 스타일 */
+        .news-container {
+            max-width: 1200px; /* 공통 컨테이너 너비에 맞춤 */
+            margin: 10px auto;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        
+        .news-page-header { /* 기존 .page-header */
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .news-search-area { /* 기존 .search-area */
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        
+        .news-search-form { /* 기존 .search-form */
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .news-search-select { /* 기존 .search-select */
+            padding: 3px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+        }
+        
+        .news-search-input { /* 기존 .search-input */
+            padding: 3px 5px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            width: 200px;
+        }
+        
+        .news-category-tabs { /* 기존 .category-tabs */
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            background-color: #f8f8f8;
+        }
+        
+        .news-tab { /* 기존 .tab */
+            padding: 8px 15px;
+            border-right: 1px solid #ddd;
+            background-color: #f8f8f8;
+            color: #333;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .news-tab.active {
+            background-color: white;
+            font-weight: bold;
+        }
+        
+        .news-tab:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .news-board-list-grid { /* 기존 .board-list */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1px;
+            background-color: #ddd;
+        }
+        
+        .news-board-item { /* 기존 .board-item */
+            background-color: white;
+            padding: 10px;
+            cursor: pointer;
+        }
+        
+        .news-board-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .news-board-item-title { /* 기존 .board-title */
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #0066cc;
+        }
+        
+        .news-board-desc { /* 기존 .board-desc */
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+        
+        .news-board-stats { /* 기존 .board-stats */
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .news-write-button { /* 기존 .write-button */
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .news-popular-boards { /* 기존 .popular-boards */
+            margin: 10px;
+            padding: 10px;
+            background-color: #fff8dc;
+            border: 1px solid #ddd;
+        }
+        
+        .news-popular-title { /* 기존 .popular-title */
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .news-popular-list { /* 기존 .popular-list */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .news-popular-item { /* 기존 .popular-item */
+            font-size: 11px;
+            color: #0066cc;
+            text-decoration: none;
+            padding: 2px 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+        
+        .news-popular-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .news-board-count { /* 기존 .board-count */
+            font-size: 10px;
+            color: #ff6600;
+            margin-left: 3px;
+        }
+        
+        @media (max-width: 768px) {
+            .news-board-list-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-category-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .news-search-form {
+                flex-direction: column;
+                gap: 5px;
+                align-items: stretch;
+            }
+            
+            .news-search-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="news-header">
+        <div class="news-header-content">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <div class="news-auth-buttons">
+                <a href="factlab_main.html" class="news-btn">홈</a>
+                <a href="factlab_board_list.html" class="news-btn news-btn-primary">게시판</a>
+                <a href="factlab_news_feed.html" class="news-btn">뉴스</a>
+                <a href="factlab_login.html" class="news-btn">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="news-container">
+        <div class="news-page-header">
+            게시판 목록
+        </div>
+        
+        <!-- Popular Boards -->
+        <div class="news-popular-boards">
+            <div class="news-popular-title">🏆 인기 게시판</div>
+            <div class="news-popular-list">
+                <a href="factlab_board_detail.html?id=1" class="news-popular-item">정치토론<span class="news-board-count">(1,234)</span></a>
+                <a href="factlab_board_detail.html?id=2" class="news-popular-item">사회이슈<span class="news-board-count">(987)</span></a>
+                <a href="factlab_board_detail.html?id=3" class="news-popular-item">경제뉴스<span class="news-board-count">(756)</span></a>
+                <a href="factlab_board_detail.html?id=4" class="news-popular-item">과학기술<span class="news-board-count">(543)</span></a>
+                <a href="factlab_board_detail.html?id=5" class="news-popular-item">국제뉴스<span class="news-board-count">(432)</span></a>
+            </div>
+        </div>
+        
+        <!-- Search Area -->
+        <div class="news-search-area">
+            <div class="news-search-form">
+                <select class="news-search-select">
+                    <option value="all">전체</option>
+                    <option value="title">게시판명</option>
+                    <option value="desc">설명</option>
+                </select>
+                <input type="text" class="news-search-input" placeholder="검색어 입력">
+                <button class="news-btn">검색</button>
+                <button class="news-btn" onclick="location.href='factlab_board_write.html'">글등록</button>
+            </div>
+        </div>
+        
+        <!-- Category Tabs -->
+        <div class="news-category-tabs">
+            <a href="#" class="news-tab active" data-category="all">전체</a>
+            <a href="#" class="news-tab" data-category="politics">정치</a>
+            <a href="#" class="news-tab" data-category="society">사회</a>
+            <a href="#" class="news-tab" data-category="economy">경제</a>
+            <a href="#" class="news-tab" data-category="culture">문화</a>
+            <a href="#" class="news-tab" data-category="tech">과학기술</a>
+            <a href="#" class="news-tab" data-category="sports">스포츠</a>
+            <a href="#" class="news-tab" data-category="international">국제</a>
+        </div>
+        
+        <!-- Board List -->
+        <div class="news-board-list-grid" id="boardList">
+            <!-- 정치 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=1'" data-category="politics">
+                <div class="news-board-item-title">정치토론</div>
+                <div class="news-board-desc">정치 관련 이슈와 정책에 대해 토론하는 공간입니다.</div>
+                <div class="news-board-stats">
+                    <span>글 1,234개</span>
+                    <span>오늘 +45</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=2'" data-category="politics">
+                <div class="news-board-item-title">정책분석</div>
+                <div class="news-board-desc">정부 정책의 효과와 문제점을 분석합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 567개</span>
+                    <span>오늘 +12</span>
+                </div>
+            </div>
+            
+            <!-- 사회 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=3'" data-category="society">
+                <div class="news-board-item-title">사회이슈</div>
+                <div class="news-board-desc">사회 전반의 이슈와 현상에 대해 논의합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 987개</span>
+                    <span>오늘 +33</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=4'" data-category="society">
+                <div class="news-board-item-title">교육문제</div>
+                <div class="news-board-desc">교육 정책과 제도에 대한 토론 공간입니다.</div>
+                <div class="news-board-stats">
+                    <span>글 456개</span>
+                    <span>오늘 +18</span>
+                </div>
+            </div>
+            
+            <!-- 경제 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=5'" data-category="economy">
+                <div class="news-board-item-title">경제뉴스</div>
+                <div class="news-board-desc">경제 동향과 시장 분석 정보를 공유합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 756개</span>
+                    <span>오늘 +29</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=6'" data-category="economy">
+                <div class="news-board-item-title">부동산정보</div>
+                <div class="news-board-desc">부동산 시장 동향과 정책 정보입니다.</div>
+                <div class="news-board-stats">
+                    <span>글 432개</span>
+                    <span>오늘 +15</span>
+                </div>
+            </div>
+            
+            <!-- 과학기술 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=7'" data-category="tech">
+                <div class="news-board-item-title">과학기술</div>
+                <div class="news-board-desc">최신 과학기술 동향과 연구 성과를 다룹니다.</div>
+                <div class="news-board-stats">
+                    <span>글 543개</span>
+                    <span>오늘 +21</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=8'" data-category="tech">
+                <div class="news-board-item-title">AI & 빅데이터</div>
+                <div class="news-board-desc">인공지능과 빅데이터 관련 정보를 공유합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 321개</span>
+                    <span>오늘 +8</span>
+                </div>
+            </div>
+            
+            <!-- 문화 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=9'" data-category="culture">
+                <div class="news-board-item-title">문화생활</div>
+                <div class="news-board-desc">영화, 음악, 예술 등 문화 관련 이야기입니다.</div>
+                <div class="news-board-stats">
+                    <span>글 234개</span>
+                    <span>오늘 +6</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=10'" data-category="culture">
+                <div class="news-board-item-title">미디어비평</div>
+                <div class="news-board-desc">방송, 영화, 도서 등 미디어 콘텐츠를 비평합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 187개</span>
+                    <span>오늘 +4</span>
+                </div>
+            </div>
+            
+            <!-- 스포츠 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=11'" data-category="sports">
+                <div class="news-board-item-title">축구토론</div>
+                <div class="news-board-desc">국내외 축구 소식과 분석을 나눕니다.</div>
+                <div class="news-board-stats">
+                    <span>글 678개</span>
+                    <span>오늘 +25</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=12'" data-category="sports">
+                <div class="news-board-item-title">야구토론</div>
+                <div class="news-board-desc">프로야구와 메이저리그 소식을 다룹니다.</div>
+                <div class="news-board-stats">
+                    <span>글 445개</span>
+                    <span>오늘 +16</span>
+                </div>
+            </div>
+            
+            <!-- 국제 카테고리 -->
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=13'" data-category="international">
+                <div class="news-board-item-title">국제뉴스</div>
+                <div class="news-board-desc">해외 주요 뉴스와 국제 정세를 분석합니다.</div>
+                <div class="news-board-stats">
+                    <span>글 432개</span>
+                    <span>오늘 +19</span>
+                </div>
+            </div>
+            
+            <div class="news-board-item" onclick="location.href='factlab_board_detail.html?id=14'" data-category="international">
+                <div class="news-board-item-title">외교안보</div>
+                <div class="news-board-desc">외교 정책과 국가 안보 이슈를 다룹니다.</div>
+                <div class="news-board-stats">
+                    <span>글 298개</span>
+                    <span>오늘 +7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write Button -->
+    <button class="news-write-button" onclick="location.href='factlab_board_write.html'">
+        글쓰기
+    </button>
+
+    <!-- Footer -->
+    <div class="news-footer">
+        <div class="news-footer-content">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="report.html">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 카테고리 탭 기능
+        document.querySelectorAll('.news-tab').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 활성 탭 변경
+                document.querySelectorAll('.news-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 게시판 필터링
+                const category = this.dataset.category;
+                const boardItems = document.querySelectorAll('.news-board-item');
+                
+                boardItems.forEach(item => {
+                    if (category === 'all' || item.dataset.category === category) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // 검색 기능
+        document.querySelector('.news-search-form .news-btn').addEventListener('click', function() {
+            const searchInput = document.querySelector('.news-search-input');
+            const searchType = document.querySelector('.news-search-select').value;
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (!searchTerm) {
+                // alert('검색어를 입력하세요.'); // alert 대신 console.log
+                console.log('검색어를 입력하세요.');
+                return;
+            }
+            
+            const boardItems = document.querySelectorAll('.news-board-item');
+            let found = false;
+            
+            boardItems.forEach(item => {
+                const title = item.querySelector('.news-board-item-title').textContent.toLowerCase();
+                const desc = item.querySelector('.news-board-desc').textContent.toLowerCase();
+                
+                let match = false;
+                if (searchType === 'all' && (title.includes(searchTerm) || desc.includes(searchTerm))) {
+                    match = true;
+                } else if (searchType === 'title' && title.includes(searchTerm)) {
+                    match = true;
+                } else if (searchType === 'desc' && desc.includes(searchTerm)) {
+                    match = true;
+                }
+                
+                if (match) {
+                    item.style.display = 'block';
+                    item.style.backgroundColor = '#fff8dc';
+                    found = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            if (!found) {
+                // alert('검색 결과가 없습니다.'); // alert 대신 console.log
+                console.log('검색 결과가 없습니다.');
+                // 모든 게시판 다시 표시
+                boardItems.forEach(item => {
+                    item.style.display = 'block';
+                    item.style.backgroundColor = 'white';
+                });
+            }
+        });
+        
+        // 엔터키 검색
+        document.querySelector('.news-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.querySelector('.news-search-form .news-btn').click();
+            }
+        });
+        
+        // 게시판 통계 업데이트 (실시간 시뮬레이션)
+        setInterval(function() {
+            const boardItems = document.querySelectorAll('.news-board-item');
+            boardItems.forEach(item => {
+                const statsEl = item.querySelector('.news-board-stats span:last-child');
+                if (Math.random() < 0.1) { // 10% 확률로 업데이트
+                    const currentNum = parseInt(statsEl.textContent.match(/\d+/)[0]);
+                    statsEl.textContent = `오늘 +${currentNum + 1}`;
+                }
+            });
+        }, 10000); // 10초마다 체크
+    </script>
+</body>
+</html>

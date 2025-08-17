@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>뉴스 팩트체크 - FactLab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .header {
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 0;
+        }
+        
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-menu a {
+            color: #333;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 10px auto;
+        }
+        
+        .page-header {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .filter-area {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-tab {
+            padding: 5px 12px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 11px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .filter-tab.active {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .filter-tab:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .filter-tab.active:hover {
+            background-color: #0052a3;
+        }
+        
+        .news-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .news-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .news-card:hover {
+            background-color: #f9f9f9;
+            border-color: #0066cc;
+        }
+        
+        .news-thumbnail {
+            width: 120px;
+            height: 90px;
+            flex-shrink: 0;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        
+        .thumbnail-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #999;
+        }
+        
+        .news-content {
+            flex: 1;
+            min-width: 0;
+            padding-top: 0;
+        }
+        
+        .news-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+        
+        .news-source {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .news-time {
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .news-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            color: #333;
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        .news-summary {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .fact-question {
+            background-color: #fff8dc;
+            border-left: 3px solid #ffcc00;
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: #cc6600;
+            font-weight: bold;
+        }
+        
+        .voting-area {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        
+        .vote-option {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            text-align: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .vote-option:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .vote-option.selected {
+            border-color: #0066cc;
+            background-color: #e6f3ff;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .vote-option.fact {
+            color: #009900;
+        }
+        
+        .vote-option.doubt {
+            color: #cc0000;
+        }
+        
+        .vote-option.partial {
+            color: #ff6600;
+        }
+        
+        .vote-option.need-info {
+            color: #6666cc;
+        }
+        
+        .news-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .stats-left {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .discussion-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        
+        .discussion-btn:hover {
+            background-color: #0052a3;
+        }
+        
+        .load-more {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+        
+        .trending-keywords {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+        }
+        
+        .trending-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .keyword-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .keyword-tag {
+            background-color: #f0f0f0;
+            color: #666;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+        }
+        
+        .keyword-tag:hover {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .vote-results {
+            display: flex;
+            gap: 3px;
+            margin-top: 5px;
+        }
+        
+        .result-bar {
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .result-fact {
+            background-color: #009900;
+        }
+        
+        .result-doubt {
+            background-color: #cc0000;
+        }
+        
+        .result-partial {
+            background-color: #ff6600;
+        }
+        
+        .result-need-info {
+            background-color: #6666cc;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 5px;
+            }
+            
+            .filter-area {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .filter-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .news-card {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .news-thumbnail {
+                width: 100%;
+                height: 150px;
+            }
+            
+            .voting-area {
+                grid-template-columns: 1fr 1fr;
+                gap: 3px;
+            }
+            
+            .vote-option {
+                font-size: 9px;
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">FactLab</a>
+            <div class="nav-menu">
+                <a href="index.html">홈</a>
+                <a href="board_list.html">게시판</a>
+                <a href="news_feed.html">뉴스</a>
+                <a href="login.html">로그인</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            🔍 뉴스 팩트체크 - 이 뉴스 사실일까요?
+        </div>
+        
+        <!-- Trending Keywords -->
+        <div class="trending-keywords">
+            <div class="trending-title">🔥 트렌딩 키워드</div>
+            <div class="keyword-list">
+                <a href="#" class="keyword-tag">#AI일자리</a>
+                <a href="#" class="keyword-tag">#백신효과</a>
+                <a href="#" class="keyword-tag">#탄소중립</a>
+                <a href="#" class="keyword-tag">#부동산정책</a>
+                <a href="#" class="keyword-tag">#경제성장률</a>
+                <a href="#" class="keyword-tag">#교육개혁</a>
+                <a href="#" class="keyword-tag">#디지털뉴딜</a>
+            </div>
+        </div>
+        
+        <!-- Filter Area -->
+        <div class="filter-area">
+            <div class="filter-tabs">
+                <a href="#" class="filter-tab active" data-category="all">전체</a>
+                <a href="#" class="filter-tab" data-category="politics">정치</a>
+                <a href="#" class="filter-tab" data-category="economy">경제</a>
+                <a href="#" class="filter-tab" data-category="society">사회</a>
+                <a href="#" class="filter-tab" data-category="tech">IT</a>
+                <a href="#" class="filter-tab" data-category="international">국제</a>
+            </div>
+            <div>
+                <select style="font-size: 11px; padding: 3px;">
+                    <option>최신순</option>
+                    <option>투표순</option>
+                    <option>논란순</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- News Grid -->
+        <div class="news-grid" id="newsGrid">
+            <!-- News Card 1 -->
+            <div class="news-card" data-category="tech">
+                <div class="news-thumbnail">
+                    <img src="https://via.placeholder.com/120x90/1976D2/FFFFFF?text=AI" class="thumbnail-img" alt="AI 뉴스 썸네일">
+                </div>
+                <div class="news-content">
+                    <div class="news-title">AI 기술 발전으로 일자리 30% 감소 예상</div>
+                    <div class="news-summary">
+                        최신 연구에 따르면 향후 10년 내 AI 기술 발전으로 인해 전체 일자리의 30%가 사라질 것으로 예상된다고 발표했습니다. 
+                        특히 단순 반복 업무와 데이터 분석 분야의 타격이 클 것으로 전망되며...
+                    </div>
+                    <div class="fact-question">
+                        🤔 이 뉴스 사실일까요? AI로 인한 일자리 감소율이 정말 30%나 될까요?
+                    </div>
+                    <div class="voting-area">
+                        <div class="vote-option fact" onclick="vote(1, 'fact')">
+                            ✅ 사실 (89)
+                        </div>
+                        <div class="vote-option doubt" onclick="vote(1, 'doubt')">
+                            ❌ 의심 (23)
+                        </div>
+                        <div class="vote-option partial" onclick="vote(1, 'partial')">
+                            ⚠️ 부분사실 (45)
+                        </div>
+                        <div class="vote-option need-info" onclick="vote(1, 'need-info')">
+                            ❓ 정보부족 (12)
+                        </div>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-left">
+                            <span class="news-source">MBC - 테크뉴스</span>
+                            <span class="news-time">2시간 전</span>
+                            <span>👀 1,234</span>
+                            <span>💬 67</span>
+                            <span>📊 169표</span>
+                        </div>
+                        <button class="discussion-btn" onclick="goToDiscussion(1)">토론 참여</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Card 2 -->
+            <div class="news-card" data-category="economy">
+                <div class="news-thumbnail">
+                    <img src="https://via.placeholder.com/120x90/FF9800/FFFFFF?text=부동산" class="thumbnail-img" alt="부동산 뉴스 썸네일">
+                </div>
+                <div class="news-content">
+                    <div class="news-title">정부 부동산 규제 완화로 집값 10% 하락 전망</div>
+                    <div class="news-summary">
+                        정부의 부동산 규제 완화 정책 발표 후 부동산 전문가들은 향후 6개월 내 집값이 평균 10% 하락할 것으로 전망한다고 밝혔습니다. 
+                        특히 수도권 아파트 가격의 조정이 불가피할 것으로 보이며...
+                    </div>
+                    <div class="fact-question">
+                        🤔 규제 완화만으로 집값이 10%나 떨어질 수 있을까요?
+                    </div>
+                    <div class="voting-area">
+                        <div class="vote-option fact" onclick="vote(2, 'fact')">
+                            ✅ 사실 (34)
+                        </div>
+                        <div class="vote-option doubt" onclick="vote(2, 'doubt')">
+                            ❌ 의심 (78)
+                        </div>
+                        <div class="vote-option partial" onclick="vote(2, 'partial')">
+                            ⚠️ 부분사실 (56)
+                        </div>
+                        <div class="vote-option need-info" onclick="vote(2, 'need-info')">
+                            ❓ 정보부족 (23)
+                        </div>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-left">
+                            <span class="news-source">KBS - 경제신문</span>
+                            <span class="news-time">4시간 전</span>
+                            <span>👀 2,567</span>
+                            <span>💬 134</span>
+                            <span>📊 191표</span>
+                        </div>
+                        <button class="discussion-btn" onclick="goToDiscussion(2)">토론 참여</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Card 3 -->
+            <div class="news-card" data-category="society">
+                <div class="news-thumbnail">
+                    <img src="https://via.placeholder.com/120x90/4CAF50/FFFFFF?text=백신" class="thumbnail-img" alt="백신 뉴스 썸네일">
+                </div>
+                <div class="news-content">
+                    <div class="news-title">새로운 백신 개발, 효과 95% 입증</div>
+                    <div class="news-summary">
+                        국내 제약회사가 개발한 새로운 백신의 3상 임상시험 결과 95%의 예방 효과가 입증되었다고 발표했습니다. 
+                        이는 기존 백신 대비 20% 향상된 수치로, 곧 정부 승인 절차에 들어갈 예정이라고...
+                    </div>
+                    <div class="fact-question">
+                        🤔 새로운 백신의 95% 효과가 정말 신뢰할 만할까요?
+                    </div>
+                    <div class="voting-area">
+                        <div class="vote-option fact" onclick="vote(3, 'fact')">
+                            ✅ 사실 (156)
+                        </div>
+                        <div class="vote-option doubt" onclick="vote(3, 'doubt')">
+                            ❌ 의심 (12)
+                        </div>
+                        <div class="vote-option partial" onclick="vote(3, 'partial')">
+                            ⚠️ 부분사실 (28)
+                        </div>
+                        <div class="vote-option need-info" onclick="vote(3, 'need-info')">
+                            ❓ 정보부족 (45)
+                        </div>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-left">
+                            <span class="news-source">SBS - 사회뉴스</span>
+                            <span class="news-time">6시간 전</span>
+                            <span>👀 3,421</span>
+                            <span>💬 89</span>
+                            <span>📊 241표</span>
+                        </div>
+                        <button class="discussion-btn" onclick="goToDiscussion(3)">토론 참여</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Card 4 -->
+            <div class="news-card" data-category="politics">
+                <div class="news-thumbnail">
+                    <img src="https://via.placeholder.com/120x90/8BC34A/FFFFFF?text=환경" class="thumbnail-img" alt="환경 뉴스 썸네일">
+                </div>
+                <div class="news-content">
+                    <div class="news-title">정부 탄소중립 목표 2030년으로 앞당겨</div>
+                    <div class="news-summary">
+                        정부가 기존 2050년으로 설정했던 탄소중립 목표를 2030년으로 20년 앞당기겠다고 발표했습니다. 
+                        이를 위해 재생에너지 비중을 80%까지 확대하고, 전 산업에 걸친 친환경 전환을 추진할 계획이라고...
+                    </div>
+                    <div class="fact-question">
+                        🤔 20년 앞당긴 탄소중립 목표가 현실적으로 달성 가능할까요?
+                    </div>
+                    <div class="voting-area">
+                        <div class="vote-option fact" onclick="vote(4, 'fact')">
+                            ✅ 가능 (23)
+                        </div>
+                        <div class="vote-option doubt" onclick="vote(4, 'doubt')">
+                            ❌ 불가능 (178)
+                        </div>
+                        <div class="vote-option partial" onclick="vote(4, 'partial')">
+                            ⚠️ 부분가능 (67)
+                        </div>
+                        <div class="vote-option need-info" onclick="vote(4, 'need-info')">
+                            ❓ 정보부족 (34)
+                        </div>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-left">
+                            <span class="news-source">JTBC - 정치뉴스</span>
+                            <span class="news-time">8시간 전</span>
+                            <span>👀 4,156</span>
+                            <span>💬 203</span>
+                            <span>📊 302표</span>
+                        </div>
+                        <button class="discussion-btn" onclick="goToDiscussion(4)">토론 참여</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- News Card 5 -->
+            <div class="news-card" data-category="international">
+                <div class="news-thumbnail">
+                    <div class="thumbnail-placeholder">🌍</div>
+                </div>
+                <div class="news-content">
+                    <div class="news-title">글로벌 반도체 공급망 정상화, 가격 20% 하락</div>
+                    <div class="news-summary">
+                        반도체 업계에 따르면 코로나19로 인한 공급망 차질이 완전히 해소되면서 반도체 가격이 지난해 대비 20% 하락했다고 발표했습니다. 
+                        이로 인해 전자제품 가격도 연쇄적으로 낮아질 것으로 전망되며...
+                    </div>
+                    <div class="fact-question">
+                        🤔 반도체 가격이 정말 20%나 하락했을까요?
+                    </div>
+                    <div class="voting-area">
+                        <div class="vote-option fact" onclick="vote(5, 'fact')">
+                            ✅ 사실 (67)
+                        </div>
+                        <div class="vote-option doubt" onclick="vote(5, 'doubt')">
+                            ❌ 의심 (45)
+                        </div>
+                        <div class="vote-option partial" onclick="vote(5, 'partial')">
+                            ⚠️ 부분사실 (89)
+                        </div>
+                        <div class="vote-option need-info" onclick="vote(5, 'need-info')">
+                            ❓ 정보부족 (56)
+                        </div>
+                    </div>
+                    <div class="news-stats">
+                        <div class="stats-left">
+                            <span class="news-source">YTN - 국제뉴스</span>
+                            <span class="news-time">10시간 전</span>
+                            <span>👀 1,890</span>
+                            <span>💬 78</span>
+                            <span>📊 257표</span>
+                        </div>
+                        <button class="discussion-btn" onclick="goToDiscussion(5)">토론 참여</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Load More -->
+        <div class="load-more">
+            <button class="btn" onclick="loadMoreNews()">더 많은 뉴스 보기</button>
+        </div>
+    </div>
+
+    <script>
+        // 투표 기능
+        function vote(newsId, voteType) {
+            const newsCard = document.querySelector(`.news-card:nth-child(${newsId})`);
+            const voteOptions = newsCard.querySelectorAll('.vote-option');
+            
+            // 이미 투표했는지 확인
+            const hasVoted = Array.from(voteOptions).some(option => option.classList.contains('selected'));
+            
+            if (hasVoted) {
+                alert('이미 투표하셨습니다.');
+                return;
+            }
+            
+            // 투표한 옵션 표시
+            const selectedOption = newsCard.querySelector(`.vote-option.${voteType}`);
+            selectedOption.classList.add('selected');
+            
+            // 투표 수 증가
+            const currentCount = parseInt(selectedOption.textContent.match(/\d+/)[0]);
+            const icon = selectedOption.textContent.split(' ')[0];
+            const label = selectedOption.textContent.split(' ')[1];
+            selectedOption.textContent = `${icon} ${label} (${currentCount + 1})`;
+            
+            // 다른 옵션들 비활성화
+            voteOptions.forEach(option => {
+                if (!option.classList.contains('selected')) {
+                    option.style.opacity = '0.5';
+                    option.style.cursor = 'not-allowed';
+                }
+            });
+            
+            // 투표 결과 바 업데이트
+            updateVoteResults(newsCard);
+            
+            console.log(`뉴스 ${newsId}에 ${voteType} 투표`);
+        }
+        
+        // 투표 결과 바 업데이트
+        function updateVoteResults(newsCard) {
+            const voteOptions = newsCard.querySelectorAll('.vote-option');
+            const total = Array.from(voteOptions).reduce((sum, option) => {
+                const count = parseInt(option.textContent.match(/\d+/)[0]);
+                return sum + count;
+            }, 0);
+            
+            const resultBars = newsCard.querySelectorAll('.result-bar');
+            voteOptions.forEach((option, index) => {
+                const count = parseInt(option.textContent.match(/\d+/)[0]);
+                const percentage = (count / total * 100).toFixed(1);
+                resultBars[index].style.width = percentage + '%';
+            });
+        }
+        
+        // 토론 참여
+        function goToDiscussion(newsId) {
+            window.location.href = `news_detail.html?id=${newsId}`;
+        }
+        
+        // 카테고리 필터
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 활성 탭 변경
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 뉴스 카드 필터링
+                const category = this.dataset.category;
+                const newsCards = document.querySelectorAll('.news-card');
+                
+                newsCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // 키워드 클릭
+        document.querySelectorAll('.keyword-tag').forEach(tag => {
+            tag.addEventListener('click', function(e) {
+                e.preventDefault();
+                const keyword = this.textContent;
+                alert(`${keyword} 관련 뉴스를 검색합니다.`);
+                // 실제로는 해당 키워드로 필터링
+            });
+        });
+        
+        // 더 많은 뉴스 로드
+        function loadMoreNews() {
+            // 실제로는 API 호출하여 추가 뉴스 로드
+            const newsGrid = document.getElementById('newsGrid');
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'empty-state';
+            loadingMsg.textContent = '새로운 뉴스를 불러오는 중...';
+            newsGrid.appendChild(loadingMsg);
+            
+            setTimeout(() => {
+                loadingMsg.remove();
+                alert('새로운 뉴스가 추가되었습니다.');
+            }, 1000);
+        }
+        
+        // 뉴스 카드 클릭
+        document.querySelectorAll('.news-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // 투표 버튼이나 토론 버튼을 클릭한 경우가 아니라면
+                if (!e.target.classList.contains('vote-option') && 
+                    !e.target.classList.contains('discussion-btn')) {
+                    const newsId = Array.from(document.querySelectorAll('.news-card')).indexOf(this) + 1;
+                    goToDiscussion(newsId);
+                }
+            });
+        });
+        
+        // 실시간 업데이트 시뮬레이션
+        setInterval(() => {
+            const newsCards = document.querySelectorAll('.news-card');
+            const randomCard = newsCards[Math.floor(Math.random() * newsCards.length)];
+            
+            if (Math.random() < 0.1) { // 10% 확률
+                const viewCount = randomCard.querySelector('.stats-left span:first-child');
+                const currentViews = parseInt(viewCount.textContent.match(/\d+/)[0]);
+                viewCount.textContent = `👀 ${currentViews + 1}`;
+            }
+        }, 5000);
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 모든 뉴스 카드의 투표 결과 바 초기화
+            document.querySelectorAll('.news-card').forEach(card => {
+                updateVoteResults(card);
+            });
+        });
+    </script>
+</body>
+</html>

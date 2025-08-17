@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림 - FactLab</title>
+    <link rel="stylesheet" href="Common.css">
+    <link rel="stylesheet" href="News.css">
+    <style>
+        /* notifications.html 전용 스타일 */
+        /* Common.css와 News.css에 없는, 이 페이지에서만 사용되는 스타일 정의 */
+
+        .news-notification-container {
+            max-width: 800px;
+            margin: 20px auto; /* 헤더 아래 여백 */
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden; /* 내부 요소의 둥근 모서리 유지 */
+        }
+        
+        .news-notification-page-header {
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .news-notification-page-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .news-notification-stats {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .news-notification-filter-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            background-color: #f8f8f8;
+            border-radius: 0.375rem 0.375rem 0 0; /* 상단 둥근 모서리 유지 */
+            overflow: hidden;
+        }
+        
+        .news-notification-filter-tab {
+            padding: 10px 15px;
+            border-right: 1px solid #ddd;
+            background-color: #f8f8f8;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        
+        .news-notification-filter-tab:last-child {
+            border-right: none;
+        }
+        
+        .news-notification-filter-tab.active {
+            background-color: white;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .news-notification-filter-tab:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .news-notification-actions {
+            padding: 10px 15px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap; /* 모바일에서 버튼 줄바꿈 */
+        }
+        
+        .news-notification-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .news-notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .news-notification-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .news-notification-item.unread {
+            background-color: #f0f8ff;
+            border-left: 3px solid #0066cc;
+        }
+        
+        .news-notification-item.unread:hover {
+            background-color: #e6f3ff;
+        }
+        
+        .news-notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+        
+        .news-notification-type {
+            background-color: #ddd;
+            color: #666;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            margin-right: 8px;
+        }
+        
+        .news-notification-type.comment {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .news-notification-type.vote {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .news-notification-type.system {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .news-notification-type.news {
+            background-color: #9C27B0;
+            color: white;
+        }
+        
+        .news-notification-time {
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .news-notification-content {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 3px;
+        }
+        
+        .news-notification-link {
+            font-size: 10px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .news-notification-link:hover {
+            text-decoration: underline;
+        }
+        
+        .news-notification-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 13px;
+            display: none; /* 초기에는 숨김 */
+        }
+        
+        .news-notification-load-more {
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            background-color: #f8f8f8;
+        }
+        
+        .news-notification-unread-count {
+            background-color: #ff0000;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            margin-left: 5px;
+            display: inline-block; /* 초기에는 숨겨져 있을 수 있음 */
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .news-notification-container {
+                margin: 10px;
+            }
+            
+            .news-notification-page-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+            
+            .news-notification-filter-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .news-notification-filter-tab {
+                flex: 1 1 auto; /* 모바일에서 탭이 유연하게 늘어나도록 */
+                text-align: center;
+                border-right: none; /* 모바일에서는 세로 구분선 제거 */
+                border-bottom: 1px solid #ddd; /* 세로 구분선 대신 하단 구분선 */
+            }
+
+            .news-notification-filter-tab:last-child {
+                border-bottom: none;
+            }
+            
+            .news-notification-header {
+                flex-direction: column;
+                gap: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="news-header">
+        <div class="news-header-content news-container">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <nav class="news-nav-menu">
+                <ul>
+                    <li><a href="factlab_main.html">홈</a></li>
+                    <li><a href="factlab_board_list.html">게시판</a></li>
+                    <li><a href="factlab_news_feed.html">뉴스</a></li>
+                    <li><a href="factlab_mypage.html">마이페이지</a></li>
+                    <li><a href="factlab_notifications.html" class="active">알림</a></li>
+                    <li><a href="factlab_login.html">로그인</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="news-notification-container news-container">
+        <!-- Page Header -->
+        <div class="news-notification-page-header">
+            <div class="news-notification-page-title">🔔 알림</div>
+            <div class="news-notification-stats">
+                읽지 않은 알림 <span class="news-notification-unread-count">7</span>개 | 전체 45개
+            </div>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="news-notification-filter-tabs">
+            <div class="news-notification-filter-tab active" data-type="all">전체</div>
+            <div class="news-notification-filter-tab" data-type="comment">댓글 <span class="news-notification-unread-count">3</span></div>
+            <div class="news-notification-filter-tab" data-type="vote">투표</div>
+            <div class="news-notification-filter-tab" data-type="system">시스템</div>
+            <div class="news-notification-filter-tab" data-type="news">뉴스 <span class="news-notification-unread-count">2</span></div>
+        </div>
+        
+        <!-- Notification Actions -->
+        <div class="news-notification-actions">
+            <button class="news-btn" onclick="markAllAsRead()">모두 읽음 처리</button>
+            <button class="news-btn" onclick="deleteRead()">읽은 알림 삭제</button>
+            <button class="news-btn" onclick="deleteAll()">전체 삭제</button>
+            <a href="factlab_settings.html" class="news-btn news-btn-primary">알림 설정</a>
+        </div>
+        
+        <!-- Notification List -->
+        <div class="news-notification-list" id="notificationList">
+            <!-- Unread Notifications -->
+            <div class="news-notification-item unread" data-type="comment" onclick="readNotification(this, 'factlab_board_view.html?id=1234#comment-567')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type comment">댓글</span>
+                        <span>새로운 댓글이 달렸습니다</span>
+                    </div>
+                    <span class="news-notification-time">5분 전</span>
+                </div>
+                <div class="news-notification-content">
+                    <strong>경제분석가</strong>님이 "<strong>새로운 정부 정책에 대한 여러분의 의견은?</strong>" 게시글에 댓글을 작성했습니다.
+                </div>
+                <a href="#" class="news-notification-link">게시글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item unread" data-type="news" onclick="readNotification(this, 'factlab_news_detail.html?id=5')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type news">뉴스</span>
+                        <span>관심 키워드 뉴스</span>
+                    </div>
+                    <span class="news-notification-time">1시간 전</span>
+                </div>
+                <div class="news-notification-content">
+                    관심 키워드 "<strong>AI 기술</strong>"과 관련된 새로운 뉴스가 등록되었습니다.
+                </div>
+                <a href="#" class="news-notification-link">뉴스 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item unread" data-type="vote" onclick="readNotification(this, 'factlab_board_view.html?id=1220')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type vote">투표</span>
+                        <span>게시글 추천</span>
+                    </div>
+                    <span class="news-notification-time">3시간 전</span>
+                </div>
+                <div class="news-notification-content">
+                    "<strong>AI 기술의 윤리적 문제점들</strong>" 게시글이 <strong>10개의 추천</strong>을 받았습니다.
+                </div>
+                <a href="#" class="news-notification-link">게시글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item unread" data-type="comment" onclick="readNotification(this, 'factlab_board_view.html?id=1205#comment-890')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type comment">댓글</span>
+                        <span>답글 알림</span>
+                    </div>
+                    <span class="news-notification-time">5시간 전</span>
+                </div>
+                <div class="news-notification-content">
+                    <strong>부동산전문가</strong>님이 회원님의 댓글에 답글을 작성했습니다.
+                </div>
+                <a href="#" class="news-notification-link">답글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item unread" data-type="system" onclick="readNotification(this, 'factlab_mypage.html')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type system">시스템</span>
+                        <span>레벨업 축하</span>
+                    </div>
+                    <span class="news-notification-time">1일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    축하합니다! 레벨 5 "<strong>활발한 토론자</strong>"로 승급하셨습니다.
+                </div>
+                <a href="#" class="news-notification-link">마이페이지 보기 →</a>
+            </div>
+            
+            <!-- Read Notifications -->
+            <div class="news-notification-item" data-type="news" onclick="readNotification(this, 'factlab_news_detail.html?id=3')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type news">뉴스</span>
+                        <span>팩트체크 완료</span>
+                    </div>
+                    <span class="news-notification-time">1일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    회원님이 투표한 "<strong>새로운 백신 개발, 효과 95% 입증</strong>" 뉴스의 팩트체크가 완료되었습니다.
+                </div>
+                <a href="#" class="news-notification-link">팩트체크 결과 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="comment" onclick="readNotification(this, 'factlab_board_view.html?id=1187#comment-445')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type comment">댓글</span>
+                        <span>댓글 좋아요</span>
+                    </div>
+                    <span class="news-notification-time">2일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    회원님의 댓글이 <strong>5개의 좋아요</strong>를 받았습니다.
+                </div>
+                <a href="#" class="news-notification-link">댓글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="system" onclick="readNotification(this, 'factlab_notice.html?id=1')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type system">시스템</span>
+                        <span>공지사항</span>
+                    </div>
+                    <span class="news-notification-time">3일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    새로운 공지사항: "<strong>FactLab 서비스 이용약관 개정 안내</strong>"가 등록되었습니다.
+                </div>
+                <a href="#" class="news-notification-link">공지사항 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="vote" onclick="readNotification(this, 'factlab_news_detail.html?id=1')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type vote">투표</span>
+                        <span>뉴스 투표 마감</span>
+                    </div>
+                    <span class="news-notification-time">3일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    "<strong>AI 기술 발전으로 일자리 30% 감소 예상</strong>" 뉴스 투표가 마감되었습니다. (총 169표)
+                </div>
+                <a href="#" class="news-notification-link">결과 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="comment" onclick="readNotification(this, 'factlab_board_view.html?id=1198#comment-234')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type comment">댓글</span>
+                        <span>새로운 댓글</span>
+                    </div>
+                    <span class="news-notification-time">4일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    <strong>청년대표</strong>님이 "<strong>교육 제도 개선 방안에 대해</strong>" 게시글에 댓글을 작성했습니다.
+                </div>
+                <a href="#" class="news-notification-link">게시글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="system" onclick="readNotification(this, 'factlab_mypage.html')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type system">시스템</span>
+                        <span>활동 점수 획득</span>
+                    </div>
+                    <span class="news-notification-time">5일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    활발한 활동으로 <strong>50점</strong>을 획득하셨습니다! (현재 1,350점)
+                </div>
+                <a href="#" class="news-notification-link">활동 내역 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="news" onclick="readNotification(this, 'factlab_news_detail.html?id=2')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type news">뉴스</span>
+                        <span>관심 키워드 뉴스</span>
+                    </div>
+                    <span class="news-notification-time">5일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    관심 키워드 "<strong>부동산 정책</strong>"과 관련된 새로운 뉴스가 등록되었습니다.
+                </div>
+                <a href="#" class="news-notification-link">뉴스 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="vote" onclick="readNotification(this, 'factlab_board_view.html?id=1145')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type vote">투표</span>
+                        <span>게시글 추천</span>
+                    </div>
+                    <span class="news-notification-time">6일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    "<strong>기후변화 대응책의 실효성</strong>" 게시글이 <strong>25개의 추천</strong>을 받았습니다.
+                </div>
+                <a href="#" class="news-notification-link">게시글 보기 →</a>
+            </div>
+            
+            <div class="news-notification-item" data-type="system" onclick="readNotification(this, 'factlab_about.html')">
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type system">시스템</span>
+                        <span>서비스 업데이트</span>
+                    </div>
+                    <span class="news-notification-time">1주일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    FactLab v2.1.3 업데이트가 완료되었습니다. 새로운 기능을 확인해보세요!
+                </div>
+                <a href="#" class="news-notification-link">업데이트 내용 보기 →</a>
+            </div>
+        </div>
+        
+        <!-- Empty State for Filter Results -->
+        <div class="news-notification-empty-state">
+            <p>표시할 알림이 없습니다.</p>
+            <p>필터 조건을 변경하거나 새로운 알림을 기다려주세요.</p>
+        </div>
+
+        <!-- Load More -->
+        <div class="news-notification-load-more">
+            <button class="news-btn" onclick="loadMoreNotifications()">더 많은 알림 보기</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="news-footer">
+        <div class="news-footer-content news-container">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="#">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let unreadCount = 7; // 초기 읽지 않은 알림 수
+        
+        // 필터 탭 기능
+        document.querySelectorAll('.news-notification-filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 활성 탭 변경
+                document.querySelectorAll('.news-notification-filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 알림 필터링
+                const type = this.dataset.type;
+                const notifications = document.querySelectorAll('.news-notification-item');
+                let foundItems = false;
+                
+                notifications.forEach(item => {
+                    if (type === 'all' || item.dataset.type === type) {
+                        item.style.display = 'block';
+                        foundItems = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // 빈 상태 메시지 표시/숨김
+                const emptyState = document.querySelector('.news-notification-empty-state');
+                if (!foundItems) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                }
+            });
+        });
+        
+        // 알림 읽음 처리
+        function readNotification(element, url) {
+            if (element.classList.contains('unread')) {
+                element.classList.remove('unread');
+                unreadCount--;
+                updateUnreadCount();
+            }
+            
+            // 실제로는 서버에 읽음 상태 업데이트
+            console.log('알림 읽음 처리:', element);
+            
+            if (url) {
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 100);
+            }
+        }
+        
+        // 모두 읽음 처리
+        function markAllAsRead() {
+            if (confirm('모든 알림을 읽음 처리하시겠습니까?')) {
+                document.querySelectorAll('.news-notification-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                });
+                unreadCount = 0;
+                updateUnreadCount();
+                console.log('모든 알림이 읽음 처리되었습니다.'); // alert 대신 console.log
+            }
+        }
+        
+        // 읽은 알림 삭제
+        function deleteRead() {
+            if (confirm('읽은 알림을 모두 삭제하시겠습니까?')) {
+                const readNotifications = document.querySelectorAll('.news-notification-item:not(.unread)');
+                let deletedCount = 0;
+                readNotifications.forEach(item => {
+                    item.remove();
+                    deletedCount++;
+                });
+                console.log(`${deletedCount}개의 읽은 알림이 삭제되었습니다.`); // alert 대신 console.log
+                // 삭제 후 현재 필터에 맞는 알림이 없으면 빈 상태 메시지 표시
+                const currentActiveTabType = document.querySelector('.news-notification-filter-tab.active').dataset.type;
+                if (document.querySelectorAll(`.news-notification-item[data-type="${currentActiveTabType}"]`).length === 0 && currentActiveTabType !== 'all') {
+                    document.querySelector('.news-notification-empty-state').style.display = 'block';
+                } else if (document.querySelectorAll('.news-notification-item').length === 0 && currentActiveTabType === 'all') {
+                    document.querySelector('.news-notification-empty-state').style.display = 'block';
+                }
+            }
+        }
+        
+        // 전체 삭제
+        function deleteAll() {
+            if (confirm('모든 알림을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                document.getElementById('notificationList').innerHTML = `
+                    <div class="news-notification-empty-state" style="display: block;">
+                        📭 알림이 없습니다.<br>
+                        <small>새로운 활동이 있으면 알림을 받을 수 있습니다.</small>
+                    </div>
+                `;
+                unreadCount = 0;
+                updateUnreadCount();
+                console.log('모든 알림이 삭제되었습니다.'); // alert 대신 console.log
+            }
+        }
+        
+        // 읽지 않은 알림 개수 업데이트
+        function updateUnreadCount() {
+            // 전체 읽지 않은 알림 수 업데이트
+            const totalUnreadCountElement = document.querySelector('.news-notification-stats .news-notification-unread-count');
+            if (totalUnreadCountElement) {
+                totalUnreadCountElement.textContent = unreadCount;
+                if (unreadCount === 0) {
+                    totalUnreadCountElement.style.display = 'none';
+                } else {
+                    totalUnreadCountElement.style.display = 'inline-block';
+                }
+            }
+
+            // 각 탭별 읽지 않은 알림 수 업데이트
+            document.querySelectorAll('.news-notification-filter-tab').forEach(tab => {
+                const tabType = tab.dataset.type;
+                const tabUnreadCountElement = tab.querySelector('.news-notification-unread-count');
+                if (tabUnreadCountElement) {
+                    const count = document.querySelectorAll(`.news-notification-item.unread[data-type="${tabType}"]`).length;
+                    if (count > 0) {
+                        tabUnreadCountElement.textContent = count;
+                        tabUnreadCountElement.style.display = 'inline-block';
+                    } else {
+                        tabUnreadCountElement.style.display = 'none';
+                    }
+                }
+            });
+            
+            // 페이지 제목에 알림 개수 표시
+            if (unreadCount > 0) {
+                document.title = `(${unreadCount}) 알림 - FactLab`;
+            } else {
+                document.title = '알림 - FactLab';
+            }
+        }
+        
+        // 더 많은 알림 로드 (시뮬레이션)
+        function loadMoreNotifications() {
+            console.log('추가 알림을 불러옵니다.'); // alert 대신 console.log
+            
+            // 예시: 새로운 알림 추가
+            const notificationList = document.getElementById('notificationList');
+            const newNotification = document.createElement('div');
+            newNotification.className = 'news-notification-item';
+            newNotification.dataset.type = 'system';
+            newNotification.innerHTML = `
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type system">시스템</span>
+                        <span>과거 알림</span>
+                    </div>
+                    <span class="news-notification-time">2주일 전</span>
+                </div>
+                <div class="news-notification-content">
+                    FactLab에 오신 것을 환영합니다! 커뮤니티 가이드라인을 확인해보세요.
+                </div>
+                <a href="#" class="news-notification-link">가이드라인 보기 →</a>
+            `;
+            
+            notificationList.appendChild(newNotification);
+            // 빈 상태 메시지가 보인다면 숨김
+            document.querySelector('.news-notification-empty-state').style.display = 'none';
+        }
+        
+        // 실시간 알림 시뮬레이션
+        function simulateNewNotification() {
+            const types = ['comment', 'vote', 'system', 'news'];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            
+            const newNotification = document.createElement('div');
+            newNotification.className = 'news-notification-item unread';
+            newNotification.dataset.type = randomType;
+            newNotification.innerHTML = `
+                <div class="news-notification-header">
+                    <div>
+                        <span class="news-notification-type ${randomType}">${randomType}</span>
+                        <span>새로운 알림</span>
+                    </div>
+                    <span class="news-notification-time">방금 전</span>
+                </div>
+                <div class="news-notification-content">
+                    새로운 활동이 발생했습니다.
+                </div>
+                <a href="#" class="news-notification-link">확인하기 →</a>
+            `;
+            
+            newNotification.addEventListener('click', function() {
+                readNotification(this);
+            });
+            
+            const notificationList = document.getElementById('notificationList');
+            notificationList.insertBefore(newNotification, notificationList.firstChild);
+            
+            unreadCount++;
+            updateUnreadCount();
+            
+            // 빈 상태 메시지가 보인다면 숨김
+            document.querySelector('.news-notification-empty-state').style.display = 'none';
+
+            // 브라우저 알림 (권한이 있는 경우)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('FactLab 새 알림', {
+                    body: '새로운 활동이 발생했습니다.',
+                    icon: 'https://placehold.co/48x48/0066cc/ffffff?text=FL' // 임시 아이콘
+                });
+            }
+        }
+        
+        // 알림 권한 요청
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('알림 권한이 승인되었습니다.');
+                    } else {
+                        console.log('알림 권한이 거부되었습니다.');
+                    }
+                });
+            } else {
+                console.log('이 브라우저는 알림을 지원하지 않습니다.');
+            }
+        }
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUnreadCount();
+            requestNotificationPermission();
+            
+            // 30초마다 새 알림 시뮬레이션 (데모용)
+            setInterval(() => {
+                if (Math.random() < 0.1) { // 10% 확률
+                    simulateNewNotification();
+                }
+            }, 30000);
+        });
+        
+        // 페이지 포커스 시 제목 원래대로
+        window.addEventListener('focus', function() {
+            document.title = '알림 - FactLab';
+        });
+    </script>
+</body>
+</html>

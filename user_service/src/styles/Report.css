@@ -1,0 +1,339 @@
+/* Report.css - 신고하기 페이지 전용 스타일 */
+
+.report-container {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 0.375rem;
+}
+
+.report-page-header {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+    color: #333;
+}
+
+.report-form-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+}
+
+.report-section-title {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.report-form-group {
+    margin-bottom: 15px;
+}
+
+.report-form-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.report-required {
+    color: #ff0000;
+}
+
+.report-form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 0.375rem;
+}
+
+.report-form-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.report-form-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    background-color: white;
+    border-radius: 0.375rem;
+}
+
+.report-form-select:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+.report-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-radio-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
+}
+
+.report-radio-item:hover {
+    background-color: #f0f0f0;
+}
+
+.report-radio-item input[type="radio"] {
+    margin: 0;
+    margin-top: 2px;
+}
+
+.report-radio-label {
+    flex: 1;
+    font-size: 12px;
+}
+
+.report-radio-desc {
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+    line-height: 1.3;
+}
+
+.report-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 0.375rem;
+}
+
+.report-textarea:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.report-file-upload {
+    border: 2px dashed #ddd;
+    padding: 20px;
+    text-align: center;
+    background-color: #fafafa;
+    cursor: pointer;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.report-file-upload:hover {
+    border-color: #0066cc;
+    background-color: #f0f8ff;
+}
+
+.report-file-input {
+    display: none;
+}
+
+.report-uploaded-files {
+    margin-top: 10px;
+}
+
+.report-file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    margin: 5px 0;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    font-size: 11px;
+    border-radius: 0.375rem;
+}
+
+.report-file-remove {
+    color: #cc0000;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.report-file-remove:hover {
+    background-color: #cc0000;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-help-text {
+    font-size: 10px;
+    color: #666;
+    margin-top: 5px;
+    line-height: 1.3;
+}
+
+.report-warning-box {
+    background-color: #fff8dc;
+    border: 1px solid #ffcc00;
+    border-left: 4px solid #ffcc00;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-size: 11px;
+    border-radius: 0.375rem;
+}
+
+.report-warning-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #cc6600;
+}
+
+.report-btn {
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 8px;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
+}
+
+.report-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.report-btn-primary {
+    background-color: #cc0000;
+    color: white;
+    border-color: #cc0000;
+}
+
+.report-btn-primary:hover {
+    background-color: #aa0000;
+}
+
+.report-form-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.report-history {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.report-history-title {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.report-history-list {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
+}
+
+.report-history-list th {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.report-history-list td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.report-history-list tr:hover {
+    background-color: #f9f9f9;
+}
+
+.status-processing {
+    color: #ff6600;
+    font-weight: bold;
+}
+
+.status-completed {
+    color: #009900;
+    font-weight: bold;
+}
+
+.status-rejected {
+    color: #cc0000;
+    font-weight: bold;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .report-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .report-radio-group {
+        gap: 5px;
+    }
+    
+    .report-radio-item {
+        padding: 6px;
+    }
+
+    .report-form-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .report-btn {
+        margin-right: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .report-history-list {
+        font-size: 10px;
+    }
+
+    .report-history-list th,
+    .report-history-list td {
+        padding: 6px 4px;
+    }
+
+    /* 작은 화면에서 일부 컬럼 숨김 */
+    .report-history-list th:nth-child(3),
+    .report-history-list td:nth-child(3) {
+        display: none;
+    }
+}

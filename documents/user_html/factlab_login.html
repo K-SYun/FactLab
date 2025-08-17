@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - FactLab</title>
+    <link rel="stylesheet" href="Common.css">
+    <link rel="stylesheet" href="News.css">
+    <style>
+        /* login.html 전용 스타일 */
+        /* Common.css와 News.css에 없는, 이 페이지에서만 사용되는 스타일 정의 */
+
+        .news-login-container {
+            max-width: 400px;
+            margin: 50px auto; /* 헤더 아래 여백 및 중앙 정렬 */
+            background-color: var(--news-container-bg); /* CSS 변수 사용 */
+            border: 1px solid var(--news-border-color); /* CSS 변수 사용 */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .news-login-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--news-primary-color); /* CSS 변수 사용 */
+            margin-bottom: 25px;
+        }
+        
+        .news-login-form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .news-login-form-label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--news-text-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--news-input-border); /* CSS 변수 사용 */
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--news-input-bg); /* CSS 변수 사용 */
+            color: var(--news-input-text); /* CSS 변수 사용 */
+        }
+
+        .news-login-form-input:focus {
+            outline: none;
+            border-color: var(--news-primary-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        
+        .news-login-actions a {
+            color: var(--news-secondary-color); /* CSS 변수 사용 */
+            text-decoration: none;
+        }
+        
+        .news-login-actions a:hover {
+            text-decoration: underline;
+            color: var(--news-primary-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--news-primary-color); /* CSS 변수 사용 */
+            color: white;
+            border: none;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .news-login-submit-btn:hover {
+            background-color: var(--news-active-link-underline-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-social-login {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--news-border-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-social-login p {
+            font-size: 12px;
+            color: var(--news-secondary-color); /* CSS 변수 사용 */
+            margin-bottom: 15px;
+        }
+        
+        .news-login-social-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .news-login-social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            color: var(--news-text-color); /* CSS 변수 사용 */
+            background-color: var(--news-container-bg); /* CSS 변수 사용 */
+        }
+        
+        .news-login-social-btn:hover {
+            background-color: var(--news-hover-bg); /* CSS 변수 사용 */
+            border-color: var(--news-secondary-color); /* CSS 변수 사용 */
+        }
+        
+        .news-login-social-btn img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        
+        .news-login-find-links {
+            margin-top: 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .news-login-find-links a {
+            color: var(--news-secondary-color); /* CSS 변수 사용 */
+            text-decoration: none;
+        }
+        
+        .news-login-find-links a:hover {
+            text-decoration: underline;
+            color: var(--news-primary-color); /* CSS 변수 사용 */
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .news-login-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .news-login-title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+
+            .news-login-form-input {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .news-login-submit-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .news-login-social-login {
+                margin-top: 20px;
+                padding-top: 20px;
+            }
+
+            .news-login-social-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .news-login-find-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="news-header">
+        <div class="news-header-content news-container">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <nav class="news-nav-menu">
+                <ul>
+                    <li><a href="factlab_main.html">홈</a></li>
+                    <li><a href="factlab_board_list.html">게시판</a></li>
+                    <li><a href="factlab_news_feed.html">뉴스</a></li>
+                    <li><a href="factlab_mypage.html">마이페이지</a></li>
+                    <li><a href="factlab_login.html" class="active">로그인</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="news-login-container">
+        <h1 class="news-login-title">로그인</h1>
+        
+        <form id="loginForm">
+            <div class="news-login-form-group">
+                <label for="email" class="news-login-form-label">이메일</label>
+                <input type="email" id="email" class="news-login-form-input" placeholder="이메일 주소" required>
+            </div>
+            <div class="news-login-form-group">
+                <label for="password" class="news-login-form-label">비밀번호</label>
+                <input type="password" id="password" class="news-login-form-input" placeholder="비밀번호" required>
+            </div>
+            
+            <div class="news-login-actions">
+                <div>
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">로그인 상태 유지</label>
+                </div>
+                <a href="#" onclick="findPassword()">비밀번호 찾기</a>
+            </div>
+            
+            <button type="submit" class="news-login-submit-btn">로그인</button>
+        </form>
+        
+        <div class="news-login-social-login">
+            <p>또는 소셜 계정으로 로그인</p>
+            <div class="news-login-social-buttons">
+                <button class="news-login-social-btn" onclick="socialLogin('google')">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    Google로 로그인
+                </button>
+                <button class="news-login-social-btn" onclick="socialLogin('naver')">
+                    <img src="https://static.nid.naver.com/oauth/token_gdi.png" alt="Naver" style="width: 24px; height: 24px;">
+                    네이버로 로그인
+                </button>
+                <button class="news-login-social-btn" onclick="socialLogin('kakao')">
+                    <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="Kakao" style="width: 24px; height: 24px;">
+                    카카오로 로그인
+                </button>
+            </div>
+        </div>
+        
+        <div class="news-login-find-links">
+            <a href="#" onclick="findEmail()">이메일 찾기</a>
+            <span>|</span>
+            <a href="#">회원가입</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="news-footer">
+        <div class="news-footer-content news-container">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="#">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            console.log('로그인 시도:', { email, password }); // alert 대신 console.log
+
+            // 실제 로그인 API 호출 (더미)
+            try {
+                // 실제 서버에서는 이메일과 비밀번호를 전송하여 인증
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (response.ok) {
+                    console.log('로그인 성공!'); // alert 대신 console.log
+                    window.location.href = 'factlab_main.html'; // 로그인 성공 시 메인 페이지로 이동
+                } else {
+                    const error = await response.json();
+                    console.log('로그인 실패:', error.message); // alert 대신 console.log
+                }
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                console.log('로그인 중 오류가 발생했습니다.'); // alert 대신 console.log
+            }
+        });
+        
+        // 소셜 로그인
+        function socialLogin(provider) {
+            // 실제 구현에서는 각 소셜 로그인 API를 호출
+            console.log(`${provider} 로그인을 진행합니다.`); // alert 대신 console.log
+            
+            // 예시: 소셜 로그인 URL로 리다이렉트
+            switch(provider) {
+                case 'google':
+                    // window.location.href = '/api/auth/google';
+                    break;
+                case 'naver':
+                    // window.location.href = '/api/auth/naver';
+                    break;
+                case 'kakao':
+                    // window.location.href = '/api/auth/kakao';
+                    break;
+            }
+            console.log("소셜 로그인 기능은 현재 데모 버전에서 동작하지 않습니다.");
+        }
+        
+        // 비밀번호 찾기
+        function findPassword() {
+            const email = prompt('등록된 이메일을 입력하세요:');
+            if (email) {
+                console.log('비밀번호 재설정 링크를 이메일로 발송했습니다.'); // alert 대신 console.log
+                // 실제 구현에서는 API 호출
+            }
+        }
+        
+        // 이메일 찾기
+        function findEmail() {
+            console.log('고객센터로 문의해주세요.'); // alert 대신 console.log
+        }
+        
+        // 엔터키로 로그인
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

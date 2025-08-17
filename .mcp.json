@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "local-server": {
+      "command": "/path/to/local/server",
+      "args": ["--port", "8080"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}

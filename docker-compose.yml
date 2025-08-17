@@ -1,0 +1,82 @@
+# FactLab Multi-Service Docker Compose Configuration
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - user-service
+      - admin-service
+      - backend-service
+      - crawler-ai-service
+
+  user-service:
+    build: ./user_service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./user_service:/app
+      - /app/node_modules
+
+  admin-service:
+    build: 
+      context: ./admin_service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend-service
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./admin_service:/app
+      - /app/node_modules
+
+  backend-service:
+    build: ./backend_service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
+      - SPRING_DATASOURCE_USERNAME=factlab_user
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  crawler-ai-service:
+    build: ./crawler
+    ports:
+      - "3002:3002"
+    depends_on:
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=factlab
+      - DB_USER=factlab_user
+      - DB_PASSWORD=password
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_URL=postgresql://factlab_user:password@database:5432/factlab
+      - BACKEND_URL=http://backend-service:8080
+    volumes:
+      - ./crawler:/app
+
+  database:
+    image: postgres:13
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=factlab
+      - POSTGRES_USER=factlab_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:

@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+aiohttp
+python-dotenv
+requests
+python-multipart
+psycopg2-binary
+beautifulsoup4
+apscheduler
+pytz
+google-generativeai

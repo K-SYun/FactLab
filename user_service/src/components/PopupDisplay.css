@@ -1,0 +1,365 @@
+/* PopupDisplay.css - 팝업 표시 컴포넌트 스타일 */
+
+/* 오버레이 배경 */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+/* 팝업 컨테이너 */
+.popup-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  border: 1px solid #e1e5e9;
+  animation: popupFadeIn 0.3s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* 팝업 헤더 */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+
+.popup-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: white;
+}
+
+.popup-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.popup-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 팝업 콘텐츠 */
+.popup-content {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+.popup-html-content {
+  color: #333 !important;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.popup-html-content * {
+  color: #333 !important;
+}
+
+.popup-html-content h1,
+.popup-html-content h2,
+.popup-html-content h3,
+.popup-html-content h4,
+.popup-html-content h5,
+.popup-html-content h6 {
+  margin: 16px 0 12px 0;
+  color: #2c3e50 !important;
+  font-weight: 600;
+}
+
+.popup-html-content h3 {
+  font-size: 18px;
+  color: #2c3e50 !important;
+}
+
+.popup-html-content h4 {
+  font-size: 16px;
+  color: #2c3e50 !important;
+}
+
+.popup-html-content p {
+  margin: 12px 0;
+  color: #333 !important;
+}
+
+.popup-html-content strong {
+  color: #2c3e50 !important;
+  font-weight: 600;
+}
+
+.popup-html-content ul,
+.popup-html-content ol {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+.popup-html-content li {
+  margin: 6px 0;
+  color: #333 !important;
+}
+
+/* 링크 섹션 */
+.popup-link-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.popup-link-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.popup-link-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* 팝업 푸터 */
+.popup-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+  border-top: 1px solid #e9ecef;
+}
+
+.popup-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+  user-select: none;
+}
+
+.popup-checkbox-label input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.1);
+}
+
+.popup-checkbox-label span {
+  line-height: 1;
+}
+
+.popup-close-text-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.popup-close-text-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .popup-container {
+    max-width: 90% !important;
+    min-width: 280px !important;
+    margin: 0 20px;
+  }
+
+  .popup-title {
+    font-size: 16px;
+  }
+
+  .popup-content {
+    padding: 16px;
+    max-height: 50vh;
+  }
+
+  .popup-html-content {
+    font-size: 13px;
+  }
+
+  .popup-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .popup-checkbox-label {
+    justify-content: center;
+  }
+
+  .popup-close-text-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .popup-link-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-container {
+    max-width: 95% !important;
+    min-width: 260px !important;
+  }
+
+  .popup-header {
+    padding: 12px 16px;
+  }
+
+  .popup-title {
+    font-size: 15px;
+  }
+
+  .popup-close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .popup-content {
+    padding: 12px;
+  }
+
+  .popup-html-content h3 {
+    font-size: 16px;
+  }
+
+  .popup-html-content h4 {
+    font-size: 14px;
+  }
+}
+
+/* 다크모드 지원 (선택사항) */
+@media (prefers-color-scheme: dark) {
+  .popup-container {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .popup-html-content {
+    color: #e5e7eb;
+  }
+
+  .popup-html-content h1,
+  .popup-html-content h2,
+  .popup-html-content h3,
+  .popup-html-content h4,
+  .popup-html-content h5,
+  .popup-html-content h6 {
+    color: #f9fafb;
+  }
+
+  .popup-html-content p,
+  .popup-html-content li {
+    color: #d1d5db;
+  }
+
+  .popup-html-content strong {
+    color: #f3f4f6;
+  }
+
+  .popup-footer {
+    background-color: #111827;
+    border-color: #374151;
+  }
+
+  .popup-checkbox-label {
+    color: #9ca3af;
+  }
+
+  .popup-close-text-btn {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+
+  .popup-close-text-btn:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+    color: #f3f4f6;
+  }
+}
+
+/* 접근성 향상 */
+.popup-container:focus-within {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* 스크롤바 스타일링 */
+.popup-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.popup-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.popup-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 여러 팝업이 있을 때의 z-index 처리 */
+.popup-container:nth-child(2) { z-index: 10000; }
+.popup-container:nth-child(3) { z-index: 10001; }
+.popup-container:nth-child(4) { z-index: 10002; }
+.popup-container:nth-child(5) { z-index: 10003; }

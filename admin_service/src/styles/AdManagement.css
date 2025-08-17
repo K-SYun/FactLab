@@ -1,0 +1,212 @@
+/* AdManagement.css - 광고 관리 페이지 전용 스타일 */
+
+/* 광고 카드 */
+.admin-ad-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.admin-ad-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-ad-preview {
+  height: 200px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-ad-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-ad-status-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* 광고 통계 */
+.admin-ad-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.admin-ad-stat {
+  text-align: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.admin-ad-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.admin-ad-stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* 광고 형태 배지 */
+.admin-ad-type-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.admin-ad-type-badge.banner {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-ad-type-badge.popup {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.admin-ad-type-badge.video {
+  background: #e9d5ff;
+  color: #7c3aed;
+}
+
+.admin-ad-type-badge.native {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* 광고 업로드 영역 */
+.admin-ad-upload {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  background: #fafafa;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.admin-ad-upload:hover {
+  border-color: #4f46e5;
+  background: #f8fafc;
+}
+
+.admin-ad-upload-icon {
+  font-size: 48px;
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.admin-ad-upload.dragover {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+/* 광고 성과 차트 */
+.admin-performance-chart {
+  height: 300px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+/* 타겟팅 설정 */
+.admin-targeting-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.admin-targeting-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-targeting-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-targeting-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+/* 예산 설정 */
+.admin-budget-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.admin-budget-input {
+  position: relative;
+}
+
+.admin-budget-input::before {
+  content: '₩';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.admin-budget-input input {
+  padding-left: 28px;
+}
+
+/* 광고 일정 */
+.admin-schedule-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.admin-date-input {
+  position: relative;
+}
+
+.admin-date-input::after {
+  content: '\f073';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}

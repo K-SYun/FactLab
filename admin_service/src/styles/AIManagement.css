@@ -1,0 +1,405 @@
+/* AIManagement.css - AI 관리 페이지 전용 스타일 */
+
+/* AI 서비스 상태 카드 */
+.admin-ai-service-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.admin-ai-service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.admin-ai-service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.admin-ai-service-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.admin-ai-service-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.admin-ai-service-status.online {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-ai-service-status.offline {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.admin-ai-service-status.warning {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.admin-ai-service-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.admin-ai-service-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+/* AI 분석 통계 */
+.admin-ai-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.admin-ai-stat {
+  text-align: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.admin-ai-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.admin-ai-stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* AI 모델 설정 */
+.admin-ai-model-config {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.admin-ai-model-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-ai-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.admin-ai-config-item {
+  background: white;
+  border-radius: 6px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-ai-config-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.admin-ai-config-value {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* AI 분석 로그 */
+.admin-ai-log-container {
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.admin-ai-log-entry {
+  color: #e5e7eb;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.admin-ai-log-entry.success {
+  color: #34d399;
+}
+
+.admin-ai-log-entry.error {
+  color: #f87171;
+}
+
+.admin-ai-log-entry.warning {
+  color: #fbbf24;
+}
+
+.admin-ai-log-entry.info {
+  color: #60a5fa;
+}
+
+.admin-ai-log-timestamp {
+  color: #9ca3af;
+  margin-right: 8px;
+}
+
+/* AI 성능 메트릭 */
+.admin-ai-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.admin-ai-metric-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.admin-ai-metric-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.admin-ai-metric-chart {
+  height: 200px;
+  background: #f9fafb;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+/* AI 작업 큐 */
+.admin-ai-queue {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.admin-ai-queue-header {
+  background: #f9fafb;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.admin-ai-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-ai-queue-item:last-child {
+  border-bottom: none;
+}
+
+.admin-ai-queue-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.admin-ai-queue-icon.pending {
+  background: #f59e0b;
+}
+
+.admin-ai-queue-icon.processing {
+  background: #3b82f6;
+  animation: pulse 2s infinite;
+}
+
+.admin-ai-queue-icon.completed {
+  background: #10b981;
+}
+
+.admin-ai-queue-icon.failed {
+  background: #ef4444;
+}
+
+.admin-ai-queue-content {
+  flex: 1;
+}
+
+.admin-ai-queue-task {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.admin-ai-queue-meta {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* AI 알림 및 경고 */
+.admin-ai-alert {
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-ai-alert.info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.admin-ai-alert.warning {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  color: #d97706;
+}
+
+.admin-ai-alert.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.admin-ai-alert-icon {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.admin-ai-alert-content {
+  flex: 1;
+}
+
+.admin-ai-alert-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.admin-ai-alert-message {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 카테고리 탭 스타일 */
+.admin-category-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-category-tab {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-width: auto;
+  border-radius: 6px;
+  border: 1px solid;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.admin-category-tab.active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.admin-category-tab.inactive {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.admin-category-tab.inactive:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .admin-ai-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .admin-ai-config-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-ai-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-ai-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-ai-service-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-category-tabs {
+    justify-content: center;
+  }
+  
+  .admin-category-tab {
+    flex: 1;
+    text-align: center;
+    min-width: 80px;
+  }
+}

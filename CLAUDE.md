@@ -1,0 +1,513 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Development Commands
+
+### React App (User Service - Port 3000)
+```bash
+npm start                # Start development server
+npm run build           # Build for production
+npm test               # Run tests
+```
+
+### Docker Services
+```bash
+docker-compose up       # Start all services
+docker-compose down     # Stop all services
+docker-compose logs     # View logs
+```
+
+## High-Level Architecture
+
+FactLab is a Korean fact-checking news community platform with a microservices architecture:
+
+### Service Structure
+- **User Service** (Port 3000): React frontend for public users - news feed, voting, community boards
+- **Admin Service** (Port 3001): React admin dashboard for content management and moderation
+- **Backend Service** (Port 8080): Spring Boot API server for business logic
+- **Crawler AI Service** (Port 3002): Python FastAPI for news collection and AI analysis
+- **Database**: PostgreSQL with shared schema
+- **Nginx**: Reverse proxy and load balancer
+
+### Current Implementation Status
+The current codebase contains:
+- React user frontend with routing (`src/App.js`, `src/pages/`, `src/components/`)
+- HTML prototypes in `documents/user_html/` and `documents/admin_html/`
+- Docker configuration for multi-service deployment
+- PostgreSQL schema initialization
+
+### Key Features
+- Real-time news collection from Korean portals (Naver, Daum)
+- AI-powered news summarization and fact-checking
+- Community voting system (사실/의심 - Fact/Doubt)
+- Multi-category news organization (정치, 경제, 사회, etc.)
+- Community boards with various topics
+
+### Development Principles (from project docs)
+
+#### Backend (Spring Boot)
+- Use DTO/Entity separation pattern
+- Implement `@RestControllerAdvice` for error handling
+- Apply strict validation with `@Valid` annotations
+- Follow service layer pattern: Controller → Service → Repository
+- Use `ApiResponse<T>` standard response format
+
+#### Frontend (React)
+- Use `.news-` CSS class prefixes to avoid global conflicts
+- Maintain common styles in `Common.css`
+- Component naming: `FactlabPageName` for pages
+- Follow existing Korean UI patterns and layouts
+
+#### CSS/Styling
+- Main layout: 1280px wide, responsive design
+- Use `.news-`, `.admin-` prefixes for scoped styling
+- Mobile fonts: 25px titles, 15px body text
+- Ad spaces: top banner (1200×90px), side ads (160px wide)
+
+## File Structure Notes
+
+### React Components
+- Pages: `user_service/pages/Factlab*.js` - main application screens
+- Components: `user_service/components/` - reusable UI elements (Header, Footer)
+- Styles: `user_service/styles/` - CSS files with Common.css for shared styles
+
+### Documentation
+- Korean project specs in `documents/` directory
+- HTML prototypes demonstrate exact UI layouts to follow
+- Database schema in `database/init.sql/init.sql`
+
+### Services Architecture (Planned)
+```
+FactLab/
+├── user-service/          # React frontend (current implementation)
+├── admin_service/         # Admin React app (planned)
+├── backend_service/       # Spring Boot API (planned)
+├── crawler_ai_service/    # Python FastAPI (planned)
+└── nginx/                 # Reverse proxy config
+```
+
+## Development Notes
+
+- The project uses Korean content and UI text throughout
+- Follows Korean web design patterns with specific layout requirements
+- Community boards are organized by topic with "Lab" suffix (e.g., "정치 Lab")
+- News voting system uses Korean terms: "사실" (fact) vs "의심" (doubt)
+- Ad placement is integral to the design and revenue model
+
+## Database Schema
+
+Key tables include:
+- `users` - User accounts with levels and activity tracking
+- `news` - Collected news articles with metadata
+- `news_summary` - AI-generated summaries and analysis
+- Community boards, comments, and voting tables
+
+The schema supports the full fact-checking workflow from news collection to community engagement.
+
+
+## Rules
+1. 클레스 혹은 파일명 지정 시 하이픈 (-) 대신 언더스코어(_) 를 사용.
+
+# FactLab 통합 시스템 정리
+
+## 목차
+
+1. 프로젝트 개요
+2. 전체 시스템 구조 및 아키텍처
+3. 기능 상세 설계
+4. 사용자 및 관리자 화면 상세
+5. 데이터베이스 설계
+6. 개발 환경 및 구현 절차
+7. 운영 설정 및 확장 방향
+
+---
+
+## 1. 프로젝트 개요
+
+* **사이트명**: FactLab
+
+* **목표**:
+
+  1. 실시간 이슈 뉴스를 자동 수집, 필터링, 요약하여 토론 콘텐츠로 전환
+  2. 커뮤니티 참여형 의견 교환 구조 형성 (투표, 댓글, 게시판)
+  3. 뉴스 신뢰도 및 의심 포인트 추출 기능 구현
+  4. 트래픽 기반 광고 노출로 수익 창출
+  5. 국내 최대 이슈 기반 커뮤니티 플랫폼으로 성장
+
+* **수집 대상 및 방식**:
+
+  * 네이버/다음 뉴스 (RSS) + 매뉴 명칭(정치, 경제, 사회 등)
+  * 트위터 트렌드 (API 또는 크롤링)
+  * 팩트체크 데이터: 수동 연동 (CSV 등)
+
+---
+
+## 2. 전체 시스템 구조 및 아키텍처
+
+```
+[사용자] ─┐
+          ├─> [Nginx Reverse Proxy] ──> [User Service (3000)] ──┐
+[관리자] ─┘                                                │
+                                                         ▼
+              ┌─────────────────────────────┐           
+              │ Admin Service (3001)        │           
+              └─────────────────────────────┘           
+                          │                              
+                          ▼                              
+              ┌─────────────────────────────┐           
+              │ Backend API (Spring Boot)   │           
+              └─────────────────────────────┘           
+                          │                              
+                          ▼                              
+              ┌─────────────────────────────┐           
+              │ PostgreSQL Database         │           
+              └─────────────────────────────┘           
+                          ▲                              
+                          │                              
+              ┌─────────────────────────────┐           
+              │ Crawler/AI Service (3002)   │──▶ OpenAI │
+              └─────────────────────────────┘           
+```
+
+### 서비스별 디렉토리 구조
+
+```
+FactLab/
+├── docker-compose.yml
+├── .env
+├── nginx/
+│   └── nginx.conf
+├── database/
+│   └── init.sql
+├── user-service/
+│   └── /pages, components
+├── admin_service/
+│   └── src/pages, components
+├── backend_service/ (Java Spring Boot)
+│   └── controller, service, repository, dto, entity
+├── crawler_ai_service/ (Python FastAPI)
+│   ├── crawlers/ (naver.py, daum.py, trend.py)
+│   ├── analyzers/ (gpt_classifier.py)
+│   ├── schedulers/ (hourly_task.py, daily_task.py)
+│   └── pipelines/save_to_db.py
+└── shared/, docs/
+```
+
+* 각 모듈은 Docker 컨테이너로 독립 배포
+* Nginx가 리버스 프록시 역할 수행 (80, 443 포트)
+* Crawler/AI 모듈은 OpenAI API와 통신하며 FastAPI 기반 REST API 제공
+
+---
+
+## 3. 기능 상세 설계
+
+### 사용자 기능
+
+* 실시간 뉴스 피드 (분야별 6개)
+* 트렌딩 키워드 (실시간/일간/주간/월간)
+* 뉴스 상세: AI 요약 + 질문 + 댓글/투표
+* 인기 게시판 (점수 집계: 게시글 2점 + 댓글 1점)
+* 주간/월간 베스트 콘텐츠
+* 게시판 시스템: 게시글 목록, 작성, 상세 조회
+* 로그인/회원가입, 마이페이지, 설정 등 사용자 시스템
+
+### 관리자 기능
+
+* 크롤링 상태 대시보드 (수집 시간, 결과, 실패 로그 등)
+* 수집 뉴스 검토 및 승인/거부
+* AI 요약 결과 수정
+* 자동 질문 수정 및 신뢰도 수치 조정
+* 사용자 관리: 레벨 관리, 경고/정지/차단 등 제재 기능
+* 콘텐츠 관리: 게시판 생성/삭제, 광고 노출 위치 설정
+* 통계 대시보드: 뉴스별 참여도, 투표 통계, 신뢰도 변화 추이 등
+
+### 크롤러/AI 기능
+
+* 뉴스 수집: 네이버, 다음 등 RSS에서 3시간 간격 수집 (06시\~24시)
+* 트렌딩 키워드: 네이버 트렌드 1시간 간격 수집
+* 중복 뉴스 제거: URL 기준 + 본문 해시 비교
+* 유사 기사 군집화: TF-IDF + Cosine Similarity
+* AI 요약: 본문 100자 내 요약 (OpenAI 또는 KoGPT)
+* 핵심 주장 및 의심 포인트 자동 추출
+* 질문 자동 생성: “이 뉴스 진짜일까요?” + 보기 옵션 생성
+* 찬반 성향 분석: 댓글/기사 내용 기준
+* 뉴스 신뢰도 점수 산정: 0\~100점
+
+---
+
+## 4. 사용자 및 관리자 화면 상세
+
+### 사용자 화면 구조
+
+* 메인 페이지 (factlab\_main.html):
+
+  * 실시간 이슈 뉴스 (각 메뉴별 6개)
+  * 트렌딩 키워드
+  * 인기 게시판 (1일, 주간, 월간 기준)
+  * 오늘의 뉴스, 주간/월간 베스트
+  * 광고:
+
+    * 상단: 1200×90px
+    * 하단: 1200×200px (Hover 시 노출)
+    * 좌우: 각 160px
+
+* 뉴스 피드 (factlab\_news\_feed.html): 카테고리별 뉴스 목록, 요약 포함
+
+* 뉴스 상세 (factlab\_news\_detail.html): AI 요약 + 투표 + 댓글
+
+* 게시판: list, write, detail 구성 (각 HTML 별도 존재)
+
+* 사용자 시스템: 로그인(factlab\_login.html), 회원가입, 마이페이지, 설정 등
+
+### 관리자 화면
+
+* 뉴스 승인/거부 및 상태 모니터링
+* 수집 로그 및 AI 결과 확인
+* 사용자 관리 (신고, 정지 등)
+* 대시보드: 뉴스별 통계, 신뢰도, 투표 분포
+* 팩트체크 기사 매칭 및 리뷰
+
+### 반응형 및 시각 설계
+
+* 메인 폭: 1280px / 서브: 1000px
+* 모바일 폰트: 제목 25px, 본문 15px
+* 레이아웃 공통 구성: Header / Contents / Footer (반투명 배경)
+* CSS 구성:
+
+  * common.css: 공통 (헤더, 푸터, 광고)
+  * main.css: 메인 전용
+  * sub.css: 뉴스, 게시판 공통
+* JS 구성도 동일하게 common.js / main.js / sub.js 분리
+
+---
+
+## 5. 데이터베이스 설계
+
+| 테이블                | 주요 필드                                                    |
+| ------------------ | -------------------------------------------------------- |
+| users              | id, email, nickname, level, created\_at                  |
+| news               | id, title, content, url, source, publish\_date, category |
+| news\_summary      | news\_id, summary, claim, keywords, auto\_question       |
+| fact\_check\_match | news\_id, matched\_article\_url, score                   |
+| user\_votes        | id, news\_id, user\_id, vote\_type                       |
+| user\_comments     | id, news\_id, user\_id, content, created\_at             |
+| trending\_keywords | keyword, date, rank, category                            |
+| categories         | id, name                                                 |
+| logs               | timestamp, action, module                                |
+
+* 외래키 및 인덱스 포함
+* 정기 정리 작업: 30일 초과 데이터 삭제
+
+---
+
+## 6. 개발 환경 및 구현 절차
+
+### 기술 스택
+
+* 백엔드: Java Spring Boot
+* 프론트엔드: React, HTML5, CSS3, JavaScript
+* 크롤러/AI: Python, FastAPI, BeautifulSoup, OpenAI API
+* 데이터베이스: PostgreSQL
+* 인프라: Docker, Nginx, WebSocket
+
+### 개발 순서
+
+1. Docker 환경 설정 및 테스트
+2. PostgreSQL 초기화 및 테이블 설계
+3. 공통 모듈 (인증, 사용자 시스템, 표준 API 응답 등)
+4. 크롤러 서비스 구현 (naver, daum, trend)
+5. AI 요약 및 분석 모듈 연동
+6. 관리자 화면 구현 (뉴스 승인, 모니터링, 통계 등)
+7. 사용자 화면 구현 (메인, 뉴스, 게시판, 댓글 등)
+8. REST API 및 WebSocket 연결
+9. 정적 자원 및 광고 연동
+10. 통합 테스트 및 배포
+
+### 배포 준비 및 테스트
+
+* 기능 테스트: 크롤링 정확성, AI 품질, UI 동작
+* 성능 테스트: 부하 테스트, 캐시/DB 성능, 안정성
+* 정기 작업 등록:
+
+  * 뉴스 수집: 3시간 간격 (CRON)
+  * 트렌딩 키워드: 1시간 간격
+  * AI 요약: 실시간 트리거
+  * 로그 정리/DB 정리: 자정
+
+---
+
+## 7. 운영 설정 및 확장 방향
+
+* 기사 군집화 카드 제공: 유사 기사 묶음으로 시각화
+* 댓글/투표 기반 신뢰도 변화 시각화
+* 팩트체크 기관 연동 자동화 (SNU, 뉴스톱 등)
+* 유튜브 뉴스 및 쇼츠 요약 연동
+* Twitter/Reddit 기반 반응 요약
+* 고급 기능 확장:
+
+  * 실시간 알림 시스템 (WebSocket 기반)
+  * 사용자 관심사 기반 뉴스 추천
+  * 통합 검색 기능
+  * 광고 수익 구조 고도화 (페이지별 광고 설정)
+
+----
+
+## 8. 백엔드(SPRING BOOT) 개발 기본 원칙
+
+1) 폴더 구조 및 계층 명확화
+기본 구조: controller, service, repository, dto, entity, config
+기능 단위로 하위 패키지 구성 (ex: news/, user/, comment/)
+com.factlab.news.controller
+com.factlab.news.service
+com.factlab.news.repository
+com.factlab.news.dto
+
+2) DTO, Entity 분리
+Entity는 DB 매핑 용도로만 사용
+
+Controller ↔ Service ↔ Repository 간에는 반드시 DTO 사용
+
+3) Service는 비즈니스 로직만
+Controller에는 로직 금지: Request → DTO 변환만
+
+Repository에는 쿼리 외 로직 금지: 단순 DB 접근만
+
+4) Exception Handling 통합
+@RestControllerAdvice + @ExceptionHandler 구성
+
+에러 코드는 ErrorCode.java Enum으로 통합 관리
+
+5) Validation 철저 적용
+모든 입력값: @Valid, @NotNull, @Size, @Email 등 사용
+
+Controller에서는 무조건 검증만 처리
+
+6) Response 형식 표준화
+API 응답 통일: 공통 ApiResponse<T> 객체 사용
+return ApiResponse.success(data);
+
+7) Swagger 또는 SpringDoc으로 API 문서화
+springdoc-Gemini 라이브러리로 자동 문서화
+
+/swagger-ui/index.html 또는 /v3/api-docs
+
+
+### 9. Admin 화면(React) 개발 기본 원칙
+
+1) 폴더구조
+admin_service/src/
+├── pages/       // 각 메뉴별 화면 단위
+├── components/  // 공통 UI 요소
+├── hooks/       // 재사용 가능한 커스텀 훅
+├── api/         // axios 기반 API 모듈
+├── constants/   // 상수, ENUM, config
+├── styles/      // CSS/SCSS, 공통 스타일
+├── utils/       // 유틸 함수
+
+2) 컴포넌트 네이밍
+페이지 컴포넌트: NewsDashboardPage, UserListPage
+
+공통 컴포넌트: SidebarMenu, StatCard, StatusTag
+
+3) 스타일 관리
+공통 스타일은 AdminCommon.css에만 정의
+각 페이지 스타일은 News.css, User.css 등으로 분리
+전역 클래스명 금지 → .admin- 접두사 사용 권장
+.admin-container, .admin-sidebar, .admin-header
+
+4) API 통신 모듈화
+axios 인스턴스: /api/axiosInstance.js
+API 분리: /api/news.js, /api/user.js
+에러/로딩 처리 공통화
+
+5) 권한 및 인증 처리
+로그인 시 JWT 저장 (localStorage or secure cookie)
+Axios Interceptor로 자동 헤더 주입
+관리권한 없는 경우 접근 차단 (<PrivateRoute />)
+
+6) 입력/검증 UI 일관화
+모든 입력: <Input>, <Select>, <DatePicker> 등 공통 UI 컴포넌트 사용
+
+Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
+
+10. 공통원칙.
+| 구분  | 적용 원칙                                                          |
+| --- | ----------------------------------------------------------        |
+| 네이밍 | 명확한 기능 기반, 메뉴명 포함 (`news-user-controller`, `admin-header`) |
+| 스타일 | `.admin-`, `.news-` 접두사로 전역 클래스 충돌 방지                      |
+| 구조  | 기능 단위로 폴더/클래스/컴포넌트 분리                                     |
+| 응답  | API 응답 형식 통일 (`{ success, data, error }`)                     |
+| 보안  | 인증/인가 철저 (JWT, Role 체크)                                      |
+| 문서화 | Swagger 또는 Storybook, README 등 주석/문서 필수화                   |
+
+
+----
+
+### 11. 사용자화면 (Html) > react 변환 원칙
+
+1. 모든 전역/중복 클래스명 금지, .news- 네임스페이스만 사용
+2. 공통(헤더/푸터/버튼 등)은 Common.css에서만 관리
+3. 레이아웃/디자인/사이즈/구조는 원본과 100% 동일하게 유지
+4. .container, .main-content, .sidebar, .page-header 등은 
+   .news-container, .news-main-content, .news-sidebar, .news-page-header 등 메뉴명을 붙여서 변경
+5. 버튼, 폰트, 링크 등 공통 스타일은 Common.css에만 남기고 News.css에서는 오버라이드 금지
+
+
+
+### 12 크롤링 스케줄 환경설정 추가/수정
+1. 주기 : 2시간 간격.
+2. 내부 요청 간격. 5초에 1개씩 크롤링. 1주기에 20개씩 수집. 
+3. 네이버모바일(정치, 경제 등 tab화면), 다음모바일(정치, 기후환경 등 tab) 크롤링.(pc에서 하지 않음.)
+3. 분산 : 20분 간격으로 실행  (예: 네이버 2:00, 다음: 2:20, 구글: 2:40)
+4. 비동기 처리: 크롤링으로 뉴스 저장 후 관리자에서 뉴스 선택해서 ai 분석 후 저장.
+
+전체: ai 분석완료 된 전체뉴스 건수 / 크롤링 된 뉴스의 개수는 여기서 보이면 안됨.
+승인대기: ai 분석완료 된 전체뉴스 중 승인 대기건수
+승인됨: 승인대기건 중 승인되어 사용자화면에 보이고 있는 뉴스 
+거부됨: ai 분석완료 된 뉴스 중 분석이 잘못되어 거부된 건 > 이건 ai. 다시 분석 필요.
+
+## 관리자 절차
+클롤링한 뉴스를 하나의 큐 형식으로 아래와같은 프로세스를 통해 사용자에게 제공.
+1. 크롤링으로 뉴스 수집 > 수집한 뉴스는 AI요약관리에 노출됨 (정기 스케줄에 의해 수집)
+2. AI뉴스분석에서 관리자가 수집한 뉴스 선택 , [ai분석] 버튼클릭 > 클릭 해야 AI 사용해서 뉴스 분석 > 분석 완료된 뉴스는 '뉴스관리' 메뉴에 노출 (분석되지 않은 뉴스는 나타나지 않음, 분석 이후에는 이 메뉴에서 뉴스 사라짐.)
+3. '뉴스관리'에 있는 분석완료된 뉴스는 승인버튼 클릭 / 이때 내용 않맞을 경우 '거부' 후 '재분석' 하거나 뉴스삭제.
+4. 승인된 뉴스가 사용자화면 메인, 각 분야별 화면에 노출됨.
+
+5. 크롤링버튼 클릭 시 실제로 크롤링으로 뉴스를 수집해야해. 근데 그런 기능이 없는거 같아. 
+그리고. 수동으로 뉴스를 수집하기 위해 크롤링 버튼을 개발했지만, 원래는 배치를 통해서 정기적으로 수집할거야. 
+일단 목업데이터 삭제.해봐 내가 크롤링 버튼 눌러서 실제로 뉴스 수집 하는지 테스트할께.
+
+6. ai 분석은 현재 gemini 로 하고 있어. 소스 체크해. 더불어서 open ai 소스는 모두 삭제해.
+7. ai 분석 후 db에 저장해.
+8. contest 는 뉴스의 내용이어야 하는데 왜 url이 저장되어 있지? 내용은 어디에 저장하지? 확인해
+
+뉴스는 한 페이지에 100개씩 페이징 처리, 
+화면 아래에 페이지 수 표시.
+맨 처음 | < 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | > | 맨 끝 
+
+
+
+  # 1. 모든 컨테이너 중지 및 삭제
+  docker-compose down
+
+  # 2. 캐시 없이 전체 이미지 재빌드
+  docker-compose build --no-cache
+
+  # 3. 서비스 재시작
+  docker-compose up -d
+
+  # 또는 한번에:
+  docker-compose down && docker-compose build --no-cache && docker-compose up -d
+
+  더 강력한 정리가 필요하면:
+
+  # 1. 모든 것 중지 및 삭제
+  docker-compose down
+
+  # 2. 사용하지 않는 이미지/네트워크/볼륨 정리
+  docker system prune -f
+
+  # 3. 전체 재빌드 및 실행
+  docker-compose build --no-cache
+  docker-compose up -d

@@ -1,0 +1,634 @@
+/* FactLab 메인페이지 전용 스타일 (factlab_main.html 1:1 반영)
+   - 공통(헤더/푸터/버튼 등)은 Common.css에서 관리
+   - 이 파일은 메인 전용 레이아웃, 그리드, 카드, 광고, 사이드바 등만 포함 */
+
+.main-container {
+    max-width: 1560px; /* 160px(좌측광고) + 1200px(콘텐츠) + 160px(우측광고) + 40px(gap) */
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 160px 1200px 160px; /* 콘텐츠 영역을 정확히 1200px로 설정 */
+    gap: 20px;
+    padding: 20px;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.main-top-banner-ad {
+    background-color: #f0f8ff;
+    border: 1px solid #ddd;
+    padding: 50px 10px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 1200px; /* 콘텐츠 영역과 동일한 너비 */
+    margin: 0 auto; /* 중앙 정렬 */
+}
+
+.main-side-ad {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 12px;
+    position: sticky;
+    top: 20px;
+}
+
+.main-content {
+    background-color: white;
+}
+
+/* 베스트 뉴스 기간 필터 */
+.best-period-filter {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #666;
+    position: relative;
+    z-index: 5;
+}
+
+.best-period-filter span {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.best-period-filter span.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.best-period-filter span:hover {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+.best-period-filter span.active:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+/* 클릭 가능한 뉴스 요소들 */
+.main-news-title, .main-news-summary {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.main-news-title:hover {
+    color: #0066cc;
+    text-decoration: underline;
+}
+
+.main-news-summary:hover {
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* 메인 뉴스 썸네일 */
+.main-news-thumbnail {
+    width: 200px;
+    height: 133px;
+    flex-shrink: 0;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.main-news-thumbnail:hover {
+    opacity: 0.8;
+}
+
+.main-news-thumbnail-placeholder {
+    font-size: 24px;
+    color: #999;
+}
+
+/* 메인 뉴스 콘텐츠 */
+.main-news-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+    width: 1200px; /* 콘텐츠 영역을 정확히 1200px로 설정 */
+    margin: 0 auto; /* 중앙 정렬 */
+}
+
+.main-news-section, .main-sidebar {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+.main-section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #0066cc;
+    padding-bottom: 8px;
+    position: relative;
+    z-index: 10;
+}
+
+.main-news-card {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.main-news-card:hover {
+    background-color: #f0f8ff;
+}
+
+.main-news-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+    /* 메인 페이지 뉴스 제목 말줄임 처리 (최대 2줄) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    line-height: 1.4;
+    max-height: 2.8em; /* line-height 1.4 * 2줄 */
+}
+
+.main-news-summary {
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    font-size: 14px;
+    /* 메인 페이지 뉴스 요약 말줄임 처리 (최대 3줄) */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-height: 4.2em; /* line-height 1.4 * 3줄 */
+}
+
+.main-news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #999;
+}
+
+.main-vote-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.main-vote-btn {
+    padding: 3px 8px;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.main-vote-btn.agree {
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.main-vote-btn.disagree {
+    border-color: #f44336;
+    color: #f44336;
+}
+
+.main-vote-btn:hover {
+    background: #f0f0f0;
+}
+
+.sidebar-item, .news-sidebar-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+}
+
+.sidebar-title, .news-sidebar-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 13px;
+}
+
+.trending-item, .news-trending-item {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trending-item:last-child, .news-trending-item:last-child {
+    border-bottom: none;
+}
+
+/* 트렌딩 키워드 순위 스타일 */
+.trending-rank {
+    background-color: #0066cc;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    width: 24px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.trending-keyword {
+    color: #0066cc;
+    font-weight: 500;
+    flex: 1;
+}
+
+.trending-count {
+    color: #666;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.board-item, .news-board-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.board-item:last-child, .news-board-item:last-child {
+    border-bottom: none;
+}
+
+.board-posts, .news-board-posts {
+    background: #0066cc;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* BEST Lab 사이드바 스타일 */
+.news-board-clickable {
+    background: linear-gradient(135deg, #fff8e1, #fffde7);
+    border: 1px solid #ffd54f;
+    border-radius: 6px;
+    margin: 5px 0;
+    padding: 8px 10px !important;
+    transition: all 0.3s ease;
+}
+
+.news-board-clickable:hover {
+    background: linear-gradient(135deg, #fff3c4, #ffecb3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 213, 79, 0.3);
+}
+
+.news-board-clickable .news-board-posts {
+    background: #f57f17;
+    color: white;
+    font-weight: bold;
+}
+
+.content-banner-ad, .news-content-banner-ad {
+    background-color: #f0f8ff;
+    border: 1px solid #ddd;
+    padding: 50px 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    height: 370px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-section {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 1200px; /* 콘텐츠 영역과 동일한 너비 */
+    margin: 20px auto 0; /* 상단 마진과 중앙 정렬 */
+}
+
+.weekly-best, .todays-news {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+.best-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.best-rank {
+    background: #0066cc;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.news-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.floating-write {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.floating-write:hover {
+    background: #0052a3;
+}
+
+
+.community-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    min-width: 1000px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.community-lab:hover .community-dropdown,
+.community-lab:focus-within .community-dropdown {
+    display: block;
+}
+
+.community-dropdown.show {
+    display: block;
+}
+
+.dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+}
+
+.dropdown-column {
+    border-right: 1px solid #eee;
+    padding-right: 15px;
+}
+
+.dropdown-column:last-child {
+    border-right: none;
+}
+
+.column-title {
+    font-weight: bold;
+    font-size: 13px;
+    color: #0066cc;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.board-link {
+    display: block;
+    padding: 5px 0;
+    color: #333;
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.board-link:hover {
+    color: #0066cc;
+    background-color: #f0f8ff;
+    padding-left: 5px;
+}
+
+.board-link.special {
+    color: #ff6600;
+    font-weight: bold;
+}
+
+/* BEST Lab 특별 스타일 */
+.best-board-link {
+    background: linear-gradient(135deg, #fff8e1, #fffde7) !important;
+    border: 1px solid #ffd54f !important;
+    border-radius: 6px !important;
+    color: #f57f17 !important;
+    font-weight: bold !important;
+    padding: 8px 10px !important;
+    margin: 2px 0 !important;
+    animation: best-pulse 2s infinite;
+}
+
+.best-board-link:hover {
+    background: linear-gradient(135deg, #fff3c4, #ffecb3) !important;
+    color: #e65100 !important;
+    box-shadow: 0 2px 8px rgba(255, 213, 79, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+@keyframes best-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 213, 79, 0.4); }
+    70% { box-shadow: 0 0 0 4px rgba(255, 213, 79, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 213, 79, 0); }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+    .main-side-ad {
+        display: none;
+    }
+    .main-content-grid {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+    .bottom-section {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+    .auth-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .nav-content {
+        flex-wrap: wrap;
+        padding: 0 10px;
+    }
+    .nav-item {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    /* 모바일에서 뉴스 카드 비율 조정 */
+    .main-news-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .main-news-thumbnail {
+        width: 100%;
+        height: 120px;
+    }
+    
+    .main-news-title {
+        font-size: 16px;
+        line-height: 1.3;
+        max-height: 2.6em; /* line-height 1.3 * 2줄 */
+        -webkit-line-clamp: 2;
+    }
+    
+    .main-news-summary {
+        font-size: 13px;
+        line-height: 1.3;
+        max-height: 2.6em; /* line-height 1.3 * 2줄 */
+        -webkit-line-clamp: 2;
+    }
+}
+
+/* 인라인 스타일을 대체할 클래스들 */
+.main-news-thumbnail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.main-news-thumbnail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.main-news-thumbnail-placeholder.hidden {
+    display: none;
+}
+
+.main-news-placeholder-logo {
+    height: 30px;
+    width: auto;
+    max-width: 80px;
+    margin-bottom: 5px;
+    opacity: 0.7;
+    object-fit: contain;
+}
+
+.main-news-placeholder-text {
+    color: #6c757d;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.main-best-header {
+    margin-bottom: 15px;
+}
+
+.main-best-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-best-title {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.main-best-filter-clickable {
+    cursor: pointer;
+}
+
+.main-best-divider {
+    border-bottom: 2px solid #0066cc;
+    margin-top: 8px;
+}
+
+.main-best-item-clickable {
+    cursor: pointer;
+}
+
+.main-todays-news-clickable {
+    cursor: pointer;
+    margin-left: 8px;
+}

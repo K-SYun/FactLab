@@ -1,0 +1,26 @@
+/* Notice Management Styles */
+
+/* Table column widths */
+.notice-table-col-select {
+  width: 50px;
+}
+
+.notice-table-col-pinned {
+  width: 60px;
+}
+
+.notice-table-col-status {
+  width: 80px;
+}
+
+.notice-table-col-author {
+  width: 100px;
+}
+
+.notice-table-col-date {
+  width: 150px;
+}
+
+.notice-table-col-actions {
+  width: 100px;
+}

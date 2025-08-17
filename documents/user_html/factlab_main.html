@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FactLab - 팩트체크 커뮤니티</title>
+    <link rel="stylesheet" href="Common.css">
+    <style>
+        /* factlab_main.html 전용 스타일 */
+        body {
+            background-color: white; /* 메인 페이지는 배경색을 흰색으로 */
+        }
+
+        /* Top Banner Ad */
+        .news-top-banner-ad {
+            background-color: #f0f8ff;
+            border: 1px solid #ddd;
+            padding: 50px 10px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 1200px; /* 공통 컨테이너 너비에 맞춤 */
+            margin: 20px auto; /* 중앙 정렬 */
+        }
+
+        /* Content Banner Ad */
+        .news-content-banner-ad {
+            background-color: #f0f8ff;
+            border: 1px solid #ddd;
+            padding: 50px 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            height: 210px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Container Grid Layout */
+        .news-main-grid-container {
+            max-width: 1400px; /* 메인 페이지의 특수 레이아웃을 위한 넓은 컨테이너 */
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 160px 1fr 160px;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Side Ads */
+        .news-side-ad {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* Main Content within Grid */
+        .news-main-content-area { /* 기존 .main-content */
+            background-color: white;
+        }
+
+        .news-content-grid { /* 기존 .content-grid */
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .news-section, .news-sidebar { /* 기존 .news-section, .sidebar */
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        .news-section-title { /* 기존 .section-title */
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 8px;
+        }
+
+        .news-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            cursor: pointer; /* 뉴스 카드 클릭 가능 */
+        }
+
+        .news-card:hover {
+            background-color: #f0f8ff;
+        }
+
+        .news-card-title { /* 기존 .news-title */
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .news-card-summary { /* 기존 .news-summary */
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .news-card-meta { /* 기존 .news-meta */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #999;
+        }
+
+        .news-vote-buttons { /* 기존 .vote-buttons */
+            display: flex;
+            gap: 5px;
+        }
+
+        .news-vote-btn { /* 기존 .vote-btn */
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .news-vote-btn.agree {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .news-vote-btn.disagree {
+            border-color: #f44336;
+            color: #f44336;
+        }
+
+        .news-vote-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .news-sidebar-item { /* 기존 .sidebar-item */
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+        }
+
+        .news-sidebar-title { /* 기존 .sidebar-title */
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .news-trending-item { /* 기존 .trending-item */
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            cursor: pointer; /* 키워드 클릭 가능 */
+        }
+
+        .news-trending-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-board-item { /* 기존 .board-item */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            cursor: pointer; /* 게시판 클릭 가능 */
+        }
+
+        .news-board-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-board-posts { /* 기존 .board-posts */
+            background: #0066cc;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+
+        /* Bottom Section */
+        .news-bottom-section { /* 기존 .bottom-section */
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .news-weekly-best, .news-todays-news { /* 기존 .weekly-best, .todays-news */
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        .news-best-item { /* 기존 .best-item */
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        .news-best-rank { /* 기존 .best-rank */
+            background: #0066cc;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .news-news-item { /* 기존 .news-item */
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        /* Floating Write Button */
+        .news-floating-write {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .news-floating-write:hover {
+            background: #0052a3;
+        }
+
+        /* Responsive adjustments for main page specific elements */
+        @media (max-width: 768px) {
+            .news-main-grid-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+
+            .news-side-ad {
+                display: none; /* 모바일에서 측면 광고 숨김 */
+            }
+
+            .news-content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .news-bottom-section {
+                grid-template-columns: 1fr;
+            }
+
+            .news-top-banner-ad {
+                margin: 10px auto; /* 모바일에서 마진 조정 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="news-header">
+        <div class="news-header-content">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <div class="news-auth-buttons">
+                <a href="factlab_login.html" class="news-btn news-btn-primary">로그인</a>
+                <a href="register.html" class="news-btn">회원가입</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="news-nav-menu">
+        <div class="news-nav-content">
+            <a href="#" class="news-nav-item active">정치</a>
+            <a href="#" class="news-nav-item">경제</a>
+            <a href="#" class="news-nav-item">사회</a>
+            <a href="#" class="news-nav-item">IT/과학</a>
+            <a href="#" class="news-nav-item">세계</a>
+            <a href="#" class="news-nav-item">기후/환경</a>                          
+            <a href="#" class="news-nav-item">연예</a>
+            <a href="#" class="news-nav-item">스포츠</a>
+            <!-- 커뮤니티Lab 드롭다운은 React에서 컴포넌트화하는 것이 적합합니다. HTML에서는 단순 링크로 처리합니다. -->
+            <a href="factlab_board_list.html" class="news-nav-item" id="newsCommunityNav">
+                커뮤니티Lab
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Banner Ad -->
+    <div class="news-top-banner-ad">
+        🎯 상단 배너 광고 영역 (1200px x 90px)
+    </div>
+
+    <!-- Main Container -->
+    <div class="news-main-grid-container">
+        <!-- Left Side Ad -->
+        <div class="news-side-ad">
+            📢<br>좌측<br>광고<br>영역<br>(160px)
+        </div>
+
+        <!-- Main Content -->
+        <div class="news-main-content-area">
+            <div class="news-content-grid">
+                <div class="news-section">
+                    <h2 class="news-section-title">🔥 실시간 이슈 뉴스</h2>
+                    
+                    <div class="news-card" onclick="location.href='factlab_news_detail.html?id=1'">
+                        <h3 class="news-card-title">AI 기술 발전, 일자리에 미치는 영향은?</h3>
+                        <p class="news-card-summary">최근 AI 기술이 급속도로 발전하면서 다양한 산업 분야에서 일자리 변화가 예상된다는 분석이 나왔습니다. 전문가들은 새로운 일자리 창출과 기존 일자리 소멸이 동시에 일어날 것으로 전망...</p>
+                        <div class="news-card-meta">
+                            <span> MBC | 경제 | 07.21 12:30 | 👀 1,234</span>
+                            <div class="news-vote-buttons">
+                                <button class="news-vote-btn agree">사실 (89)</button>
+                                <button class="news-vote-btn disagree">의심 (12)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="news-card" onclick="location.href='factlab_news_detail.html?id=2'">
+                        <h3 class="news-card-title">새로운 백신 개발, 효과는 90% 이상</h3>
+                        <p class="news-card-summary">국내 연구진이 개발한 새로운 백신의 임상시험 결과가 발표되었습니다. 3상 임상시험에서 90% 이상의 효과를 보였다고 발표했지만, 일부 전문가들은 추가 검증이 필요하다고...</p>
+                        <div class="news-card-meta">
+                            <span> MBC | 의료 | 07.21 12:30 | 👀 2,567</span>
+                            <div class="news-vote-buttons">
+                                <button class="news-vote-btn agree">사실 (156)</button>
+                                <button class="news-vote-btn disagree">의심 (34)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="news-card" onclick="location.href='factlab_news_detail.html?id=3'">
+                        <h3 class="news-card-title">기후변화 대응책, 정부 발표 내용 검증</h3>
+                        <p class="news-card-summary">정부가 발표한 2030년 탄소 중립 계획에 대해 환경 단체들이 실현 가능성에 의문을 제기했습니다. 구체적인 실행 방안과 예산 확보 계획이 부족하다는 지적이...</p>
+                        <div class="news-card-meta">
+                            <span> MBC | 기후/환경 | 07.21 12:30 | 👀 890</span>
+                            <div class="news-vote-buttons">
+                                <button class="news-vote-btn agree">사실 (67)</button>
+                                <button class="news-vote-btn disagree">의심 (45)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="news-card" onclick="location.href='factlab_news_detail.html?id=4'">
+                        <h3 class="news-card-title">폭우 차량 침수피해 300억…손해율 가중</h3>
+                        <p class="news-card-summary">최근 전국적인 집중호우로 약 6일간 차량 침수 피해 규모가 300억원으로 추정됐다. 이는 지난해 약 두 달간 발생한 차량 침수 피해의 70% 수준이다....</p>
+                        <div class="news-card-meta">
+                            <span> MBC | 기후/환경 | 07.21 12:30 | 👀 890</span>
+                            <div class="news-vote-buttons">
+                                <button class="news-vote-btn agree">사실 (67)</button>
+                                <button class="news-vote-btn disagree">의심 (45)</button>
+                            </div>
+                        </div>
+                    </div>        
+                    
+                    <div class="news-card" onclick="location.href='factlab_news_detail.html?id=5'">
+                        <h3 class="news-card-title">민생쿠폰 신청 첫 날 접속 폭주…한때 일부 앱 차질</h3>
+                        <p class="news-card-summary">최근 전국적인 집중호우로 약 6일간 차량 침수 피해 규모가 300억원으로 추정됐다. 이는 지난해 약 두 달간 발생한 차량 침수 피해의 70% 수준이다....</p>
+                        <div class="news-card-meta">
+                            <span> MBC | 경제 | 07.21 12:30 | 👀 890</span>
+                            <div class="news-vote-buttons">
+                                <button class="news-vote-btn agree">사실 (67)</button>
+                                <button class="news-vote-btn disagree">의심 (45)</button>
+                            </div>
+                        </div>
+                    </div>                         
+                </div>
+
+                <div class="news-sidebar">
+                    <div class="news-sidebar-item">
+                        <div class="news-sidebar-title">📈 트렌딩 키워드</div>
+                        <div class="news-trending-item">#AI일자리</div>
+                        <div class="news-trending-item">#백신효과</div>
+                        <div class="news-trending-item">#탄소중립</div>
+                        <div class="news-trending-item">#팩트체크</div>
+                        <div class="news-trending-item">#기후변화</div>
+                        <div class="news-trending-item">#집중호우</div>
+                        <div class="news-trending-item">#태풍</div>
+                        <div class="news-trending-item">#갑질폭로</div>                        
+                    </div>
+
+                    <div class="news-content-banner-ad">
+                        🎯 콘텐츠 배너 광고 영역 (210px x 200px)
+                    </div>                    
+
+                    <div class="news-sidebar-item">
+                        <div class="news-sidebar-title">🏆 인기 게시판</div>
+                        <div class="news-board-item">
+                            <span>정치 Lab</span>
+                            <span class="news-board-posts">1,234</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>사회 Lab</span>
+                            <span class="news-board-posts">987</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>경제 Lab</span>
+                            <span class="news-board-posts">756</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>부동산 Lab</span>
+                            <span class="news-board-posts">543</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>주식-국장 Lab</span>
+                            <span class="news-board-posts">543</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>주식-미장 Lab</span>
+                            <span class="news-board-posts">543</span>
+                        </div>
+                        <div class="news-board-item">
+                            <span>유머 Lab</span>
+                            <span class="news-board-posts">543</span>
+                        </div>                                                                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="news-bottom-section">
+                <div class="news-weekly-best">
+                    <h2 class="news-section-title">🏅 주간 베스트</h2>
+                    <div class="news-best-item">
+                        <div class="news-best-rank">1</div>
+                        <div>AI 윤리 가이드라인, 실제로 지켜지고 있을까?</div>
+                    </div>
+                    <div class="news-best-item">
+                        <div class="news-best-rank">2</div>
+                        <div>코로나19 백신 부작용 보고서 분석</div>
+                    </div>
+                    <div class="news-best-item">
+                        <div class="news-best-rank">3</div>
+                        <div>전기차 배터리 화재 원인과 대책</div>
+                    </div>
+                    <div class="news-best-item">
+                        <div class="news-best-rank">4</div>
+                        <div>메타버스 투자 열풍, 거품인가 기회인가?</div>
+                    </div>
+                    <div class="news-best-item">
+                        <div class="news-best-rank">5</div>
+                        <div>원전 재가동 정책의 안전성 검토</div>
+                    </div>
+                </div>
+
+                <div class="news-todays-news">
+                    <h2 class="news-section-title">📰 오늘의 뉴스</h2>
+                    <div class="news-news-item">
+                        <strong>07:30</strong> 반도체 수출 증가율 전년 대비 15% 상승
+                    </div>
+                    <div class="news-news-item">
+                        <strong>09:15</strong> 새로운 감염병 예방 백신 개발 성공
+                    </div>
+                    <div class="news-news-item">
+                        <strong>11:22</strong> 자율주행차 상용화 일정 발표
+                    </div>
+                    <div class="news-news-item">
+                        <strong>13:45</strong> 정부 디지털 전환 정책 세부 계획 공개
+                    </div>
+                    <div class="news-news-item">
+                        <strong>15:30</strong> 친환경 에너지 투자 확대 방안
+                    </div>
+                    <div class="news-news-item">
+                        <strong>17:10</strong> 온라인 교육 플랫폼 규제 강화
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Ad -->
+        <div class="news-side-ad">
+            📢<br>우측<br>광고<br>영역<br>(160px)
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="news-footer">
+        <div class="news-footer-content">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="report.html">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Write Button -->
+    <button class="news-floating-write" onclick="location.href='factlab_board_write.html'">✏️</button>
+
+    <script>
+        // 네비게이션 메뉴 기능
+        document.querySelectorAll('.news-nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // '커뮤니티Lab' 항목은 페이지 이동이므로 기본 동작 방지 안 함
+                if (this.id !== 'newsCommunityNav') {
+                    e.preventDefault();
+                    
+                    // 모든 항목에서 active 클래스 제거
+                    document.querySelectorAll('.news-nav-item').forEach(nav => nav.classList.remove('active'));
+                    
+                    // 클릭된 항목에 active 클래스 추가
+                    this.classList.add('active');
+                    
+                    // 카테고리 변경 (데모)
+                    console.log('카테고리 변경:', this.textContent.trim());
+                }
+            });
+        });
+
+        // 투표 버튼 기능
+        document.querySelectorAll('.news-vote-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const currentCount = parseInt(this.textContent.match(/\d+/)[0]);
+                this.textContent = this.textContent.replace(/\d+/, currentCount + 1);
+                this.style.background = this.classList.contains('agree') ? '#4CAF50' : '#f44336';
+                this.style.color = 'white';
+            });
+        });
+
+        // 트렌딩 키워드 클릭
+        document.querySelectorAll('.news-trending-item').forEach(item => {
+            item.addEventListener('click', function() {
+                console.log('키워드 클릭:', this.textContent);
+                // alert(`${this.textContent} 관련 뉴스를 검색합니다.`); // alert 대신 console.log
+                console.log(`${this.textContent} 관련 뉴스를 검색합니다.`);
+            });
+        });
+
+        // 인기 게시판 클릭
+        document.querySelectorAll('.news-board-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const boardName = this.querySelector('span').textContent;
+                console.log('게시판 클릭:', boardName);
+                window.location.href = 'factlab_board_list.html';
+            });
+        });
+
+        // 뉴스 카드 클릭 시 상세 페이지로 이동
+        document.querySelectorAll('.news-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // 투표 버튼을 클릭한 경우에는 페이지 이동을 막음
+                if (!e.target.classList.contains('news-vote-btn')) {
+                    // 실제로는 뉴스 ID를 기반으로 상세 페이지로 이동
+                    const newsId = this.dataset.newsId || '1'; // 예시 ID
+                    window.location.href = `factlab_news_detail.html?id=${newsId}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

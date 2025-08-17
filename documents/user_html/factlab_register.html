@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신고하기 - FactLab</title>
+    <link rel="stylesheet" href="Common.css">
+    <link rel="stylesheet" href="News.css">
+    <style>
+        /* report.html 전용 스타일 */
+        /* Common.css와 News.css에 없는, 이 페이지에서만 사용되는 스타일 정의 */
+
+        .news-report-container {
+            max-width: 800px;
+            margin: 20px auto; /* 헤더 아래 여백 */
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden; /* 내부 요소의 둥근 모서리 유지 */
+            padding: 20px;
+        }
+        
+        .news-report-form-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .news-report-form-section:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        
+        .news-report-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #dc3545; /* 신고 페이지 강조색 */
+            padding-bottom: 5px;
+        }
+        
+        .news-report-form-group {
+            margin-bottom: 15px;
+        }
+        
+        .news-report-form-label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .news-report-form-select,
+        .news-report-form-input,
+        .news-report-textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            font-family: inherit;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+
+        .news-report-form-select:focus,
+        .news-report-form-input:focus,
+        .news-report-textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        
+        .news-report-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .news-report-radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .news-report-radio-item {
+            flex: 1 1 auto; /* 유연하게 공간 차지 */
+            min-width: 120px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .news-report-radio-item:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .news-report-radio-item input[type="radio"] {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .news-report-radio-item input[type="radio"]:checked + span {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .news-report-target-info {
+            background-color: #f0f8ff;
+            border: 1px solid #0066cc;
+            padding: 15px;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 15px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .news-report-file-upload-area {
+            border: 1px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 15px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .news-report-file-upload-area:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+
+        .news-report-file-upload-area p {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .news-report-file-upload-area strong {
+            color: #0066cc;
+        }
+
+        .news-report-uploaded-files {
+            margin-top: 15px;
+        }
+
+        .news-report-uploaded-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e6f3ff;
+            border: 1px solid #0066cc;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 11px;
+        }
+
+        .news-report-uploaded-file-item span {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-report-uploaded-file-item .news-btn-danger {
+            padding: 4px 8px;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+        
+        .news-report-button-group {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .news-report-button-group .news-btn {
+            margin-left: 10px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .news-report-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .news-report-section-title {
+                font-size: 15px;
+                margin-bottom: 10px;
+            }
+
+            .news-report-radio-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .news-report-radio-item {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .news-report-button-group {
+                text-align: center;
+            }
+
+            .news-report-button-group .news-btn {
+                margin: 5px 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="news-header">
+        <div class="news-header-content news-container">
+            <a href="factlab_main.html" class="news-logo">FactLab</a>
+            <nav class="news-nav-menu">
+                <ul>
+                    <li><a href="factlab_main.html">홈</a></li>
+                    <li><a href="factlab_board_list.html">게시판</a></li>
+                    <li><a href="factlab_news_feed.html">뉴스</a></li>
+                    <li><a href="factlab_mypage.html">마이페이지</a></li>
+                    <li><a href="factlab_report.html" class="active">신고하기</a></li>
+                    <li><a href="factlab_login.html">로그인</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="news-report-container news-container">
+        <div class="news-page-header">
+            <div class="news-page-header-title">🚨 신고하기</div>
+            <div class="news-page-header-subtitle">FactLab의 건전한 커뮤니티를 위해 부적절한 내용을 신고해주세요.</div>
+        </div>
+        
+        <form id="reportForm" onsubmit="return submitReport()">
+            <!-- 신고 유형 선택 -->
+            <div class="news-report-form-section">
+                <div class="news-report-section-title">1. 신고 유형을 선택해주세요.</div>
+                <div class="news-report-form-group">
+                    <label class="news-report-form-label">신고 대상</label>
+                    <div class="news-report-radio-group">
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="targetType" value="post" onchange="showTargetInfo()">
+                            <span>게시글</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="targetType" value="comment" onchange="showTargetInfo()">
+                            <span>댓글</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="targetType" value="user" onchange="showTargetInfo()">
+                            <span>사용자</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="targetType" value="news" onchange="showTargetInfo()">
+                            <span>뉴스/팩트체크</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="targetType" value="other" onchange="showTargetInfo()">
+                            <span>기타</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="news-report-form-group" id="targetInfo" style="display: none;">
+                    <label class="news-report-form-label">신고 대상 URL 또는 ID</label>
+                    <input type="text" class="news-report-form-input" name="targetUrl" placeholder="예: 게시글 URL 또는 댓글 ID">
+                    <div style="font-size: 10px; color: #999; margin-top: 5px;">
+                        정확한 신고 처리를 위해 신고 대상의 링크 또는 고유 ID를 입력해주세요.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 신고 사유 선택 -->
+            <div class="news-report-form-section">
+                <div class="news-report-section-title">2. 신고 사유를 선택해주세요.</div>
+                <div class="news-report-form-group">
+                    <div class="news-report-radio-group">
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="spam">
+                            <span>스팸/홍보</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="hate_speech">
+                            <span>혐오/차별 표현</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="personal_attack">
+                            <span>욕설/인신공격</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="false_info">
+                            <span>허위 사실 유포</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="privacy_violation">
+                            <span>개인정보 침해</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="sexual_content">
+                            <span>음란물/불법 정보</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="copyright">
+                            <span>저작권 침해</span>
+                        </label>
+                        <label class="news-report-radio-item">
+                            <input type="radio" name="reason" value="other_reason">
+                            <span>기타</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 상세 설명 및 첨부파일 -->
+            <div class="news-report-form-section">
+                <div class="news-report-section-title">3. 상세 설명 및 첨부파일</div>
+                <div class="news-report-form-group">
+                    <label class="news-report-form-label">상세 설명 (최소 20자)</label>
+                    <textarea class="news-report-textarea" name="description" placeholder="신고 내용을 자세히 설명해주세요."></textarea>
+                </div>
+                
+                <div class="news-report-form-group">
+                    <label class="news-report-form-label">첨부 파일 (선택, 최대 3개)</label>
+                    <div class="news-report-file-upload-area" onclick="document.getElementById('fileInput').click()">
+                        <p>여기를 클릭하거나 파일을 드래그하여 첨부하세요.</p>
+                        <strong>JPG, PNG, GIF (최대 5MB)</strong>
+                        <input type="file" id="fileInput" multiple accept="image/jpeg,image/png,image/gif" style="display: none;" onchange="handleFiles(this.files)">
+                    </div>
+                    <div class="news-report-uploaded-files" id="uploadedFiles">
+                        <!-- Uploaded files will be listed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="news-report-button-group">
+                <button type="button" class="news-btn" onclick="resetForm()">초기화</button>
+                <button type="button" class="news-btn" onclick="goBack()">취소</button>
+                <button type="submit" class="news-btn news-btn-primary">신고하기</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="news-footer">
+        <div class="news-footer-content news-container">
+            <div class="news-footer-links">
+                <a href="factlab_about.html">회사소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">광고문의</a>
+                <a href="#">고객센터</a>
+                <a href="#">제휴문의</a>
+            </div>
+            <div class="news-footer-info">
+                <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
+                <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
+                <div>Copyright © 2024 FactLab. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let uploadedFiles = []; // 첨부된 파일 목록
+
+        // 신고 대상 정보 입력 필드 표시/숨김
+        function showTargetInfo() {
+            const targetType = document.querySelector('input[name="targetType"]:checked');
+            const targetInfoDiv = document.getElementById('targetInfo');
+            if (targetType && targetType.value !== 'other') {
+                targetInfoDiv.style.display = 'block';
+                document.querySelector('[name="targetUrl"]').placeholder = 
+                    targetType.value === 'post' ? '게시글 URL 또는 ID' :
+                    targetType.value === 'comment' ? '댓글 ID (예: #comment-123)' :
+                    targetType.value === 'user' ? '사용자 닉네임 또는 ID' :
+                    targetType.value === 'news' ? '뉴스 URL 또는 ID' : '';
+            } else {
+                targetInfoDiv.style.display = 'none';
+                document.querySelector('[name="targetUrl"]').value = '';
+            }
+        }
+
+        // 파일 첨부 처리
+        function handleFiles(files) {
+            const uploadedFilesDiv = document.getElementById('uploadedFiles');
+            uploadedFilesDiv.innerHTML = ''; // 기존 목록 초기화
+            uploadedFiles = []; // 기존 파일 목록 초기화
+
+            Array.from(files).forEach(file => {
+                if (uploadedFiles.length >= 3) {
+                    console.log('파일은 최대 3개까지 첨부할 수 있습니다.'); // alert 대신 console.log
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) { // 5MB 제한
+                    console.log(`${file.name}은(는) 5MB를 초과하여 첨부할 수 없습니다.`); // alert 대신 console.log
+                    return;
+                }
+                uploadedFiles.push(file);
+            });
+
+            renderUploadedFiles();
+        }
+
+        // 첨부된 파일 목록 렌더링
+        function renderUploadedFiles() {
+            const uploadedFilesDiv = document.getElementById('uploadedFiles');
+            uploadedFilesDiv.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'news-report-uploaded-file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    <button type="button" class="news-btn news-btn-danger" onclick="removeFile(${index})">삭제</button>
+                `;
+                uploadedFilesDiv.appendChild(fileItem);
+            });
+        }
+
+        // 첨부 파일 삭제
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderUploadedFiles();
+        }
+
+        // 신고 제출
+        function submitReport() {
+            const targetType = document.querySelector('input[name="targetType"]:checked')?.value;
+            const targetUrl = document.querySelector('[name="targetUrl"]').value;
+            const reason = document.querySelector('input[name="reason"]:checked')?.value;
+            const description = document.querySelector('[name="description"]').value;
+            
+            if (!targetType) {
+                console.log('신고 유형을 선택하세요.'); // alert 대신 console.log
+                return false;
+            }
+            
+            if (targetType !== 'other' && !targetUrl.trim()) {
+                console.log('신고 대상의 URL 또는 ID를 입력하세요.'); // alert 대신 console.log
+                return false;
+            }
+            
+            if (!reason) {
+                console.log('신고 사유를 선택하세요.'); // alert 대신 console.log
+                return false;
+            }
+            
+            if (description.trim().length < 20) {
+                console.log('상세 설명을 20자 이상 입력하세요.'); // alert 대신 console.log
+                return false;
+            }
+            
+            // 실제로는 서버에 신고 데이터 전송
+            console.log('신고가 접수되었습니다.'); // alert 대신 console.log
+            console.log({ targetType, targetUrl, reason, description, uploadedFiles });
+            
+            // 폼 초기화
+            document.getElementById('reportForm').reset();
+            document.getElementById('targetInfo').style.display = 'none';
+            document.getElementById('uploadedFiles').innerHTML = '';
+            uploadedFiles = [];
+
+            return false; // 페이지 새로고침 방지
+        }
+        
+        // 폼 초기화
+        function resetForm() {
+            if (confirm('입력한 내용이 모두 삭제됩니다. 계속하시겠습니까?')) {
+                document.getElementById('reportForm').reset();
+                document.getElementById('targetInfo').style.display = 'none';
+                document.getElementById('uploadedFiles').innerHTML = '';
+                uploadedFiles = [];
+            }
+        }
+        
+        // 취소
+        function goBack() {
+            if (confirm('신고 작성을 취소하시겠습니까?')) {
+                window.history.back();
+            }
+        }
+        
+        // 라디오 버튼 클릭 처리 (텍스트 클릭 시 라디오 버튼 선택)
+        document.querySelectorAll('.news-report-radio-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    // 라디오 버튼 변경 이벤트 수동 트리거 (onchange 함수 호출)
+                    const event = new Event('change');
+                    radio.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

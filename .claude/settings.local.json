@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash"
+    ],
+    "deny": []
+  },
+  "enabledMcpjsonServers": [
+    "local-server"
+  ],
+  "enableAllProjectMcpServers": true
+}

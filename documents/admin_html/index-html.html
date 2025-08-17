@@ -1,0 +1,314 @@
+<!-- FactLab 뉴스 커뮤니티 대시보드 메인 콘텐츠 -->
+<main class="p-6 ml-64">
+    <!-- 실시간 통계 카드 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- 총 사용자 (유지) -->
+        <div class="stat-card blue rounded-lg p-6 text-white card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white/80 text-sm">총 사용자</p>
+                    <p class="text-2xl font-bold" id="totalUsers">12,847</p>
+                    <p class="text-white/80 text-xs mt-1">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +12% 지난주 대비
+                    </p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-full">
+                    <i class="fas fa-users text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 수집된 뉴스 (변경: 팩트체크 완료 → 수집된 뉴스) -->
+        <div class="stat-card green rounded-lg p-6 text-white card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white/80 text-sm">수집된 뉴스</p>
+                    <p class="text-2xl font-bold" id="collectedNews">15,247</p>
+                    <p class="text-white/80 text-xs mt-1">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +142건 지난 시간 대비
+                    </p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-full">
+                    <i class="fas fa-newspaper text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 요약 대기 (변경: 대기 중인 검증 → AI 요약 대기) -->
+        <div class="stat-card orange rounded-lg p-6 text-white card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white/80 text-sm">AI 요약 대기</p>
+                    <p class="text-2xl font-bold" id="pendingSummary">23</p>
+                    <p class="text-white/80 text-xs mt-1">
+                        <i class="fas fa-arrow-down mr-1"></i>
+                        -85% 처리 시간 단축
+                    </p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-full">
+                    <i class="fas fa-robot text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 일일 활성 사용자 (유지) -->
+        <div class="stat-card purple rounded-lg p-6 text-white card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white/80 text-sm">일일 활성 사용자</p>
+                    <p class="text-2xl font-bold" id="activeUsers">8,429</p>
+                    <p class="text-white/80 text-xs mt-1">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +15% 지난주 대비
+                    </p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 차트 및 분석 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- 뉴스 수집 트렌드 차트 (변경: 팩트체크 트렌드 → 뉴스 수집 트렌드) -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">뉴스 수집 및 처리 현황</h3>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">7일</button>
+                    <button class="px-3 py-1 text-xs bg-indigo-100 text-indigo-600 rounded-full">30일</button>
+                    <button class="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">90일</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="newsCollectionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 커뮤니티 활동 분포 (변경: 사용자 활동 → 커뮤니티 활동) -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">카테고리별 게시판 활동</h3>
+            <div class="chart-container">
+                <canvas id="communityActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 최근 활동 및 뉴스 수집 현황 -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+        <!-- 최근 뉴스 수집 현황 (변경: 팩트체크 활동 → 뉴스 수집 현황) -->
+        <div class="xl:col-span-2 bg-white rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">최근 뉴스 수집 현황</h3>
+                    <a href="news.html" class="text-sm text-indigo-600 hover:text-indigo-800">전체 보기</a>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">뉴스 제목</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">소스</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI 상태</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">게시판</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">수집 시간</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr class="table-row">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">대통령, 부동산 정책 발표... 시장 반응은?</div>
+                                <div class="text-sm text-gray-500">정부 부동산 규제 완화 방향 제시</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">네이버 뉴스</div>
+                                <div class="text-sm text-gray-500">연합뉴스</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="status-badge completed">요약완료</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">정치 토론장</div>
+                                <div class="text-sm text-gray-500">247 댓글</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">5분 전</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">AI 기술 발전, 일자리에 미치는 영향은</div>
+                                <div class="text-sm text-gray-500">ChatGPT 도입 후 변화하는 업무 환경</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">다음 뉴스</div>
+                                <div class="text-sm text-gray-500">테크크런치</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="status-badge reviewing">처리중</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">기술 뉴스</div>
+                                <div class="text-sm text-gray-500">156 댓글</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">12분 전</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">코인 시장 급락, 투자자들 패닉 상태</div>
+                                <div class="text-sm text-gray-500">비트코인 30% 하락, 알트코인 더 큰 폭 하락</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">트위터 트렌드</div>
+                                <div class="text-sm text-gray-500">@CoinDesk</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="status-badge false">수동검토</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">경제 분석</div>
+                                <div class="text-sm text-gray-500">523 댓글</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">18분 전</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">K-pop 스타 해외 진출 성과 발표</div>
+                                <div class="text-sm text-gray-500">빌보드 차트 상위권 진입 소식</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">네이버 뉴스</div>
+                                <div class="text-sm text-gray-500">스포츠조선</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="status-badge completed">요약완료</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">연예 뉴스</div>
+                                <div class="text-sm text-gray-500">89 댓글</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">25분 전</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 시스템 알림 및 이슈 모니터링 -->
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">시스템 현황</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- 뉴스 수집 상태 -->
+                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-rss text-green-500"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-green-900">뉴스 수집 정상</p>
+                        <p class="text-sm text-green-700">네이버/다음/트위터 RSS 피드 정상 작동 중</p>
+                        <p class="text-xs text-green-600 mt-1">1분 전</p>
+                    </div>
+                </div>
+                
+                <!-- AI 요약 상태 -->
+                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-brain text-blue-500"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-blue-900">AI 요약 처리 중</p>
+                        <p class="text-sm text-blue-700">ChatGPT API 23건 처리 대기</p>
+                        <p class="text-xs text-blue-600 mt-1">실시간</p>
+                    </div>
+                </div>
+                
+                <!-- 커뮤니티 활동 -->
+                <div class="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-comments text-purple-500"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-purple-900">활발한 토론 진행</p>
+                        <p class="text-sm text-purple-700">정치 토론장에서 열띤 토론 중</p>
+                        <p class="text-xs text-purple-600 mt-1">5분 전</p>
+                    </div>
+                </div>
+
+                <!-- 게시판 생성 알림 -->
+                <div class="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-plus-circle text-yellow-500"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-yellow-900">새 게시판 생성</p>
+                        <p class="text-sm text-yellow-700">"환경 이슈" 게시판이 새로 만들어졌습니다</p>
+                        <p class="text-xs text-yellow-600 mt-1">15분 전</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 빠른 액션 (수정: 팩트체크 → 뉴스/커뮤니티 관리) -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">빠른 액션</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button class="btn-primary flex items-center justify-center space-x-2 py-3" onclick="startNewsCollection()">
+                <i class="fas fa-play"></i>
+                <span>뉴스 수집 시작</span>
+            </button>
+            <button class="btn-secondary flex items-center justify-center space-x-2 py-3" onclick="createBoard()">
+                <i class="fas fa-plus-square"></i>
+                <span>게시판 생성</span>
+            </button>
+            <button class="btn-secondary flex items-center justify-center space-x-2 py-3" onclick="runAISummary()">
+                <i class="fas fa-robot"></i>
+                <span>AI 요약 실행</span>
+            </button>
+            <button class="btn-secondary flex items-center justify-center space-x-2 py-3" onclick="downloadReport()">
+                <i class="fas fa-download"></i>
+                <span>커뮤니티 리포트</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 인기 토론 주제 (새로 추가) -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">실시간 인기 토론 주제</h3>
+            <a href="boards.html" class="text-sm text-indigo-600 hover:text-indigo-800">전체 게시판 보기</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">정치</span>
+                    <span class="text-sm text-gray-500">🔥 247 댓글</span>
+                </div>
+                <h4 class="font-medium text-gray-900 mb-1">대통령 부동산 정책 어떻게 생각하세요?</h4>
+                <p class="text-sm text-gray-600">규제 완화 vs 추가 규제 의견이 팽팽히...</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">기술</span>
+                    <span class="text-sm text-gray-500">⚡ 156 댓글</span>
+                </div>
+                <h4 class="font-medium text-gray-900 mb-1">AI가 내 일자리를 빼앗을까?</h4>
+                <p class="text-sm text-gray-600">ChatGPT 시대, 직업의 변화와 대응책...</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">경제</span>
+                    <span class="text-sm text-gray-500">📈 523 댓글</span>
+                </div>
+                <h4 class="font-medium text-gray-900 mb-1">코인 투자, 지금이 기회일까?</h4>
+                <p class="text-sm text-gray-600">급락 후 매수 기회 vs 추가 하락 우려...</p>
+            </div>
+        </div>
+    </div>
+</main>
