@@ -138,7 +138,7 @@ const NoticeManagement: React.FC = () => {
   };
 
   return (
-    <div className="admin-container">
+    <div className="notice-management">
       <div className="admin-header-section">
         <div className="admin-header-content">
           <h1 className="admin-title">공지사항 관리</h1>

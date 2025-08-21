@@ -55,6 +55,20 @@ public class News {
     @Column(name = "visibility", nullable = false)
     private NewsVisibility visibility = NewsVisibility.PUBLIC;
 
+    // 메인 페이지 노출 관련 필드
+    @Column(name = "main_featured", nullable = false)
+    private Boolean mainFeatured = false;
+
+    @Column(name = "main_display_order")
+    private Integer mainDisplayOrder;
+
+    @Column(name = "featured_at")
+    private LocalDateTime featuredAt;
+
+    // 조회수
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
     // NewsSummary와의 관계 (AI 분석 결과)
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id", referencedColumnName = "news_id", insertable = false, updatable = false)
@@ -204,5 +218,41 @@ public class News {
 
     public void setNewsSummary(NewsSummary newsSummary) {
         this.newsSummary = newsSummary;
+    }
+
+    public Boolean getMainFeatured() {
+        return mainFeatured;
+    }
+
+    public void setMainFeatured(Boolean mainFeatured) {
+        this.mainFeatured = mainFeatured;
+    }
+
+    public Integer getMainDisplayOrder() {
+        return mainDisplayOrder;
+    }
+
+    public void setMainDisplayOrder(Integer mainDisplayOrder) {
+        this.mainDisplayOrder = mainDisplayOrder;
+    }
+
+    public LocalDateTime getFeaturedAt() {
+        return featuredAt;
+    }
+
+    public void setFeaturedAt(LocalDateTime featuredAt) {
+        this.featuredAt = featuredAt;
+    }
+
+    public Integer getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public void incrementViewCount() {
+        this.viewCount = (this.viewCount == null) ? 1 : this.viewCount + 1;
     }
 }

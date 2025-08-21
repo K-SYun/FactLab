@@ -34,10 +34,14 @@ interface NewsItem {
   updatedAt: string;
   rejectReason?: string;
   isVisible?: boolean; // 사용자 화면 노출 여부
+  mainFeatured?: boolean; // 메인 실시간 이슈 노출 여부
+  mainDisplayOrder?: number; // 메인 노출 순서
+  featuredAt?: string; // 메인 노출 설정 시간
 }
 
 
 const News: React.FC = () => {
+  const [mainTab, setMainTab] = useState<'news_management' | 'main_featured'>('news_management');
   const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
@@ -51,6 +55,11 @@ const News: React.FC = () => {
   // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(100);
+
+  // 메인 실시간 이슈 관리용 상태
+  const [featuredNews, setFeaturedNews] = useState<NewsItem[]>([]);
+  const [approvedNews, setApprovedNews] = useState<NewsItem[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
 
   // 환경에 따라 백엔드 API 경로 설정하는 공통 함수
   const getBackendApiBase = () => {
@@ -84,6 +93,13 @@ const News: React.FC = () => {
 
     fetchNews();
   }, []);
+
+  // 메인 탭이 변경될 때마다 데이터 로드
+  useEffect(() => {
+    if (mainTab === 'main_featured') {
+      loadMainFeaturedData();
+    }
+  }, [mainTab]);
 
   // 선택된 탭에 따른 필터링
   useEffect(() => {
@@ -536,6 +552,129 @@ const News: React.FC = () => {
     }
   };
 
+  // 메인 실시간 이슈 데이터 로드
+  const loadMainFeaturedData = async () => {
+    try {
+      setFeaturedLoading(true);
+      
+      // 메인에 노출된 뉴스 가져오기
+      const featuredResponse = await fetch(`${getBackendApiBase()}/news/main/featured`);
+      const featuredResult = await featuredResponse.json();
+      
+      if (featuredResult.success) {
+        const convertedFeatured = featuredResult.data.map((news: any) => ({
+          ...news,
+          mainFeatured: news.mainFeatured,
+          mainDisplayOrder: news.mainDisplayOrder,
+          featuredAt: news.featuredAt
+        }));
+        setFeaturedNews(convertedFeatured);
+      }
+      
+      // 승인된 뉴스 목록 가져오기 (메인 노출 후보)
+      const approvedResponse = await fetch(`${getBackendApiBase()}/news/approved?page=0&size=200`);
+      const approvedResult = await approvedResponse.json();
+      
+      if (approvedResult.success) {
+        const convertedApproved = approvedResult.data.map((news: any) => ({
+          ...news,
+          mainFeatured: news.mainFeatured || false,
+          mainDisplayOrder: news.mainDisplayOrder,
+          featuredAt: news.featuredAt
+        }));
+        setApprovedNews(convertedApproved);
+      }
+      
+    } catch (error) {
+      console.error('메인 실시간 이슈 데이터 로드 실패:', error);
+      alert('메인 실시간 이슈 데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setFeaturedLoading(false);
+    }
+  };
+
+  // 뉴스를 메인에 추가
+  const handleAddToMain = async (newsId: number, displayOrder?: number) => {
+    try {
+      setActionLoading(true);
+      
+      const order = displayOrder || (featuredNews.length + 1);
+      const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-featured?displayOrder=${order}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        await loadMainFeaturedData(); // 데이터 새로고침
+        alert('뉴스가 메인 실시간 이슈에 추가되었습니다.');
+      } else {
+        throw new Error('메인 추가 실패');
+      }
+      
+    } catch (error) {
+      console.error('메인 추가 오류:', error);
+      alert('메인 실시간 이슈 추가 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // 뉴스를 메인에서 제거
+  const handleRemoveFromMain = async (newsId: number) => {
+    try {
+      setActionLoading(true);
+      
+      const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-featured`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        await loadMainFeaturedData(); // 데이터 새로고침
+        alert('뉴스가 메인 실시간 이슈에서 제거되었습니다.');
+      } else {
+        throw new Error('메인 제거 실패');
+      }
+      
+    } catch (error) {
+      console.error('메인 제거 오류:', error);
+      alert('메인 실시간 이슈 제거 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // 메인 노출 순서 변경
+  const handleUpdateOrder = async (newsId: number, newOrder: number) => {
+    try {
+      setActionLoading(true);
+      
+      const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-display-order?newOrder=${newOrder}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        await loadMainFeaturedData(); // 데이터 새로고침
+        alert('노출 순서가 변경되었습니다.');
+      } else {
+        throw new Error('순서 변경 실패');
+      }
+      
+    } catch (error) {
+      console.error('순서 변경 오류:', error);
+      alert('노출 순서 변경 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // 시간 포맷팅
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -585,7 +724,7 @@ const News: React.FC = () => {
   return (
     <div className="admin-fade-in">
       <div className="admin-flex-between admin-mb-6">
-        <h1 className="admin-text-2xl admin-font-bold admin-text-gray-800">뉴스 관리(분석 완료한 뉴스를 사용자화면에 출력합니다.)</h1>
+        <h1 className="admin-text-2xl admin-font-bold admin-text-gray-800">뉴스 관리</h1>
         <div className="admin-flex" style={{ gap: '12px' }}>
           {selectedTab === 'pending' && newsItems.length > 0 && (
             <>
@@ -651,6 +790,33 @@ const News: React.FC = () => {
         </div>
       </div>
 
+      {/* 메인 탭 네비게이션 */}
+      <div className="admin-card admin-mb-6">
+        <nav className="admin-tab-nav">
+          <div className="admin-tab-container">
+            <button
+              onClick={() => setMainTab('news_management')}
+              className={`admin-tab-button ${mainTab === 'news_management' ? 'active' : ''}`}
+            >
+              <i className="fas fa-newspaper"></i>
+              뉴스 관리
+              <span className="admin-text-xs admin-ml-2">(AI 분석 완료된 뉴스 승인/거부)</span>
+            </button>
+            <button
+              onClick={() => setMainTab('main_featured')}
+              className={`admin-tab-button ${mainTab === 'main_featured' ? 'active' : ''}`}
+            >
+              <i className="fas fa-star"></i>
+              메인 실시간 이슈 관리
+              <span className="admin-text-xs admin-ml-2">(승인된 뉴스 중 메인에 노출할 뉴스 선택)</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* 뉴스 관리 탭 내용 */}
+      {mainTab === 'news_management' && (
+        <>
       {/* 탭 네비게이션 */}
       <div className="admin-card admin-mb-6">
         <nav className="admin-tab-nav">
@@ -1032,6 +1198,157 @@ const News: React.FC = () => {
           />
         )}
       </div>
+        </>
+      )}
+
+      {/* 메인 실시간 이슈 관리 탭 내용 */}
+      {mainTab === 'main_featured' && (
+        <div className="admin-flex admin-flex-col admin-gap-6">
+          {featuredLoading ? (
+            <div className="admin-flex-center" style={{ height: '200px' }}>
+              <p className="admin-text-gray-500">데이터를 로드하는 중...</p>
+            </div>
+          ) : (
+            <>
+              {/* 현재 메인에 노출된 뉴스 */}
+              <div className="admin-card">
+                <div className="admin-card-header">
+                  <h2 className="admin-text-xl admin-font-bold admin-text-gray-800">
+                    <i className="fas fa-star mr-2"></i>
+                    현재 메인 실시간 이슈 ({featuredNews.length}개)
+                  </h2>
+                  <p className="admin-text-sm admin-text-gray-600">
+                    사용자 메인 화면에 실시간 이슈로 노출되는 뉴스입니다. 순서를 변경하거나 제거할 수 있습니다.
+                  </p>
+                </div>
+                <div className="admin-card-content">
+                  {featuredNews.length === 0 ? (
+                    <div className="admin-empty-state">
+                      <i className="fas fa-star admin-empty-state-icon"></i>
+                      <p className="admin-empty-state-text">현재 메인에 노출된 뉴스가 없습니다.</p>
+                    </div>
+                  ) : (
+                    <div className="admin-flex admin-flex-col admin-gap-3">
+                      {featuredNews
+                        .sort((a, b) => (a.mainDisplayOrder || 0) - (b.mainDisplayOrder || 0))
+                        .map((news, index) => (
+                        <div key={news.id} className="admin-featured-news-item">
+                          <div className="admin-flex admin-items-center admin-gap-3">
+                            <div className="admin-featured-order-badge">
+                              {news.mainDisplayOrder || index + 1}
+                            </div>
+                            {news.thumbnail && (
+                              <img 
+                                src={news.thumbnail} 
+                                alt="뉴스 썸네일"
+                                className="admin-featured-thumbnail"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="admin-flex-1">
+                              <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
+                                {news.title}
+                              </h3>
+                              <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
+                                <span><i className="fas fa-building mr-1"></i>{news.source}</span>
+                                <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.featuredAt || news.createdAt)}</span>
+                              </div>
+                            </div>
+                            <div className="admin-flex admin-gap-2">
+                              <select
+                                value={news.mainDisplayOrder || index + 1}
+                                onChange={(e) => handleUpdateOrder(news.id, parseInt(e.target.value))}
+                                className="admin-select admin-select-sm"
+                                disabled={actionLoading}
+                              >
+                                {Array.from({ length: featuredNews.length }, (_, i) => i + 1).map(order => (
+                                  <option key={order} value={order}>{order}번째</option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => handleRemoveFromMain(news.id)}
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                disabled={actionLoading}
+                                title="메인에서 제거"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 승인된 뉴스 목록 (메인 추가 후보) */}
+              <div className="admin-card">
+                <div className="admin-card-header">
+                  <h2 className="admin-text-xl admin-font-bold admin-text-gray-800">
+                    <i className="fas fa-plus-circle mr-2"></i>
+                    메인 추가 가능한 뉴스 ({approvedNews.filter(n => !n.mainFeatured).length}개)
+                  </h2>
+                  <p className="admin-text-sm admin-text-gray-600">
+                    승인된 뉴스 중에서 아직 메인에 노출되지 않은 뉴스입니다. 선택해서 메인 실시간 이슈에 추가할 수 있습니다.
+                  </p>
+                </div>
+                <div className="admin-card-content">
+                  {approvedNews.filter(n => !n.mainFeatured).length === 0 ? (
+                    <div className="admin-empty-state">
+                      <i className="fas fa-newspaper admin-empty-state-icon"></i>
+                      <p className="admin-empty-state-text">메인에 추가할 수 있는 뉴스가 없습니다.</p>
+                    </div>
+                  ) : (
+                    <div className="admin-flex admin-flex-col admin-gap-3">
+                      {approvedNews
+                        .filter(n => !n.mainFeatured)
+                        .slice(0, 20) // 최대 20개만 표시
+                        .map(news => (
+                        <div key={news.id} className="admin-candidate-news-item">
+                          <div className="admin-flex admin-items-center admin-gap-3">
+                            {news.thumbnail && (
+                              <img 
+                                src={news.thumbnail} 
+                                alt="뉴스 썸네일"
+                                className="admin-candidate-thumbnail"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="admin-flex-1">
+                              <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
+                                {news.title}
+                              </h3>
+                              <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
+                                <span><i className="fas fa-building mr-1"></i>{news.source}</span>
+                                <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.createdAt)}</span>
+                                <span><i className="fas fa-eye mr-1"></i>{news.isVisible ? '노출중' : '미노출'}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleAddToMain(news.id)}
+                              className="admin-btn admin-btn-primary admin-btn-sm"
+                              disabled={actionLoading}
+                              title="메인 실시간 이슈에 추가"
+                            >
+                              <i className="fas fa-plus mr-1"></i>
+                              메인 추가
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

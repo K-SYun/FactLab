@@ -1,5 +1,9 @@
 /* Notice Management Styles */
 
+.notice-management {
+  /* News 페이지와 동일한 사이즈 - admin-content 기본 스타일 사용 */
+}
+
 /* Table column widths */
 .notice-table-col-select {
   width: 50px;

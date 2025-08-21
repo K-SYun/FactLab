@@ -282,6 +282,87 @@ public class NewsController {
         }
     }
 
+    // 메인 페이지 실시간 이슈 뉴스 조회
+    @GetMapping("/main/featured")
+    @Operation(summary = "메인 실시간 이슈 뉴스 조회", description = "관리자가 지정한 메인 페이지 실시간 이슈 뉴스를 조회합니다.")
+    public ApiResponse<List<NewsDto>> getFeaturedNews() {
+        try {
+            List<NewsDto> featuredNews = newsService.getFeaturedNews();
+            return ApiResponse.success(featuredNews);
+        } catch (Exception e) {
+            return ApiResponse.error("메인 실시간 이슈 뉴스를 가져오는데 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 카테고리별 분석 완료된 뉴스 조회
+    @GetMapping("/analyzed/category/{category}")
+    @Operation(summary = "카테고리별 분석 완료된 뉴스 조회", description = "AI 분석이 완료된 승인된 뉴스를 카테고리별로 조회합니다.")
+    public ApiResponse<List<NewsDto>> getAnalyzedNewsByCategory(@PathVariable String category,
+                                                              @RequestParam(defaultValue = "10") int limit) {
+        try {
+            String decodedCategory = java.net.URLDecoder.decode(category, "UTF-8");
+            List<NewsDto> analyzedNews = newsService.getAnalyzedNewsByCategory(decodedCategory, limit);
+            return ApiResponse.success(analyzedNews);
+        } catch (java.io.UnsupportedEncodingException e) {
+            List<NewsDto> analyzedNews = newsService.getAnalyzedNewsByCategory(category, limit);
+            return ApiResponse.success(analyzedNews);
+        } catch (Exception e) {
+            return ApiResponse.error("분석 완료된 뉴스를 가져오는데 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 뉴스를 메인에 노출하도록 설정
+    @PutMapping("/{id}/main-featured")
+    @Operation(summary = "뉴스 메인 노출 설정", description = "뉴스를 메인 페이지 실시간 이슈에 노출하도록 설정합니다.")
+    public ApiResponse<String> setMainFeatured(@PathVariable Integer id,
+                                             @RequestParam Integer displayOrder) {
+        try {
+            newsService.setMainFeatured(id, displayOrder);
+            return ApiResponse.success("뉴스가 메인에 노출되도록 설정되었습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("메인 노출 설정에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 뉴스를 메인에서 제거
+    @DeleteMapping("/{id}/main-featured")
+    @Operation(summary = "뉴스 메인 노출 제거", description = "뉴스를 메인 페이지 실시간 이슈에서 제거합니다.")
+    public ApiResponse<String> removeMainFeatured(@PathVariable Integer id) {
+        try {
+            newsService.removeMainFeatured(id);
+            return ApiResponse.success("뉴스가 메인에서 제거되었습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("메인 노출 제거에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 메인 노출 순서 업데이트
+    @PutMapping("/{id}/main-display-order")
+    @Operation(summary = "메인 노출 순서 업데이트", description = "메인 페이지 실시간 이슈의 노출 순서를 변경합니다.")
+    public ApiResponse<String> updateMainDisplayOrder(@PathVariable Integer id,
+                                                    @RequestParam Integer newOrder) {
+        try {
+            newsService.updateMainDisplayOrder(id, newOrder);
+            return ApiResponse.success("메인 노출 순서가 업데이트되었습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("메인 노출 순서 업데이트에 실패했습니다: " + e.getMessage());
+        }
+    }
+
+    // 뉴스 조회수 증가
+    @PostMapping("/{id}/view")
+    @Operation(summary = "뉴스 조회수 증가", description = "특정 뉴스의 조회수를 1 증가시킵니다.")
+    public ApiResponse<String> increaseViewCount(@PathVariable Integer id) {
+        try {
+            newsService.increaseViewCount(id);
+            return ApiResponse.success("조회수가 증가되었습니다.");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponse.error("조회수 증가에 실패했습니다: " + e.getMessage());
+        }
+    }
+
     // Request DTO
     public static class BulkActionRequest {
         public java.util.List<Integer> newsIds;

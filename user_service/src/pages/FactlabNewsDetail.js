@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -20,7 +20,7 @@ const FactlabNewsDetail = () => {
   const [voteResults, setVoteResults] = useState(null);
   const [voteLoading, setVoteLoading] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
-  
+
   // 댓글 관련 상태 추가
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
@@ -28,11 +28,17 @@ const FactlabNewsDetail = () => {
   const [showReplyBox, setShowReplyBox] = useState({});
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
-  
+
   // Auth context
   const { isLoggedIn, user } = useAuth();
+  
+  // 조회수 증가 중복 호출 방지를 위한 ref
+  const viewCountIncreasedRef = useRef(false);
 
   useEffect(() => {
+    // 새로운 뉴스 ID일 때마다 ref 초기화
+    viewCountIncreasedRef.current = false;
+    
     const fetchNewsDetail = async () => {
       if (!newsId) {
         setError('뉴스 ID가 없습니다.');
@@ -42,6 +48,17 @@ const FactlabNewsDetail = () => {
 
       try {
         setLoading(true);
+        
+        // 조회수 증가 (한 번만 실행되도록 ref 사용)
+        if (!viewCountIncreasedRef.current) {
+          try {
+            await newsApi.increaseViewCount(newsId);
+            viewCountIncreasedRef.current = true;
+          } catch (viewError) {
+            console.error('조회수 증가 실패:', viewError);
+          }
+        }
+        
         const response = await newsApi.getNewsById(newsId);
         setNewsData(response.data.data);
         setError(null);
@@ -60,11 +77,9 @@ const FactlabNewsDetail = () => {
   useEffect(() => {
     const fetchComments = async () => {
       if (!newsId) return;
-      
+
       try {
         const commentsData = await commentApi.getComments(newsId);
-        console.log('📝 댓글 데이터:', commentsData);
-        console.log('👤 현재 사용자 ID:', user?.id);
         setComments(commentsData);
       } catch (error) {
         console.error('댓글 로드 오류:', error);
@@ -80,14 +95,11 @@ const FactlabNewsDetail = () => {
   useEffect(() => {
     const fetchVoteData = async () => {
       if (!newsId) return;
-      
+
       try {
         // 투표 결과 조회
         const voteData = await newsApi.getVoteResults(newsId);
-        console.log('🗳️ 투표 결과 API 응답:', voteData);
-        console.log('🗳️ voteData.data:', voteData.data);
-        console.log('🗳️ voteData.data.data:', voteData.data.data);
-        
+
         // Axios response structure: voteData.data contains API response, voteData.data.data contains actual vote results
         if (voteData.data.success && voteData.data.data) {
           setVoteResults(voteData.data.data);
@@ -102,36 +114,29 @@ const FactlabNewsDetail = () => {
             total: 0
           });
         }
-        
+
         // 사용자가 로그인했다면 투표 여부 확인
         if (isLoggedIn && user?.id) {
           try {
             const userVoteData = await newsApi.checkUserVote(newsId, user.id);
-            console.log('🔍 투표 확인 API 응답:', userVoteData);
-            console.log('🔍 userVoteData.data:', userVoteData.data);
-            console.log('🔍 userVoteData.data?.data:', userVoteData.data?.data);
-            
+
             // Axios response structure: userVoteData.data contains the actual API response
             const apiResponse = userVoteData.data;
             if (apiResponse.success && apiResponse.data && apiResponse.data.voteType) {
-              console.log('✅ 투표 이력 있음:', apiResponse.data.voteType);
               setHasVoted(true);
               setSelectedVote(apiResponse.data.voteType);
             } else {
               // 투표하지 않은 경우 (data가 null이거나 없음)
-              console.log('❌ 투표 이력 없음');
               setHasVoted(false);
               setSelectedVote('');
             }
           } catch (error) {
             // API 오류 시 투표하지 않은 것으로 처리
-            console.log('사용자 투표 기록 확인 오류:', error);
             setHasVoted(false);
             setSelectedVote('');
           }
         } else {
           // 로그인하지 않은 경우 투표 상태 초기화
-          console.log('📱 로그인하지 않은 사용자');
           setHasVoted(false);
           setSelectedVote('');
         }
@@ -175,12 +180,12 @@ const FactlabNewsDetail = () => {
   // AI 분석 내용을 문장 단위로 분리하는 함수
   const formatAIAnalysis = (content) => {
     if (!content) return [];
-    
+
     // 문장 단위로 분리 (마침표, 느낌표, 물음표 기준)
     const sentences = content.split(/(?<=[.!?])\s+/)
       .filter(sentence => sentence.trim().length > 0)
       .map(sentence => sentence.trim());
-    
+
     return sentences;
   };
 
@@ -191,35 +196,34 @@ const FactlabNewsDetail = () => {
       setIsLoginModalOpen(true);
       return;
     }
-    
+
     if (hasVoted) {
       alert('이미 투표하셨습니다.');
       return;
     }
-    
+
     if (voteLoading) {
       return; // 이미 투표 중인 경우 중복 요청 방지
     }
-    
+
     setVoteLoading(true);
-    
+
     try {
       // 서버에 투표 전송
       await newsApi.voteNews(newsId, voteType, user.id);
-      
+
       // 투표 결과 다시 조회
       const voteData = await newsApi.getVoteResults(newsId);
-      console.log('🗳️ 투표 후 결과 업데이트:', voteData.data);
-      
+
       // Axios response structure: voteData.data.data contains actual vote results
       if (voteData.data.success && voteData.data.data) {
         setVoteResults(voteData.data.data);
       }
-      
+
       // 로컬 상태 업데이트
       setSelectedVote(voteType);
       setHasVoted(true);
-      
+
       alert('투표가 완료되었습니다!');
     } catch (error) {
       console.error('투표 오류:', error);
@@ -266,11 +270,11 @@ const FactlabNewsDetail = () => {
       setCommentLoading(true);
       try {
         const newComment = await commentApi.createComment(
-          newsId, 
-          commentText.trim(), 
+          newsId,
+          commentText.trim(),
           user.id
         );
-        
+
         // 댓글 목록 새로고침
         const updatedComments = await commentApi.getComments(newsId);
         setComments(updatedComments);
@@ -287,27 +291,36 @@ const FactlabNewsDetail = () => {
   };
 
   // 댓글 좋아요
-  const likeComment = (commentId, isReply = false, parentId = null) => {
-    if (isReply) {
-      setComments(prev => prev.map(comment => {
-        if (comment.id === parentId) {
-          return {
-            ...comment,
-            replies: comment.replies.map(reply => 
-              reply.id === commentId 
-                ? { ...reply, likes: reply.likes + 1 }
-                : reply
-            )
-          };
-        }
-        return comment;
-      }));
-    } else {
-      setComments(prev => prev.map(comment => 
-        comment.id === commentId 
-          ? { ...comment, likes: comment.likes + 1 }
-          : comment
-      ));
+  const likeComment = async (commentId, isReply = false, parentId = null) => {
+    try {
+      // API 호출
+      await commentApi.likeComment(commentId, user?.id, newsId);
+
+      // 로컬 상태 업데이트
+      if (isReply) {
+        setComments(prev => prev.map(comment => {
+          if (comment.id === parentId) {
+            return {
+              ...comment,
+              replies: comment.replies.map(reply =>
+                reply.id === commentId
+                  ? { ...reply, likes: reply.likes + 1 }
+                  : reply
+              )
+            };
+          }
+          return comment;
+        }));
+      } else {
+        setComments(prev => prev.map(comment =>
+          comment.id === commentId
+            ? { ...comment, likes: comment.likes + 1 }
+            : comment
+        ));
+      }
+    } catch (error) {
+      console.error('댓글 좋아요 오류:', error);
+      alert('좋아요 처리에 실패했습니다.');
     }
   };
 
@@ -328,7 +341,7 @@ const FactlabNewsDetail = () => {
     }
 
     const replyText = replyTexts[commentId];
-    
+
     if (!replyText || !replyText.trim()) {
       alert('답글 내용을 입력하세요.');
       return;
@@ -343,16 +356,16 @@ const FactlabNewsDetail = () => {
     const saveReply = async () => {
       try {
         const newReply = await commentApi.createReply(
-          newsId, 
-          commentId, 
-          replyText.trim(), 
+          newsId,
+          commentId,
+          replyText.trim(),
           user.id
         );
-        
+
         // 댓글 목록 새로고침
         const updatedComments = await commentApi.getComments(newsId);
         setComments(updatedComments);
-        
+
         // 답글 텍스트 초기화 및 답글창 닫기
         setReplyTexts(prev => ({ ...prev, [commentId]: '' }));
         setShowReplyBox(prev => ({ ...prev, [commentId]: false }));
@@ -375,21 +388,48 @@ const FactlabNewsDetail = () => {
 
   // 댓글 삭제
   const deleteComment = async (commentId) => {
-    if (!window.confirm('이 댓글을 삭제하시겠습니까?')) {
+    // 해당 댓글의 답글 개수 확인
+    const comment = comments.find(c => c.id === commentId);
+    const hasReplies = comment && comment.replies && comment.replies.length > 0;
+
+    const confirmMessage = hasReplies
+      ? '이 댓글에 답글이 있습니다. 삭제하면 "작성자에 의해 글이 삭제되었습니다."로 표시됩니다. 계속하시겠습니까?'
+      : '이 댓글을 삭제하시겠습니까?';
+
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
     try {
-      await commentApi.deleteComment(commentId, user.id);
-      
-      // 댓글 목록 새로고침
-      const updatedComments = await commentApi.getComments(newsId);
-      setComments(updatedComments);
-      
+      await commentApi.deleteComment(commentId, user.id, newsId);
+
+      if (hasReplies) {
+        // 답글이 있는 경우: 로컬에서 삭제 표시로 변경
+        setComments(prev => prev.map(c =>
+          c.id === commentId
+            ? {
+              ...c,
+              content: '작성자에 의해 글이 삭제되었습니다.',
+              author: '삭제된 사용자',
+              isDeleted: true
+            }
+            : c
+        ));
+      } else {
+        // 답글이 없는 경우: 댓글 목록에서 제거
+        setComments(prev => prev.filter(c => c.id !== commentId));
+      }
+
       alert('댓글이 삭제되었습니다.');
     } catch (error) {
       console.error('댓글 삭제 오류:', error);
-      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+
+      // 백엔드 User 연관관계 오류인 경우 더 구체적인 메시지
+      if (error.message && error.message.includes('User.getId()')) {
+        alert('댓글 삭제 중 서버 오류가 발생했습니다. 관리자에게 문의해주세요.');
+      } else {
+        alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
@@ -460,17 +500,17 @@ const FactlabNewsDetail = () => {
             <div className="news_header">
               <div className="news_source">{newsData.source}</div>
               <h1 className="news_title">{newsData.title}</h1>
-              
+
               {/* 썸네일 이미지 */}
               {newsData.thumbnail && (
-                <div className="news-thumbnail" style={{ 
+                <div className="news-thumbnail" style={{
                   margin: '20px 0',
                   textAlign: 'center'
                 }}>
-                  <img 
-                    src={newsData.thumbnail} 
+                  <img
+                    src={newsData.thumbnail}
                     alt="뉴스 썸네일"
-                    style={{ 
+                    style={{
                       maxWidth: '100%',
                       height: 'auto',
                       borderRadius: '8px',
@@ -482,19 +522,19 @@ const FactlabNewsDetail = () => {
                   />
                 </div>
               )}
-              
+
               <div className="news_meta">
-                <div>{formatDate(newsData.publishDate)}</div>
+                <div>{formatDate(newsData.publishDate)} | 👀 {newsData.viewCount || 0}</div>
                 <div>
                   <a href="#" className="original_link" onClick={copyLink}>링크 복사</a>
-                  <span style={{margin: '0 5px'}}></span>
-                  <a href="#" className="original_link" onClick={(e) => {e.preventDefault(); window.open(newsData.url, '_blank');}}>
+                  <span style={{ margin: '0 5px' }}></span>
+                  <a href="#" className="original_link" onClick={(e) => { e.preventDefault(); window.open(newsData.url, '_blank'); }}>
                     원문 보기 →
                   </a>
                 </div>
               </div>
             </div>
-            
+
             {/* News Content */}
             <div className="news_content">
               {/* Original Content */}
@@ -510,10 +550,10 @@ const FactlabNewsDetail = () => {
                   ) : (
                     <p className="content-sentence">AI 분석이 진행 중입니다...</p>
                   )}
-                    <div className="metadata-info">
-                      • 출처: {newsData.source}<br />
-                      • 카테고리: {getCategoryName(newsData.category)}<br />
-                    </div>
+                  <div className="metadata-info">
+                    • 출처: {newsData.source}<br />
+                    • 카테고리: {getCategoryName(newsData.category)}<br />
+                  </div>
                   <div className="news-metadata">
 
                     {showFullContent && newsData.content.length > 300 && (
@@ -524,7 +564,7 @@ const FactlabNewsDetail = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* AI Analysis Results */}
               <div className="content_section">
                 <div className="section_title">🤖 AI 핵심 주장 및 의심포인트</div>
@@ -533,11 +573,11 @@ const FactlabNewsDetail = () => {
                   <div className="ai-claim">
                     {newsData.aiAnalysisResult || "AI가 핵심 주장을 분석 중입니다..."}
                   </div><br />
-                  
+
                   <strong>의심 포인트:</strong><br />
                   <div className="ai-suspicious">
                     {newsData.suspiciousPoints ? (
-                      newsData.suspiciousPoints.split('.').map((point, index) => 
+                      newsData.suspiciousPoints.split('.').map((point, index) =>
                         point.trim() && (
                           <div key={index} className="suspicious-point">
                             • {point.trim()}
@@ -552,29 +592,29 @@ const FactlabNewsDetail = () => {
                       </>
                     )}
                   </div>
-                  
+
                   {newsData.aiKeywords && (
-                    <div className="ai-keywords" style={{marginTop: '15px'}}>
+                    <div className="ai-keywords" style={{ marginTop: '15px' }}>
                       <strong>주요 키워드:</strong><br />
                       {newsData.aiKeywords.split(',').map((keyword, index) => (
                         <span key={index} className="keyword-tag">#{keyword.trim()}</span>
                       ))}
                     </div>
                   )}
-                  
+
                   {newsData.reliabilityScore && (
-                    <div className="ai-reliability" style={{marginTop: '15px'}}>
+                    <div className="ai-reliability" style={{ marginTop: '15px' }}>
                       <strong>신뢰도 점수:</strong> {newsData.reliabilityScore}/100점
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            
+
             {/* Voting Section */}
             <div className="voting_section">
               <div className="voting_title">💭 여러분의 의견을 들려주세요</div>
-              
+
               {/* Fact Check Question */}
               <div className="content_section">
                 <div className="fact_question">
@@ -583,35 +623,35 @@ const FactlabNewsDetail = () => {
               </div>
 
               <div className="vote_options">
-                <div 
+                <div
                   className={`vote_option fact ${selectedVote === 'fact' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'fact') || voteLoading ? 'disabled' : ''}`}
                   onClick={() => !voteLoading && vote('fact')}
                 >
                   ✅ 사실이다<br />
                   <small>제시된 내용 사실</small>
                 </div>
-                <div 
+                <div
                   className={`vote_option partial_fact ${selectedVote === 'partial_fact' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'partial_fact') || voteLoading ? 'disabled' : ''}`}
                   onClick={() => !voteLoading && vote('partial_fact')}
                 >
                   🔸 부분적으로 사실<br />
                   <small>일부만 사실</small>
                 </div>
-                <div 
+                <div
                   className={`vote_option slight_doubt ${selectedVote === 'slight_doubt' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'slight_doubt') || voteLoading ? 'disabled' : ''}`}
                   onClick={() => !voteLoading && vote('slight_doubt')}
                 >
                   🔹 조금 의심스럽다<br />
                   <small>일부 내용 거짓</small>
                 </div>
-                <div 
+                <div
                   className={`vote_option doubt ${selectedVote === 'doubt' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'doubt') || voteLoading ? 'disabled' : ''}`}
                   onClick={() => !voteLoading && vote('doubt')}
                 >
                   ❌ 의심스럽다<br />
                   <small>내용이 거짓</small>
                 </div>
-                <div 
+                <div
                   className={`vote_option unknown ${selectedVote === 'unknown' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'unknown') || voteLoading ? 'disabled' : ''}`}
                   onClick={() => !voteLoading && vote('unknown')}
                 >
@@ -619,13 +659,13 @@ const FactlabNewsDetail = () => {
                   <small>정보부족</small>
                 </div>
               </div>
-              
+
               {voteLoading && (
-                <div style={{textAlign: 'center', marginTop: '10px', color: '#666'}}>
+                <div style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
                   투표 중...
                 </div>
               )}
-              
+
               <div className="vote_results">
                 {voteResults ? (
                   <>
@@ -674,12 +714,12 @@ const FactlabNewsDetail = () => {
                       </div>
                       <span>{voteResults.unknown || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.unknown || 0) / voteResults.total * 100) : 0}%)</span>
                     </div>
-                    <div style={{textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666'}}>
+                    <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
                       총 {voteResults.total || 0}명 참여
                     </div>
                   </>
                 ) : (
-                  <div style={{textAlign: 'center', padding: '20px', color: '#666'}}>
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
                     투표 결과를 불러오는 중...
                   </div>
                 )}
@@ -696,11 +736,11 @@ const FactlabNewsDetail = () => {
           <div className="news-sidebar">
             <div className="comments_section">
               <div className="comments_header">💬 토론 및 댓글 ({comments.length + comments.reduce((acc, comment) => acc + comment.replies.length, 0)}개)</div>
-              
+
               {/* Comment Write */}
               <div className="comment_write">
-                <textarea 
-                  className="comment_textarea" 
+                <textarea
+                  className="comment_textarea"
                   placeholder="이 뉴스에 대한 의견을 남겨주세요..."
                   value={commentText}
                   onChange={(e) => {
@@ -716,8 +756,8 @@ const FactlabNewsDetail = () => {
                   <div className="comment_char_counter">
                     {getCharLength(commentText)}/1000자
                   </div>
-                  <button 
-                    className="comment_submit_btn btn-primary" 
+                  <button
+                    className="comment_submit_btn btn-primary"
                     onClick={submitComment}
                     disabled={commentLoading}
                   >
@@ -725,7 +765,7 @@ const FactlabNewsDetail = () => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Comments List */}
               {comments.map((comment) => (
                 <div key={comment.id} className="comment_item">
@@ -733,32 +773,31 @@ const FactlabNewsDetail = () => {
                     <span className="comment_author">{comment.author}</span>
                     <span className="comment_date">{comment.date}</span>
                   </div>
-                  <div className="comment_content">
+                  <div className="comment_content" style={{
+                    color: comment.isDeleted ? '#999' : 'inherit',
+                    fontStyle: comment.isDeleted ? 'italic' : 'normal'
+                  }}>
                     {comment.content}
                   </div>
-                  <div className="comment_actions">
-                    <a href="#" onClick={(e) => {e.preventDefault(); likeComment(comment.id);}}>👍 {comment.likes}</a>
-                    <a href="#" onClick={(e) => {e.preventDefault(); toggleReplyBox(comment.id);}}>답글</a>
-                    <a href="#" onClick={(e) => {e.preventDefault(); reportComment(comment.id);}}>신고</a>
-                    {(() => {
-                      const showDelete = isLoggedIn && user?.id === comment.userId;
-                      console.log(`🔍 댓글 ${comment.id} 삭제 버튼:`, {
-                        isLoggedIn,
-                        userId: user?.id,
-                        commentUserId: comment.userId,
-                        showDelete
-                      });
-                      return showDelete && (
-                        <a href="#" onClick={(e) => {e.preventDefault(); deleteComment(comment.id);}} style={{color: '#dc3545'}}>삭제</a>
-                      );
-                    })()}
-                  </div>
-                  
+                  {!comment.isDeleted && (
+                    <div className="comment_actions">
+                      <a href="#" onClick={(e) => { e.preventDefault(); likeComment(comment.id); }}>👍 추천 {comment.likes}</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); toggleReplyBox(comment.id); }}>답글</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); reportComment(comment.id); }}>신고</a>
+                      {(() => {
+                        const showDelete = isLoggedIn && user?.id === comment.userId;
+                        return showDelete && (
+                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(comment.id); }} style={{ color: '#dc3545' }}>삭제</a>
+                        );
+                      })()}
+                    </div>
+                  )}
+
                   {/* Reply Box */}
-                  {showReplyBox[comment.id] && (
+                  {!comment.isDeleted && showReplyBox[comment.id] && (
                     <div className="reply_write">
-                      <textarea 
-                        className="reply_textarea" 
+                      <textarea
+                        className="reply_textarea"
                         placeholder="답글을 입력하세요..."
                         value={replyTexts[comment.id] || ''}
                         onChange={(e) => {
@@ -770,20 +809,22 @@ const FactlabNewsDetail = () => {
                         }}
                         maxLength={1000}
                       ></textarea>
-                      <div className="reply_submit">
+                      <div className="reply_submit" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className="reply_char_counter">
                           {getCharLength(replyTexts[comment.id] || '')}/1000자
                         </div>
-                        <button className="reply_submit_btn btn-primary" onClick={() => submitReply(comment.id)}>
-                          답글 작성
-                        </button>
-                        <button className="reply_cancel_btn btn" onClick={() => toggleReplyBox(comment.id)}>
-                          취소
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button className="news-btn news-btn-primary" onClick={() => submitReply(comment.id)}>
+                            저장
+                          </button>
+                          <button className="news-btn" onClick={() => toggleReplyBox(comment.id)}>
+                            취소
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Replies */}
                   {comment.replies.map((reply) => (
                     <div key={reply.id} className="reply_item">
@@ -795,18 +836,18 @@ const FactlabNewsDetail = () => {
                         {reply.content}
                       </div>
                       <div className="comment_actions">
-                        <a href="#" onClick={(e) => {e.preventDefault(); likeComment(reply.id, true, comment.id);}}>👍 {reply.likes}</a>
-                        <a href="#" onClick={(e) => {e.preventDefault(); reportComment(reply.id);}}>신고</a>
+                        <a href="#" onClick={(e) => { e.preventDefault(); likeComment(reply.id, true, comment.id); }}>👍 추천 {reply.likes}</a>
+                        <a href="#" onClick={(e) => { e.preventDefault(); reportComment(reply.id); }}>신고</a>
                         {isLoggedIn && user?.id === reply.userId && (
-                          <a href="#" onClick={(e) => {e.preventDefault(); deleteComment(reply.id);}} style={{color: '#dc3545'}}>삭제</a>
+                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(reply.id); }} style={{ color: '#dc3545' }}>삭제</a>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               ))}
-              
-              <div style={{textAlign: 'center', marginTop: '15px'}}>
+
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
                 <button className="btn" onClick={loadMoreComments}>댓글 더보기</button>
               </div>
             </div>
@@ -819,11 +860,11 @@ const FactlabNewsDetail = () => {
         </div>
       </div>
       <Footer />
-      
+
       {/* 로그인 모달 */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
       />
     </>
   );

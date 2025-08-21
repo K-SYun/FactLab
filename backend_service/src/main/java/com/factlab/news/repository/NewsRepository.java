@@ -67,4 +67,12 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     // 다중 상태값으로 뉴스 조회 (AI 분석 페이지용)
     @Query("SELECT n FROM News n WHERE n.status IN :statusList ORDER BY n.publishDate DESC LIMIT :size OFFSET :offset")
     List<News> findByStatusInOrderByPublishDateDesc(@Param("statusList") List<NewsStatus> statusList, @Param("offset") int offset, @Param("size") int size);
+    
+    // 메인 페이지 실시간 이슈 뉴스 조회 (관리자가 지정한 뉴스)
+    @Query("SELECT n FROM News n WHERE n.mainFeatured = true AND n.status = :status AND n.visibility = :visibility ORDER BY CASE WHEN n.mainDisplayOrder IS NULL THEN 1 ELSE 0 END, n.mainDisplayOrder ASC")
+    List<News> findByMainFeaturedTrueAndStatusAndVisibilityOrderByMainDisplayOrder(@Param("status") NewsStatus status, @Param("visibility") NewsVisibility visibility);
+    
+    // 카테고리별 분석 완료된 뉴스 조회 (AI 분석이 완료된 승인된 뉴스)
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary ns WHERE n.category = :category AND n.status = 'APPROVED' AND n.visibility = 'PUBLIC' AND ns.id IS NOT NULL ORDER BY n.approvedAt DESC LIMIT :limit")
+    List<News> findAnalyzedNewsByCategory(@Param("category") String category, @Param("limit") int limit);
 }

@@ -50,7 +50,7 @@ public class PostResponseDto {
         this(post);
         if (includeComments && post.getComments() != null) {
             this.comments = post.getComments().stream()
-                .filter(comment -> comment.getStatus() == com.factlab.community.entity.Comment.CommentStatus.ACTIVE)
+                .filter(comment -> comment.getStatus() == com.factlab.community.entity.PostComment.CommentStatus.ACTIVE)
                 .filter(comment -> comment.getDepth() == 0) // 최상위 댓글만
                 .map(comment -> new CommentResponseDto(comment, true))
                 .collect(Collectors.toList());

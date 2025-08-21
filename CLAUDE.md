@@ -196,7 +196,7 @@ FactLab/
 
 * 각 모듈은 Docker 컨테이너로 독립 배포
 * Nginx가 리버스 프록시 역할 수행 (80, 443 포트)
-* Crawler/AI 모듈은 OpenAI API와 통신하며 FastAPI 기반 REST API 제공
+* Crawler/AI 모듈은 OpenAI API와 통신하며 FastAPI 기반 REST API 제공 (현재는 제미나이 이용중)
 
 ---
 
@@ -204,7 +204,6 @@ FactLab/
 
 ### 사용자 기능
 
-* 실시간 뉴스 피드 (분야별 6개)
 * 트렌딩 키워드 (실시간/일간/주간/월간)
 * 뉴스 상세: AI 요약 + 질문 + 댓글/투표
 * 인기 게시판 (점수 집계: 게시글 2점 + 댓글 1점)
@@ -511,3 +510,162 @@ Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
   # 3. 전체 재빌드 및 실행
   docker-compose build --no-cache
   docker-compose up -d
+
+# 메인 실시간 이슈 뉴스 수정.
+  1. 분석 완료된건 각 분류(정치, 경제 등) 에 최신순으로 출력
+  2. 메인뉴스 수정 : 관리자 > 뉴스관리 > 승인된 뉴스 중에서 지정한 뉴스만 실시간 이슈에 노출. (노출 갯수는 제한없음. 노출 수서는 지정)
+  3. 뉴스관리도 AI뉴스분석 과 동일하게 Tab으로 뉴스 정렬.
+
+  
+# 게시판 수정.
+1. 전 게시판 공통: http://localhost:3000/notice 여기에 등록된 글중 카테고리 [게시판공지] 글은 각 게시판 상단에 표시
+2. BEST: 글쓰기 삭제 
+ - 베스트 게시판은 각 게시판(갤러리 제외)에서 게시판관리에 설정값에 해당하면 자동으로 등록되는 시스템이야.
+ - 제목 앞에 게시판명 추가 (이 글이 어느게시판 글인지 알 수 있게.)
+3. 모든 게시판(BEST제외)
+ - 제목 앞에 글번호 추가.
+ - 게시판 글 상세보기 화면이 없음.
+ - 글쓰기 화면: 디자인이 이상해. / 게시판 선택: 현재 내 게시판 자동입력(수정가능)
+ - 에디터는 뭐지? 혹시 CKEditor 면 React-Quill 로 변경해
+
+ 게시판전체 소스 확인. 개발완료되었다고 말하기전에 테스트확인해.
+ 1. BEST: 글쓰기 삭제 (미 개발)
+ 2. 글 등록시 저장안되고 목록에 않보임.
+ 
+
+ ## 7. 운영 설정 및 확장 방향
+
+* 기사 군집화 카드 제공: 유사 기사 묶음으로 시각화
+* 댓글/투표 기반 신뢰도 변화 시각화
+* 팩트체크 기관 연동 자동화 (SNU, 뉴스톱 등)
+* 유튜브 뉴스 및 쇼츠 요약 연동
+* Twitter/Reddit 기반 반응 요약
+* 고급 기능 확장:
+
+  * 실시간 알림 시스템 (WebSocket 기반)
+  * 사용자 관심사 기반 뉴스 추천
+  * 통합 검색 기능
+  * 광고 수익 구조 고도화 (페이지별 광고 설정)
+
+----
+
+## 8. 백엔드(SPRING BOOT) 개발 기본 원칙
+
+1) 폴더 구조 및 계층 명확화
+기본 구조: controller, service, repository, dto, entity, config
+기능 단위로 하위 패키지 구성 (ex: news/, user/, comment/)
+com.factlab.news.controller
+com.factlab.news.service
+com.factlab.news.repository
+com.factlab.news.dto
+
+2) DTO, Entity 분리
+Entity는 DB 매핑 용도로만 사용
+
+Controller ↔ Service ↔ Repository 간에는 반드시 DTO 사용
+
+3) Service는 비즈니스 로직만
+Controller에는 로직 금지: Request → DTO 변환만
+
+Repository에는 쿼리 외 로직 금지: 단순 DB 접근만
+
+4) Exception Handling 통합
+@RestControllerAdvice + @ExceptionHandler 구성
+
+에러 코드는 ErrorCode.java Enum으로 통합 관리
+
+5) Validation 철저 적용
+모든 입력값: @Valid, @NotNull, @Size, @Email 등 사용
+
+Controller에서는 무조건 검증만 처리
+
+6) Response 형식 표준화
+API 응답 통일: 공통 ApiResponse<T> 객체 사용
+return ApiResponse.success(data);
+
+7) Swagger 또는 SpringDoc으로 API 문서화
+springdoc-gemini 라이브러리로 자동 문서화
+
+/swagger-ui/index.html 또는 /v3/api-docs
+
+
+### 9. Admin 화면(React) 개발 기본 원칙
+
+1) 폴더구조
+admin_service/src/
+├── pages/       // 각 메뉴별 화면 단위
+├── components/  // 공통 UI 요소
+├── hooks/       // 재사용 가능한 커스텀 훅
+├── api/         // axios 기반 API 모듈
+├── constants/   // 상수, ENUM, config
+├── styles/      // CSS/SCSS, 공통 스타일
+├── utils/       // 유틸 함수
+
+2) 컴포넌트 네이밍
+페이지 컴포넌트: NewsDashboardPage, UserListPage
+
+공통 컴포넌트: SidebarMenu, StatCard, StatusTag
+
+3) 스타일 관리
+공통 스타일은 AdminCommon.css에만 정의
+
+각 페이지 스타일은 News.css, User.css 등으로 분리
+
+전역 클래스명 금지 → .admin- 접두사 사용 권장
+.admin-container, .admin-sidebar, .admin-header
+
+4) API 통신 모듈화
+axios 인스턴스: /api/axiosInstance.js
+
+API 분리: /api/news.js, /api/user.js
+
+에러/로딩 처리 공통화
+
+5) 권한 및 인증 처리
+로그인 시 JWT 저장 (localStorage or secure cookie)
+
+Axios Interceptor로 자동 헤더 주입
+
+관리권한 없는 경우 접근 차단 (<PrivateRoute />)
+
+6) 입력/검증 UI 일관화
+모든 입력: <Input>, <Select>, <DatePicker> 등 공통 UI 컴포넌트 사용
+
+Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
+
+10. 공통원칙.
+| 구분  | 적용 원칙                                                      |
+| --- | ---------------------------------------------------------- |
+| 네이밍 | 명확한 기능 기반, 메뉴명 포함 (`news-user-controller`, `admin-header`) |
+| 스타일 | `.admin-`, `.news-` 접두사로 전역 클래스 충돌 방지                      |
+| 구조  | 기능 단위로 폴더/클래스/컴포넌트 분리                                      |
+| 응답  | API 응답 형식 통일 (`{ success, data, error }`)                  |
+| 보안  | 인증/인가 철저 (JWT, Role 체크)                                    |
+| 문서화 | Swagger 또는 Storybook, README 등 주석/문서 필수화                   |
+
+
+----
+
+### 11. 사용자화면 (Html) > react 변환 원칙
+
+1. 모든 전역/중복 클래스명 금지, .news- 네임스페이스만 사용
+2. 공통(헤더/푸터/버튼 등)은 Common.css에서만 관리
+3. 레이아웃/디자인/사이즈/구조는 원본과 100% 동일하게 유지
+4. .container, .main-content, .sidebar, .page-header 등은 
+   .news-container, .news-main-content, .news-sidebar, .news-page-header 등 메뉴명을 붙여서 변경
+5. 버튼, 폰트, 링크 등 공통 스타일은 Common.css에만 남기고 News.css에서는 오버라이드 금지
+
+
+뉴스 댓글/덧글 시스템
+1. 로그인 사용자만 작성 / 미 로그인 시 로그인 팝업 열림.
+2. 작성한 글은 db에 저장해야해.
+3. 사용자가 작성한 글은 마이페이지-작성한댓글에 보여야 해. 
+4. 개발 완료되면 목업 데이터는 삭제해.
+
+# 게시판 보안처리 ()
+
+# 게시판.
+1. BEST 게시판은 관리자에서 설정한 옵션(조회수 ≥ 100 , 추천수 ≥ 10) 받은 글만 자동등록. /글쓰기 삭제.
+2. BEST 게시판에 등록되는 게시글은 갤러리 하위 글은 제외.
+3. 모든 작성되는 글의 첨부파일은 jpg,img만 허용
+4. 일단 성인 게시판은 주석처리.(나중에 공개)

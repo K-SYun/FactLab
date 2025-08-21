@@ -85,13 +85,13 @@ const AdminSidebar: React.FC = () => {
             }
           }
         }
-        
+
         setCounters({
           aiPending: aiPendingCount,
           newsCollected: reviewPendingCount,
           activeBoardCount: 0 // TODO: 게시판 API 연결 시 수정
         });
-        
+
       } catch (error) {
         console.error('카운터 업데이트 오류:', error);
         // 기본값 유지
@@ -105,10 +105,10 @@ const AdminSidebar: React.FC = () => {
 
     // 초기 로드
     fetchCounts();
-    
+
     // 30초마다 업데이트
     const interval = setInterval(fetchCounts, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -139,19 +139,19 @@ const AdminSidebar: React.FC = () => {
       <div className="admin-sidebar-header">
         FactLab Admin
       </div>
-      
+
       <nav className="admin-sidebar-nav">
         <div className="admin-nav-section">
-          <Link 
-            to="/dashboard" 
+          <Link
+            to="/dashboard"
             className={`admin-nav-link ${isActive('/dashboard') ? 'active' : ''}`}
           >
             <i className="fas fa-tachometer-alt" style={{ color: '#4f46e5' }}></i>
             <span>대시보드</span>
           </Link>
 
-          <Link 
-            to="/ai" 
+          <Link
+            to="/ai"
             className={`admin-nav-link ${isActive('/ai') ? 'active' : ''}`}
           >
             <i className="fas fa-robot" style={{ color: '#f59e0b' }}></i>
@@ -159,8 +159,8 @@ const AdminSidebar: React.FC = () => {
             <span className={getAiCounterClass(counters.aiPending)}>{counters.aiPending}</span>
           </Link>
 
-          <Link 
-            to="/news" 
+          <Link
+            to="/news"
             className={`admin-nav-link ${isActive('/news') ? 'active' : ''}`}
           >
             <i className="fas fa-newspaper" style={{ color: '#10b981' }}></i>
@@ -168,73 +168,62 @@ const AdminSidebar: React.FC = () => {
             <span className="admin-nav-badge admin-status-green">+{counters.newsCollected}</span>
           </Link>
 
-          <Link 
-            to="/users" 
+          <Link
+            to="/users"
             className={`admin-nav-link ${isActive('/users') ? 'active' : ''}`}
           >
             <i className="fas fa-users" style={{ color: '#3b82f6' }}></i>
             <span>사용자 관리</span>
           </Link>
-          
-          <Link 
-            to="/boards" 
+
+          <Link
+            to="/boards"
             className={`admin-nav-link ${isActive('/boards') ? 'active' : ''}`}
           >
             <i className="fas fa-layer-group" style={{ color: '#8b5cf6' }}></i>
             <span>게시판 관리</span>
             <span className="admin-nav-badge admin-status-purple">{counters.activeBoardCount}</span>
           </Link>
-                              
-          <Link 
-            to="/community" 
-            className={`admin-nav-link ${isActive('/community') ? 'active' : ''}`}
-          >
-            <i className="fas fa-shield-alt" style={{ color: '#ef4444' }}></i>
-            <span>커뮤니티 모니터링</span>
-            <span className="ml-auto">
-              <i className={`fas fa-circle text-xs ${getStatusColor(systemStatus.alertStatus)}`}></i>
-            </span>
-          </Link>
 
-          <Link 
-            to="/popups" 
+          <Link
+            to="/popups"
             className={`admin-nav-link ${isActive('/popups') ? 'active' : ''}`}
           >
             <i className="fas fa-window-restore" style={{ color: '#f59e0b' }}></i>
             <span>팝업 관리</span>
           </Link>
 
-          <Link 
-            to="/notices" 
+          <Link
+            to="/notices"
             className={`admin-nav-link ${isActive('/notices') ? 'active' : ''}`}
           >
             <i className="fas fa-bullhorn" style={{ color: '#10b981' }}></i>
             <span>공지사항</span>
           </Link>
         </div>
-        
+
         <div className="admin-nav-section">
           <div className="admin-nav-title">고급 기능</div>
-          
-          <Link 
-            to="/ads" 
+
+          <Link
+            to="/ads"
             className={`admin-nav-link ${isActive('/ads') ? 'active' : ''}`}
           >
             <i className="fas fa-bullhorn" style={{ color: '#eab308' }}></i>
             <span>광고 관리</span>
             <span className="admin-nav-badge admin-status-orange">수익화</span>
           </Link>
-          
-          <Link 
-            to="/reports" 
+
+          <Link
+            to="/reports"
             className={`admin-nav-link ${isActive('/reports') ? 'active' : ''}`}
           >
             <i className="fas fa-chart-bar" style={{ color: '#06b6d4' }}></i>
             <span>분석 리포트</span>
           </Link>
-          
-          <Link 
-            to="/api" 
+
+          <Link
+            to="/api"
             className={`admin-nav-link ${isActive('/api') ? 'active' : ''}`}
           >
             <i className="fas fa-code" style={{ color: '#6366f1' }}></i>
@@ -244,43 +233,43 @@ const AdminSidebar: React.FC = () => {
             </span>
           </Link>
         </div>
-        
+
         <div className="admin-nav-section">
           <div className="admin-nav-title">시스템</div>
-          
-          <Link 
-            to="/admin-users" 
+
+          <Link
+            to="/admin-users"
             className={`admin-nav-link ${isActive('/admin-users') ? 'active' : ''}`}
           >
             <i className="fas fa-user-shield" style={{ color: '#dc2626' }}></i>
             <span>관리자 계정</span>
           </Link>
-          
-          <Link 
-            to="/settings" 
+
+          <Link
+            to="/settings"
             className={`admin-nav-link ${isActive('/settings') ? 'active' : ''}`}
           >
             <i className="fas fa-cog" style={{ color: '#6b7280' }}></i>
             <span>설정</span>
           </Link>
-          
-          <Link 
-            to="/logs" 
+
+          <Link
+            to="/logs"
             className={`admin-nav-link ${isActive('/logs') ? 'active' : ''}`}
           >
             <i className="fas fa-file-alt" style={{ color: '#6b7280' }}></i>
             <span>시스템 로그</span>
           </Link>
-          
-          <Link 
-            to="/backup" 
+
+          <Link
+            to="/backup"
             className={`admin-nav-link ${isActive('/backup') ? 'active' : ''}`}
           >
             <i className="fas fa-database" style={{ color: '#6b7280' }}></i>
             <span>백업 관리</span>
           </Link>
         </div>
-        
+
         {/* 하단 시스템 상태 */}
         <div style={{ position: 'absolute', bottom: '0', width: '100%', padding: '16px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
           <div style={{ marginBottom: '16px', padding: '12px', background: '#f9fafb', borderRadius: '6px' }}>
@@ -297,25 +286,25 @@ const AdminSidebar: React.FC = () => {
               <span className="admin-text-blue-600">{systemStatus.community === 'active' ? '활성' : '비활성'}</span>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleLogout}
             className="admin-flex-between"
-            style={{ 
+            style={{
               width: '100%',
-              background: 'none', 
-              border: 'none', 
+              background: 'none',
+              border: 'none',
               cursor: 'pointer',
               padding: '0'
             }}
             title="로그아웃"
           >
             <div className="admin-flex" style={{ alignItems: 'center' }}>
-              <div 
-                style={{ 
-                  width: '24px', 
-                  height: '24px', 
-                  borderRadius: '50%', 
+              <div
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
                   backgroundColor: '#4F46E5',
                   display: 'flex',
                   alignItems: 'center',
@@ -330,9 +319,9 @@ const AdminSidebar: React.FC = () => {
               </div>
               <span className="admin-text-sm admin-text-gray-600">관리자 로그아웃</span>
             </div>
-            <div 
-              className="admin-text-gray-400" 
-              style={{ 
+            <div
+              className="admin-text-gray-400"
+              style={{
                 fontSize: '16px',
                 padding: '4px'
               }}

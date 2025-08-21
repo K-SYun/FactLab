@@ -7,7 +7,6 @@
 /* 게시판 헤더 */
 .news-board-header {
     margin-bottom: 20px;
-    padding: 20px 0;
     border-bottom: 2px solid #007bff;
 }
 
@@ -66,6 +65,13 @@
     border-left: 4px solid #ffc107;
 }
 
+.news-post-col-no {
+    width: 80px;
+    padding: 0 10px;
+    text-align: center;
+    font-size: 12px;
+}
+
 .news-post-col-title {
     flex: 5;
     padding: 0 15px;
@@ -108,6 +114,15 @@
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 11px;
+}
+
+.news-board-badge {
+    background: #17a2b8;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-right: 5px;
     font-weight: 600;
 }
 
@@ -1712,6 +1727,7 @@
     text-decoration: none;
     cursor: pointer;
     transition: color 0.2s ease;
+    font-size: 12px;
 }
 
 .comment_actions a:hover {

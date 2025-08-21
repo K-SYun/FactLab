@@ -16,7 +16,7 @@ import java.util.Map;
 public class CrawlerController {
 
     private final RestTemplate restTemplate;
-    private final String CRAWLER_SERVICE_URL = "http://localhost:3002";
+    private final String CRAWLER_SERVICE_URL = "http://crawler-ai-service:3002";
 
     public CrawlerController() {
         this.restTemplate = new RestTemplate();
@@ -27,7 +27,7 @@ public class CrawlerController {
     public ApiResponse<Map<String, Object>> crawlAllNews() {
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
-                CRAWLER_SERVICE_URL + "/crawl", 
+                CRAWLER_SERVICE_URL + "/crawl/all", 
                 null, 
                 (Class<Map<String, Object>>) (Class<?>) Map.class
             );
@@ -53,7 +53,7 @@ public class CrawlerController {
             @PathVariable String category,
             @RequestParam(defaultValue = "20") int count) {
         try {
-            String url = String.format("%s/crawl/%s?count=%d", CRAWLER_SERVICE_URL, category, count);
+            String url = String.format("%s/crawl/news?category=%s", CRAWLER_SERVICE_URL, category);
             
             ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
                 url, 

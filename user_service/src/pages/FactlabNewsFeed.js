@@ -122,6 +122,7 @@ const FactlabNewsFeed = () => {
 
   // 토론 이동 기능
   const goToDiscussion = (newsId) => {
+    // 조회수는 뉴스 상세 페이지에서만 증가
     navigate(`/news_detail?id=${newsId}`);
   };
 

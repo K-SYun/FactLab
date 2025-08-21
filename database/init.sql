@@ -57,8 +57,12 @@ CREATE TABLE news (
   original_publish_date TIMESTAMP,
   category VARCHAR(50) NOT NULL,
   status VARCHAR(20) DEFAULT 'PENDING',
-  thumbnail VARCHAR(500),
+  thumbnail VARCHAR(1000),
   visibility VARCHAR(20) DEFAULT 'PUBLIC',
+  view_count INT NOT NULL DEFAULT 0,
+  main_featured BOOLEAN NOT NULL DEFAULT false,
+  main_display_order INT,
+  featured_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   approved_at TIMESTAMP

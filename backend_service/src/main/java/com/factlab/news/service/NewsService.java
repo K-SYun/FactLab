@@ -388,6 +388,14 @@ public class NewsService {
         // Visibility 필드 설정
         dto.setVisibility(news.getVisibility() != null ? news.getVisibility().toString() : "PUBLIC");
         
+        // 메인 노출 관련 필드 설정
+        dto.setMainFeatured(news.getMainFeatured());
+        dto.setMainDisplayOrder(news.getMainDisplayOrder());
+        dto.setFeaturedAt(news.getFeaturedAt());
+        
+        // 조회수 설정
+        dto.setViewCount(news.getViewCount());
+        
         // 투표 통계 계산
         try {
             List<Object[]> voteResults = newsVoteRepository.countVotesByNewsId(news.getId());
@@ -468,5 +476,72 @@ public class NewsService {
                 .limit(limit)
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    // 메인 페이지 실시간 이슈 뉴스 조회 (관리자가 지정한 뉴스)
+    public List<NewsDto> getFeaturedNews() {
+        List<News> featuredNews = newsRepository.findByMainFeaturedTrueAndStatusAndVisibilityOrderByMainDisplayOrder(
+            News.NewsStatus.APPROVED, NewsVisibility.PUBLIC);
+        
+        return featuredNews.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 카테고리별 분석 완료된 뉴스 조회 (AI 분석이 완료된 승인된 뉴스)
+    public List<NewsDto> getAnalyzedNewsByCategory(String category, int limit) {
+        List<News> analyzedNews = newsRepository.findAnalyzedNewsByCategory(category, limit);
+        
+        return analyzedNews.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 뉴스를 메인에 노출하도록 설정
+    public void setMainFeatured(Integer newsId, Integer displayOrder) {
+        Optional<News> newsOpt = newsRepository.findById(newsId);
+        if (newsOpt.isPresent()) {
+            News news = newsOpt.get();
+            news.setMainFeatured(true);
+            news.setMainDisplayOrder(displayOrder);
+            news.setFeaturedAt(LocalDateTime.now());
+            newsRepository.save(news);
+        }
+    }
+
+    // 뉴스를 메인에서 제거
+    public void removeMainFeatured(Integer newsId) {
+        Optional<News> newsOpt = newsRepository.findById(newsId);
+        if (newsOpt.isPresent()) {
+            News news = newsOpt.get();
+            news.setMainFeatured(false);
+            news.setMainDisplayOrder(null);
+            news.setFeaturedAt(null);
+            newsRepository.save(news);
+        }
+    }
+
+    // 메인 노출 순서 업데이트
+    public void updateMainDisplayOrder(Integer newsId, Integer newOrder) {
+        Optional<News> newsOpt = newsRepository.findById(newsId);
+        if (newsOpt.isPresent()) {
+            News news = newsOpt.get();
+            if (news.getMainFeatured()) {
+                news.setMainDisplayOrder(newOrder);
+                newsRepository.save(news);
+            }
+        }
+    }
+
+    // 뉴스 조회수 증가
+    public void increaseViewCount(Integer newsId) {
+        Optional<News> newsOpt = newsRepository.findById(newsId);
+        if (newsOpt.isPresent()) {
+            News news = newsOpt.get();
+            news.incrementViewCount();
+            newsRepository.save(news);
+        } else {
+            throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
+        }
     }
 }

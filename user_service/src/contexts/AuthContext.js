@@ -29,10 +29,8 @@ export const AuthProvider = ({ children }) => {
     // 세션 만료 알림
     alert('30분 동안 활동이 없어 자동으로 로그아웃되었습니다.');
     
-    // 현재 페이지가 로그인이 필요한 페이지라면 로그인 페이지로 이동
-    if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
-      window.location.href = '/login';
-    }
+    // 메인 페이지로 이동
+    window.location.href = '/';
   }, []);
 
   // 활동 감지 시 세션 갱신

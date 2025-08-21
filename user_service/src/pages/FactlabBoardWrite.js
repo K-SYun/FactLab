@@ -1,34 +1,78 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import boardService from '../services/boardService';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/Board.css';
 
 const FactlabBoardWrite = () => {
   const navigate = useNavigate();
+  const { boardId: urlBoardId } = useParams();
+  const { user, isLoggedIn } = useAuth();
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
-    boardId: '',
+    boardId: urlBoardId || '',
     title: '',
     content: '',
-    author: '닉네임'
+    author: user?.nickname || user?.name || '익명'
   });
   const [tags, setTags] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [autoSave, setAutoSave] = useState(true);
   const [autoSaveStatus, setAutoSaveStatus] = useState('자동 저장됨 (30초 전)');
   const [tagInput, setTagInput] = useState('');
+  const [currentBoard, setCurrentBoard] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const boards = [
-    { id: '', label: '게시판을 선택하세요' },
-    { id: '1', label: '정치토론' },
-    { id: '2', label: '사회이슈' },
-    { id: '3', label: '경제뉴스' },
-    { id: '4', label: '과학기술' },
-    { id: '5', label: '문화생활' },
-    { id: '6', label: '스포츠' },
-    { id: '7', label: '국제뉴스' }
-  ];
+  // 게시판 정보 로드
+  const loadBoardInfo = async (boardId) => {
+    if (!boardId) return;
+    
+    try {
+      setLoading(true);
+      const response = await boardService.getBoard(boardId);
+      if (response.success && response.data) {
+        setCurrentBoard(response.data);
+      } else {
+        setCurrentBoard({ id: boardId, name: `게시판 ${boardId}` });
+      }
+    } catch (error) {
+      console.error('게시판 정보 로드 실패:', error);
+      setCurrentBoard({ id: boardId, name: `게시판 ${boardId}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // URL에서 boardId가 변경될 때 formData 업데이트
+  useEffect(() => {
+    if (urlBoardId) {
+      setFormData(prev => ({
+        ...prev,
+        boardId: urlBoardId
+      }));
+      loadBoardInfo(urlBoardId);
+    }
+  }, [urlBoardId]);
+
+  // 사용자 정보가 변경될 때 작성자 정보 업데이트
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        author: user.nickname || user.name || '익명'
+      }));
+    }
+  }, [user]);
+
+  // 로그인 체크
+  useEffect(() => {
+    if (!isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      navigate('/');
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     loadDraft();
@@ -70,23 +114,40 @@ const FactlabBoardWrite = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
-    const submitData = {
-      ...formData,
-      tags: tags,
-      files: uploadedFiles
-    };
+    try {
+      setLoading(true);
 
-    // 실제로는 서버에 전송
-    console.log('게시글 등록:', submitData);
-    alert('게시글이 등록되었습니다.');
-    navigate('/board');
+      const submitData = {
+        ...formData,
+        userId: user?.id,
+        tags: tags,
+        files: uploadedFiles
+      };
+
+      const response = await boardService.createPost(submitData);
+      
+      if (response.success) {
+        alert('게시글이 등록되었습니다.');
+        // 임시저장 데이터 삭제
+        localStorage.removeItem('factlab_draft');
+        // 해당 게시판으로 이동
+        navigate(`/board/${formData.boardId}`);
+      } else {
+        alert(response.message || '게시글 등록에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('게시글 등록 실패:', error);
+      alert('게시글 등록 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validateForm = () => {
@@ -183,10 +244,16 @@ const FactlabBoardWrite = () => {
   };
 
   const validateFile = (file) => {
-    const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    // JPG, JPEG, PNG 파일만 허용
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('JPG, JPEG, PNG 파일만 업로드할 수 있습니다.');
+      return false;
+    }
     
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      alert(`파일 크기가 너무 큽니다. (최대 ${maxSize / 1024 / 1024}MB)`);
+      alert(`파일 크기가 너무 큽니다. (최대 10MB)`);
       return false;
     }
     
@@ -312,29 +379,32 @@ const FactlabBoardWrite = () => {
   };
 
   return (
-    <div className="factlab-board-write">
+    <>
       <Header />
-      
-      <div className="board-container">
-        <div className="page-header">
-          글쓰기
+      <div className="main-top-banner-ad">
+        🎯 상단 배너 광고 영역 (1200px x 90px)
+      </div>
+      <div className="main-container">
+        {/* 좌측 광고 */}
+        <div className="main-side-ad">
+          📢<br />좌측<br />광고<br />영역<br />(160px)
         </div>
+        {/* 메인 컨텐츠 */}
+        <div className="main-content">
+          <div className="news-container">
+            <div className="news-page-header">
+              <h1 className="news-page-header-title">글쓰기</h1>
+            </div>
         
         <form className="write-form" onSubmit={handleSubmit}>
-          {/* 게시판 선택 */}
+          {/* 게시판 표시 */}
           <div className="form-group">
-            <label className="form-label">게시판 선택 <span className="required">*</span></label>
-            <select 
-              className="form-select" 
-              name="boardId" 
-              value={formData.boardId}
-              onChange={handleInputChange}
-              required
-            >
-              {boards.map(board => (
-                <option key={board.id} value={board.id}>{board.label}</option>
-              ))}
-            </select>
+            <label className="form-label">게시판</label>
+            <div className="current-board">
+              {loading ? '로딩 중...' : (
+                currentBoard ? currentBoard.name : '게시판 정보 없음'
+              )}
+            </div>
           </div>
           
           {/* 제목 */}
@@ -413,14 +483,14 @@ const FactlabBoardWrite = () => {
               onDrop={handleDrop}
             >
               <div>📁 파일을 드래그하거나 클릭하여 업로드</div>
-              <div className="help-text">이미지: 10MB 이하, GIF 포함 | 일반 파일: 5MB 이하</div>
+              <div className="help-text">JPG, JPEG, PNG 파일만 업로드 가능 (최대 10MB)</div>
             </div>
             <input 
               type="file" 
               ref={fileInputRef}
               className="file-input" 
               multiple 
-              accept="image/*,.pdf,.doc,.docx,.txt"
+              accept=".jpg,.jpeg,.png"
               onChange={handleFileChange}
             />
             
@@ -490,13 +560,25 @@ const FactlabBoardWrite = () => {
             <button type="button" className="btn btn-secondary" onClick={saveDraft}>임시저장</button>
             <button type="button" className="btn" onClick={handlePreview}>미리보기</button>
             <button type="button" className="btn" onClick={handleCancel}>취소</button>
-            <button type="submit" className="btn btn-primary" form="writeForm">등록</button>
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? '등록 중...' : '등록'}
+            </button>
           </div>
         </div>
+          </div>
+        </div>
+        {/* 우측 광고 */}
+        <div className="main-side-ad">
+          📢<br />우측<br />광고<br />영역<br />(160px)
+        </div>
       </div>
-
       <Footer />
-    </div>
+    </>
   );
 };
 

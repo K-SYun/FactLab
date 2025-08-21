@@ -130,6 +130,35 @@ class DatabaseManager:
                     logger.info(f"   - 실제 발행 시간: {original_pub_date}")
                     logger.info(f"   - 같은 시간인가? {crawling_time == original_pub_date}")
                     
+                    # 필드 길이 체크 및 로깅
+                    title_len = len(news_item.title) if news_item.title else 0
+                    content_len = len(news_item.content) if news_item.content else 0
+                    url_len = len(normalized_url) if normalized_url else 0
+                    source_len = len(news_item.source) if news_item.source else 0
+                    category_len = len(news_item.category) if news_item.category else 0
+                    thumbnail_len = len(getattr(news_item, 'thumbnail', '') or '') 
+                    
+                    logger.info(f"📏 필드 길이 정보:")
+                    logger.info(f"   - title: {title_len}/255 자")
+                    logger.info(f"   - content: {content_len} 자 (TEXT)")
+                    logger.info(f"   - url: {url_len}/512 자")
+                    logger.info(f"   - source: {source_len}/100 자")
+                    logger.info(f"   - category: {category_len}/50 자")
+                    logger.info(f"   - thumbnail: {thumbnail_len}/1000 자")
+                    
+                    # 길이 초과 필드 체크
+                    if title_len > 255:
+                        logger.error(f"❌ title 길이 초과: {title_len}/255")
+                    if url_len > 512:
+                        logger.error(f"❌ url 길이 초과: {url_len}/512")
+                    if source_len > 100:
+                        logger.error(f"❌ source 길이 초과: {source_len}/100")
+                    if category_len > 50:
+                        logger.error(f"❌ category 길이 초과: {category_len}/50")
+                    if thumbnail_len > 1000:
+                        logger.error(f"❌ thumbnail 길이 초과: {thumbnail_len}/1000")
+                        logger.error(f"❌ thumbnail 내용: {getattr(news_item, 'thumbnail', '')[:200]}...")
+                    
                     cursor.execute(insert_query, (
                         news_item.title,
                         news_item.content,

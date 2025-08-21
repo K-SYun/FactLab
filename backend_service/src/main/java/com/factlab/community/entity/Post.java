@@ -51,14 +51,14 @@ public class Post {
     @Column(nullable = false, length = 20)
     private PostStatus status = PostStatus.ACTIVE;
     
-    @Column(name = "ip_address")
+    @Column(name = "ip_address", columnDefinition = "TEXT")
     private String ipAddress;
     
     @Column(name = "excluded_from_best", nullable = false)
     private Boolean excludedFromBest = false;
     
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Comment> comments = new ArrayList<>();
+    private List<PostComment> comments = new ArrayList<>();
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -97,7 +97,7 @@ public class Post {
         }
     }
     
-    public void addComment(Comment comment) {
+    public void addComment(PostComment comment) {
         comments.add(comment);
         comment.setPost(this);
         updateCommentCount();
@@ -220,11 +220,11 @@ public class Post {
         this.excludedFromBest = excludedFromBest;
     }
     
-    public List<Comment> getComments() {
+    public List<PostComment> getComments() {
         return comments;
     }
     
-    public void setComments(List<Comment> comments) {
+    public void setComments(List<PostComment> comments) {
         this.comments = comments;
     }
     

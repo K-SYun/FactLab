@@ -226,6 +226,51 @@
   gap: 8px;
 }
 
+/* 탭 네비게이션 - boards 디자인 적용 */
+.admin-community-tab-nav {
+  border-bottom: 2px solid #e9ecef;
+}
+
+.admin-community-tab-container {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.admin-community-tab {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-community-tab:hover {
+  background-color: #e9ecef;
+  color: #2c3e50;
+}
+
+.admin-community-tab.active {
+  background-color: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+  transform: translateY(2px);
+  font-weight: 600;
+}
+
+.admin-community-tab.active:hover {
+  background-color: #357abd;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1024px) {
   .admin-monitoring-stats {
@@ -245,5 +290,15 @@
   
   .admin-action-group {
     flex-direction: column;
+  }
+  
+  .admin-community-tab-container {
+    justify-content: center;
+  }
+  
+  .admin-community-tab {
+    flex: 1;
+    text-align: center;
+    min-width: 80px;
   }
 }

@@ -58,7 +58,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     public enum UserStatus {
-        ACTIVE, SUSPENDED, BANNED, INACTIVE
+        ACTIVE, WARNED, SUSPENDED, BANNED, INACTIVE
     }
 
     public enum UserRole {

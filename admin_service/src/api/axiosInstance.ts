@@ -2,6 +2,10 @@ import axios from 'axios';
 
 // 환경에 따라 API 기본 URL 설정하는 함수
 const getApiBaseURL = () => {
+  // 현재 포트가 3001이면 직접 백엔드 서비스로 요청 (개발 모드)
+  if (window.location.port === '3001') {
+    return 'http://localhost:8080/api';
+  }
   // nginx 프록시 사용 - CORS 우회
   return 'http://localhost/api';
 };

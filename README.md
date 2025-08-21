@@ -216,10 +216,3 @@ docker-compose logs -f crawler-ai-service
 ---
 
 © 2024 FactLab. 한국의 신뢰할 수 있는 뉴스 커뮤니티 플랫폼을 지향합니다.
-
-# FactLab
-# FactLab
-# FactLab
-# FactLab
-# FactLab
-# FactLab

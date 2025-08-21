@@ -1,137 +1,231 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
+import boardService from '../services/boardService';
+import { boardCommentApi } from '../services/boardCommentApi';
 import '../styles/Board.css';
 
 const FactlabBoardView = () => {
+    const { id: postId, boardId, postId: urlPostId } = useParams();
+    const navigate = useNavigate();
+    const { user, isLoggedIn } = useAuth();
+
+    const [post, setPost] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [voteStatus, setVoteStatus] = useState(null); // 'up' or 'down' or null
     const [commentText, setCommentText] = useState('');
-    const [comments, setComments] = useState([
-        {
-            id: 1,
-            author: '경제분석가',
-            date: '2024-07-09 15:30',
-            content: '좋은 분석이네요. 특히 부동산 규제 완화 부분에 대한 우려는 저도 동감합니다. 현재 시장 상황을 고려할 때 신중한 접근이 필요할 것 같아요.',
-            likes: 5,
-            replies: [
-                {
-                    id: 2,
-                    author: '정치관심러',
-                    date: '2024-07-09 16:45',
-                    content: '맞습니다. 다양한 전문가 의견도 더 들어봐야겠어요.',
-                    likes: 2
-                }
-            ]
-        },
-        {
-            id: 3,
-            author: '청년대표',
-            date: '2024-07-09 16:15',
-            content: '청년 일자리 정책 부분은 반갑습니다. 하지만 구체적인 실행 방안이 더 중요할 것 같아요. 이전에도 비슷한 정책들이 많았지만 실질적인 효과는 미미했거든요.',
-            likes: 12,
-            replies: []
-        },
-        {
-            id: 4,
-            author: '부동산전문가',
-            date: '2024-07-09 17:20',
-            content: '부동산 규제 완화에 대해서는 다른 시각도 있습니다. 과도한 규제로 인한 시장 경직성 해소가 필요한 시점일 수도 있어요. 물론 신중한 접근은 필요하지만요.',
-            likes: 8,
-            replies: [
-                {
-                    id: 5,
-                    author: '시민감시단',
-                    date: '2024-07-09 18:10',
-                    content: '하지만 서민들의 주거 안정성도 고려해야 하지 않을까요?',
-                    likes: 6
-                }
-            ]
-        }
-    ]);
+    const [comments, setComments] = useState([]);
 
     const [votes, setVotes] = useState({
-        up: 45,
-        down: 3
+        up: 0,
+        down: 0
     });
 
     const textareaRef = useRef(null);
 
+    // 게시글 데이터 로드
+    const loadPost = async () => {
+        try {
+            setLoading(true);
+            // /board/view/:id → postId 사용
+            // /board/:boardId/post/:postId → urlPostId 사용
+            const actualPostId = urlPostId || postId;
+            
+            // 조회수 증가 (게시글 로드 전에 먼저 실행)
+            try {
+                await boardService.increaseViewCount(actualPostId);
+            } catch (viewError) {
+                console.error('조회수 증가 실패:', viewError);
+            }
+            
+            const response = await boardService.getPost(actualPostId);
+            
+            if (response.success && response.data) {
+                setPost({
+                    ...response.data,
+                    isAuthor: user?.id === response.data.userId,
+                });
+                document.title = `${response.data.title} - FactLab`;
+            } else {
+                console.error('게시글 로드 실패:', response);
+            }
+        } catch (error) {
+            console.error('게시글 로드 오류:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 댓글 데이터 로드
+    const loadComments = async () => {
+        try {
+            const actualPostId = urlPostId || postId;
+            const commentsData = await boardCommentApi.getComments(actualPostId);
+            setComments(commentsData);
+        } catch (error) {
+            console.error('댓글 로드 오류:', error);
+            setComments([]);
+        }
+    };
+
+    useEffect(() => {
+        if (postId || urlPostId) {
+            loadPost();
+            loadComments();
+        }
+    }, [postId, urlPostId, user]);
+
     // 투표 기능
-    const handleVote = (type) => {
+    const handleVote = async (type) => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요합니다.');
+            navigate('/');
+            return;
+        }
+
         if (voteStatus) {
             alert('이미 투표하셨습니다.');
             return;
         }
 
-        setVotes(prev => ({
-            ...prev,
-            [type]: prev[type] + 1
-        }));
-        setVoteStatus(type);
+        try {
+            const actualPostId = urlPostId || postId;
+            await boardService.votePost(actualPostId, type, user.id);
+            
+            setVotes(prev => ({
+                ...prev,
+                [type]: prev[type] + 1
+            }));
+            setVoteStatus(type);
+        } catch (error) {
+            console.error('투표 오류:', error);
+            alert('투표 중 오류가 발생했습니다.');
+        }
     };
 
     // 댓글 작성
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요합니다.');
+            navigate('/');
+            return;
+        }
+
         if (!commentText.trim()) {
             alert('댓글 내용을 입력하세요.');
             return;
         }
 
-        const newComment = {
-            id: Date.now(),
-            author: '나',
-            date: new Date().toLocaleString(),
-            content: commentText.trim(),
-            likes: 0,
-            replies: []
-        };
-
-        setComments([...comments, newComment]);
-        setCommentText('');
+        try {
+            const actualPostId = urlPostId || postId;
+            await boardCommentApi.createComment(actualPostId, commentText.trim(), user.id);
+            
+            // 댓글 목록 새로고침
+            await loadComments();
+            setCommentText('');
+        } catch (error) {
+            console.error('댓글 작성 오류:', error);
+            alert('댓글 작성에 실패했습니다.');
+        }
     };
 
     // 댓글 좋아요
-    const handleLikeComment = (commentId, isReply = false, parentId = null) => {
-        if (isReply) {
-            setComments(prev => prev.map(comment => {
-                if (comment.id === parentId) {
-                    return {
-                        ...comment,
-                        replies: comment.replies.map(reply => 
-                            reply.id === commentId 
-                                ? { ...reply, likes: reply.likes + 1 }
-                                : reply
-                        )
-                    };
-                }
-                return comment;
-            }));
-        } else {
-            setComments(prev => prev.map(comment => 
-                comment.id === commentId 
-                    ? { ...comment, likes: comment.likes + 1 }
-                    : comment
-            ));
+    const handleLikeComment = async (commentId, isReply = false, parentId = null) => {
+        try {
+            // API 호출
+            await boardCommentApi.likeComment(commentId, user?.id);
+            
+            // 로컬 상태 업데이트
+            if (isReply) {
+                setComments(prev => prev.map(comment => {
+                    if (comment.id === parentId) {
+                        return {
+                            ...comment,
+                            replies: comment.replies.map(reply => 
+                                reply.id === commentId 
+                                    ? { ...reply, likes: reply.likes + 1 }
+                                    : reply
+                            )
+                        };
+                    }
+                    return comment;
+                }));
+            } else {
+                setComments(prev => prev.map(comment => 
+                    comment.id === commentId 
+                        ? { ...comment, likes: comment.likes + 1 }
+                        : comment
+                ));
+            }
+        } catch (error) {
+            console.error('댓글 좋아요 오류:', error);
+            alert('좋아요 처리에 실패했습니다.');
         }
     };
 
     // 댓글 답글
-    const handleReplyComment = (commentId) => {
-        const content = prompt('답글을 입력하세요:');
-        if (content) {
-            const newReply = {
-                id: Date.now(),
-                author: '나',
-                date: new Date().toLocaleString(),
-                content: content.trim(),
-                likes: 0
-            };
+    const handleReplyComment = async (commentId) => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요합니다.');
+            navigate('/');
+            return;
+        }
 
-            setComments(prev => prev.map(comment => 
-                comment.id === commentId 
-                    ? { ...comment, replies: [...comment.replies, newReply] }
-                    : comment
-            ));
+        const content = prompt('답글을 입력하세요:');
+        if (content && content.trim()) {
+            try {
+                const actualPostId = urlPostId || postId;
+                await boardCommentApi.createReply(actualPostId, commentId, content.trim(), user.id);
+                
+                // 댓글 목록 새로고침
+                await loadComments();
+            } catch (error) {
+                console.error('답글 작성 오류:', error);
+                alert('답글 작성에 실패했습니다.');
+            }
+        }
+    };
+
+    // 댓글 삭제
+    const handleDeleteComment = async (commentId) => {
+        // 해당 댓글의 답글 개수 확인
+        const comment = comments.find(c => c.id === commentId);
+        const hasReplies = comment && comment.replies && comment.replies.length > 0;
+        
+        const confirmMessage = hasReplies 
+            ? '이 댓글에 답글이 있습니다. 삭제하면 "작성자에 의해 글이 삭제되었습니다."로 표시됩니다. 계속하시겠습니까?'
+            : '이 댓글을 삭제하시겠습니까?';
+            
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            await boardCommentApi.deleteComment(commentId, user.id);
+
+            if (hasReplies) {
+                // 답글이 있는 경우: 로컬에서 삭제 표시로 변경
+                setComments(prev => prev.map(c => 
+                    c.id === commentId 
+                        ? { 
+                            ...c, 
+                            content: '작성자에 의해 글이 삭제되었습니다.',
+                            author: '삭제된 사용자',
+                            isDeleted: true
+                        }
+                        : c
+                ));
+            } else {
+                // 답글이 없는 경우: 댓글 목록에서 제거
+                setComments(prev => prev.filter(c => c.id !== commentId));
+            }
+
+            alert('댓글이 삭제되었습니다.');
+        } catch (error) {
+            console.error('댓글 삭제 오류:', error);
+            alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
         }
     };
 
@@ -165,11 +259,21 @@ const FactlabBoardView = () => {
         alert('북마크에 추가되었습니다.');
     };
 
-    const handleDeletePost = () => {
+    const handleDeletePost = async () => {
+        if (!post.isAuthor) {
+            alert('작성자만 삭제할 수 있습니다.');
+            return;
+        }
+
         if (window.confirm('정말로 삭제하시겠습니까?')) {
-            alert('게시글이 삭제되었습니다.');
-            // 목록으로 이동
-            window.location.href = '/board';
+            try {
+                // TODO: 게시글 삭제 API 구현 필요
+                alert('게시글이 삭제되었습니다.');
+                navigate('/board');
+            } catch (error) {
+                console.error('게시글 삭제 오류:', error);
+                alert('게시글 삭제에 실패했습니다.');
+            }
         }
     };
 
@@ -184,21 +288,83 @@ const FactlabBoardView = () => {
         }
     };
 
-    useEffect(() => {
-        document.title = '새로운 정부 정책에 대한 여러분의 의견은? - FactLab';
-    }, []);
+    // 로딩 중일 때
+    if (loading) {
+        return (
+            <>
+                <Header />
+                <div className="main-top-banner-ad">
+                    🎯 상단 배너 광고 영역 (1200px x 90px)
+                </div>
+                <div className="main-container">
+                    {/* 좌측 광고 */}
+                    <div className="main-side-ad">
+                        📢<br />좌측<br />광고<br />영역<br />(160px)
+                    </div>
+                    {/* 메인 컨텐츠 */}
+                    <div className="main-content">
+                        <div className="loading-message">게시글을 불러오는 중...</div>
+                    </div>
+                    {/* 우측 광고 */}
+                    <div className="main-side-ad">
+                        📢<br />우측<br />광고<br />영역<br />(160px)
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
+    // 게시글이 없을 때
+    if (!post) {
+        return (
+            <>
+                <Header />
+                <div className="main-top-banner-ad">
+                    🎯 상단 배너 광고 영역 (1200px x 90px)
+                </div>
+                <div className="main-container">
+                    {/* 좌측 광고 */}
+                    <div className="main-side-ad">
+                        📢<br />좌측<br />광고<br />영역<br />(160px)
+                    </div>
+                    {/* 메인 컨텐츠 */}
+                    <div className="main-content">
+                        <div className="error-message">
+                            <h2>게시글을 찾을 수 없습니다</h2>
+                            <button onClick={() => navigate(-1)} className="btn">이전 페이지로</button>
+                        </div>
+                    </div>
+                    {/* 우측 광고 */}
+                    <div className="main-side-ad">
+                        📢<br />우측<br />광고<br />영역<br />(160px)
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
 
     return (
-        <div className="board-layout">
+        <>
             <Header />
-            
-            <div className="board-view-container">
+            <div className="main-top-banner-ad">
+                🎯 상단 배너 광고 영역 (1200px x 90px)
+            </div>
+            <div className="main-container">
+                {/* 좌측 광고 */}
+                <div className="main-side-ad">
+                    📢<br />좌측<br />광고<br />영역<br />(160px)
+                </div>
+                {/* 메인 컨텐츠 */}
+                <div className="main-content">
+                    <div className="board-view-container">
                 {/* Post Header */}
                 <div className="board-view-header">
-                    <h1 className="board-view-title">새로운 정부 정책에 대한 여러분의 의견은?</h1>
+                    <h1 className="board-view-title">{post.title}</h1>
                     <div className="board-view-meta">
                         <div className="board-view-info">
-                            <strong>정치관심러</strong> | 2024-07-09 14:23 | 조회 2,156
+                            <strong>{post.author || post.authorName}</strong> | {post.createdAt || post.created_at} | 조회 {post.viewCount || post.view_count || 0}
                         </div>
                         <div className="board-view-vote">
                             <button 
@@ -221,25 +387,7 @@ const FactlabBoardView = () => {
                 
                 {/* Post Content */}
                 <div className="board-view-content">
-                    <p>안녕하세요, 정치에 관심이 많은 시민입니다.</p>
-                    
-                    <p>오늘 정부에서 발표한 새로운 경제 정책에 대해 여러분의 의견을 듣고 싶습니다.</p>
-                    
-                    <p><strong>주요 내용:</strong></p>
-                    <ul>
-                        <li>중소기업 지원 예산 30% 증액</li>
-                        <li>청년 일자리 창출 프로그램 확대</li>
-                        <li>부동산 규제 완화 조치</li>
-                        <li>디지털 뉴딜 사업 추진</li>
-                    </ul>
-                    
-                    <p>개인적으로는 중소기업 지원과 청년 일자리 정책은 긍정적으로 보이지만, 부동산 규제 완화는 다소 우려스럽습니다.</p>
-                    
-                    <p>특히 현재 부동산 가격 상승세를 고려할 때, 규제 완화가 과연 적절한 시기인지 의문이 듭니다.</p>
-                    
-                    <p><strong>여러분은 어떻게 생각하시나요?</strong></p>
-                    
-                    <p>건설적인 토론을 기대합니다. 감정적인 댓글보다는 근거와 논리를 바탕으로 한 의견을 나눠주세요.</p>
+                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
                 </div>
                 
                 {/* Post Actions */}
@@ -250,14 +398,19 @@ const FactlabBoardView = () => {
                         <button className="btn" onClick={handleBookmarkPost}>북마크</button>
                     </div>
                     <div className="board-view-action-right">
-                        <a href="/board/write?mode=edit&id=1234" className="btn">수정</a>
-                        <button className="btn" onClick={handleDeletePost}>삭제</button>
+                        <button className="btn" onClick={() => navigate('/board')}>목록</button>
+                        {post.isAuthor && (
+                            <>
+                                <button className="btn" onClick={() => navigate(`/board/write?mode=edit&id=${post.id}`)}>수정</button>
+                                <button className="btn" onClick={handleDeletePost}>삭제</button>
+                            </>
+                        )}
                     </div>
                 </div>
                 
                 {/* Comments Section */}
                 <div className="board-view-comments">
-                    <div className="board-view-comments-header">💬 댓글 {comments.length + comments.reduce((acc, comment) => acc + comment.replies.length, 0)}개</div>
+                    <div className="board-view-comments-header">💬 댓글 {comments.length + comments.reduce((acc, comment) => acc + (comment.replies?.length || 0), 0)}개</div>
                     
                     {/* Comment Write */}
                     <div className="board-view-comment-write">
@@ -283,32 +436,45 @@ const FactlabBoardView = () => {
                                 <span className="board-view-comment-author">{comment.author}</span>
                                 <span className="board-view-comment-date">{comment.date}</span>
                             </div>
-                            <div className="board-view-comment-content">
+                            <div className="board-view-comment-content" style={{ 
+                                color: comment.isDeleted ? '#999' : 'inherit',
+                                fontStyle: comment.isDeleted ? 'italic' : 'normal'
+                            }}>
                                 {comment.content}
                             </div>
-                            <div className="board-view-comment-actions">
-                                <a href="#" onClick={(e) => {
-                                    e.preventDefault();
-                                    handleLikeComment(comment.id);
-                                }}>
-                                    👍 {comment.likes}
-                                </a>
-                                <a href="#" onClick={(e) => {
-                                    e.preventDefault();
-                                    handleReplyComment(comment.id);
-                                }}>
-                                    답글
-                                </a>
-                                <a href="#" onClick={(e) => {
-                                    e.preventDefault();
-                                    handleReportComment(comment.id);
-                                }}>
-                                    신고
-                                </a>
-                            </div>
+                            {!comment.isDeleted && (
+                                <div className="board-view-comment-actions">
+                                    <a href="#" onClick={(e) => {
+                                        e.preventDefault();
+                                        handleLikeComment(comment.id);
+                                    }}>
+                                        👍 {comment.likes}
+                                    </a>
+                                    <a href="#" onClick={(e) => {
+                                        e.preventDefault();
+                                        handleReplyComment(comment.id);
+                                    }}>
+                                        답글
+                                    </a>
+                                    <a href="#" onClick={(e) => {
+                                        e.preventDefault();
+                                        handleReportComment(comment.id);
+                                    }}>
+                                        신고
+                                    </a>
+                                    {isLoggedIn && user?.id === comment.userId && (
+                                        <a href="#" onClick={(e) => {
+                                            e.preventDefault();
+                                            handleDeleteComment(comment.id);
+                                        }} style={{ color: '#dc3545' }}>
+                                            삭제
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                             
                             {/* Replies */}
-                            {comment.replies.map((reply) => (
+                            {comment.replies?.map((reply) => (
                                 <div key={reply.id} className="board-view-reply-item">
                                     <div className="board-view-comment-header">
                                         <span className="board-view-comment-author">{reply.author}</span>
@@ -330,6 +496,14 @@ const FactlabBoardView = () => {
                                         }}>
                                             신고
                                         </a>
+                                        {isLoggedIn && user?.id === reply.userId && (
+                                            <a href="#" onClick={(e) => {
+                                                e.preventDefault();
+                                                handleDeleteComment(reply.id);
+                                            }} style={{ color: '#dc3545' }}>
+                                                삭제
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -365,10 +539,15 @@ const FactlabBoardView = () => {
                         <a href="/board/write" className="btn btn-primary">글쓰기</a>
                     </div>
                 </div>
+                    </div>
+                </div>
+                {/* 우측 광고 */}
+                <div className="main-side-ad">
+                    📢<br />우측<br />광고<br />영역<br />(160px)
+                </div>
             </div>
-
             <Footer />
-        </div>
+        </>
     );
 };
 

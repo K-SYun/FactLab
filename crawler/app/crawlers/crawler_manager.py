@@ -47,8 +47,8 @@ class UnifiedCrawlerManager:
     def __init__(self, database_url: str = None):
         """통합 크롤링 매니저 초기화"""
         self.database_url = database_url
-        # database_url이 제공되면 PostgreSQL 직접 연결, 없으면 DatabaseManager 사용
-        self.db_manager = None if database_url else DatabaseManager()
+        # DatabaseManager 초기화 (항상 필요)
+        self.db_manager = DatabaseManager()
         
         # 크롤러 초기화
         self.naver_crawler = NaverMobileCrawler()

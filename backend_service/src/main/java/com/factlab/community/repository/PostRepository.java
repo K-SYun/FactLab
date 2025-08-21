@@ -86,7 +86,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      */
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = " +
-           "(SELECT COUNT(c) FROM Comment c WHERE c.post.id = p.id AND c.status = 'ACTIVE') " +
+           "(SELECT COUNT(c) FROM PostComment c WHERE c.post.id = p.id AND c.status = 'ACTIVE') " +
            "WHERE p.id = :postId")
     void updateCommentCount(@Param("postId") Long postId);
     

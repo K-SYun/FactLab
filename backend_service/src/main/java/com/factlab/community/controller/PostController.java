@@ -237,4 +237,21 @@ public class PostController {
             return ApiResponse.error("사용자 게시글 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
+    /**
+     * 게시글 조회수 증가
+     * POST /api/posts/{postId}/view
+     */
+    @PostMapping("/{postId}/view")
+    @Operation(summary = "게시글 조회수 증가", description = "게시글 조회수를 1 증가시킵니다")
+    public ApiResponse<Void> increaseViewCount(@PathVariable Long postId) {
+        try {
+            postService.increaseViewCount(postId);
+            return ApiResponse.success(null, "조회수가 증가되었습니다.");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponse.error("조회수 증가 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
 }

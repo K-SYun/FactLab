@@ -29,6 +29,14 @@ public class NewsDto {
     private Integer doubtCount;    // 의심(slight_doubt + doubt)
     private Integer unknownCount;  // 모름
     private Integer totalVotes;    // 전체 투표 수
+    
+    // 메인 노출 관련 필드들
+    private Boolean mainFeatured;
+    private Integer mainDisplayOrder;
+    private LocalDateTime featuredAt;
+    
+    // 조회수
+    private Integer viewCount;
 
     public NewsDto() {}
 
@@ -225,5 +233,37 @@ public class NewsDto {
 
     public void setOriginalPublishDate(LocalDateTime originalPublishDate) {
         this.originalPublishDate = originalPublishDate;
+    }
+
+    public Boolean getMainFeatured() {
+        return mainFeatured;
+    }
+
+    public void setMainFeatured(Boolean mainFeatured) {
+        this.mainFeatured = mainFeatured;
+    }
+
+    public Integer getMainDisplayOrder() {
+        return mainDisplayOrder;
+    }
+
+    public void setMainDisplayOrder(Integer mainDisplayOrder) {
+        this.mainDisplayOrder = mainDisplayOrder;
+    }
+
+    public LocalDateTime getFeaturedAt() {
+        return featuredAt;
+    }
+
+    public void setFeaturedAt(LocalDateTime featuredAt) {
+        this.featuredAt = featuredAt;
+    }
+
+    public Integer getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
     }
 }

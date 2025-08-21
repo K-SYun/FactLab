@@ -53,8 +53,9 @@ public class PostService {
         Post post = postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         
-        // 조회수 증가
-        incrementViewCount(postId);
+        // 조회수 증가는 임시로 비활성화 (트랜잭션 이슈로 인해)
+        // TODO: 조회수 증가 기능 수정 필요
+        // incrementViewCount(postId);
         
         return new PostResponseDto(post, true); // 댓글 포함
     }
@@ -98,6 +99,7 @@ public class PostService {
         Post post = new Post(board, user, createDto.getTitle(), createDto.getContent());
         post.setIsAnonymous(createDto.getIsAnonymous());
         post.setIsNotice(createDto.getIsNotice());
+        post.setIpAddress(null); // IP 주소는 현재 설정하지 않음
         
         Post savedPost = postRepository.save(post);
         return new PostResponseDto(savedPost);
@@ -156,7 +158,16 @@ public class PostService {
     /**
      * 조회수 증가
      */
+    @Transactional
     public void incrementViewCount(Long postId) {
+        postRepository.incrementViewCount(postId);
+    }
+
+    /**
+     * 조회수 증가 (Controller에서 호출용)
+     */
+    @Transactional
+    public void increaseViewCount(Long postId) {
         postRepository.incrementViewCount(postId);
     }
     

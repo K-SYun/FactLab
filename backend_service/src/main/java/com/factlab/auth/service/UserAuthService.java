@@ -123,6 +123,9 @@ public class UserAuthService {
             throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
         
+        // 로그인 성공 시 최근 로그인 시간 업데이트
+        updateLastLoginTime(user);
+        
         // 로그인 성공 응답 생성
         return new UserLoginResponseDto(
             user.getId(),
@@ -130,5 +133,14 @@ public class UserAuthService {
             user.getNickname(),
             LocalDateTime.now()
         );
+    }
+    
+    /**
+     * 사용자 최근 로그인 시간 업데이트
+     */
+    @Transactional
+    private void updateLastLoginTime(User user) {
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 }

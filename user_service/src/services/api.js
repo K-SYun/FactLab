@@ -31,6 +31,7 @@ export const newsApi = {
   },
   getNewsById: (id) => api.get(`/news/${id}`),
   getLatestNews: (limit = 10) => api.get(`/news/approved/latest?limit=${limit}`),
+  getFeaturedNews: () => api.get(`/news/main/featured`),
   
   // 트렌딩 키워드 조회 (뉴스 키워드 중 가장 많이 사용된 상위 10개)
   getTrendingKeywords: () => api.get('/trending/keywords'),
@@ -42,6 +43,9 @@ export const newsApi = {
   
   // 베스트 뉴스 조회
   getBestNews: (period = 'daily', limit = 10) => api.get(`/news/best?period=${period}&limit=${limit}`),
+  
+  // 뉴스 조회수 증가
+  increaseViewCount: (newsId) => api.post(`/news/${newsId}/view`),
   
   // 관리자용 - 모든 뉴스 조회 (향후 관리자 패널에서 사용)
   getAllNewsForAdmin: (page = 0, size = 10) => api.get(`/news?page=${page}&size=${size}`),

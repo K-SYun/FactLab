@@ -1,8 +1,6 @@
 /* 팝업 관리 페이지 스타일 */
 .popup-management {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  /* News 페이지와 동일한 사이즈 - admin-content 기본 스타일 사용 */
 }
 
 .admin-header {

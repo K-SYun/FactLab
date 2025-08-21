@@ -1,6 +1,7 @@
 package com.factlab.community.dto;
 
-import com.factlab.community.entity.Comment;
+import com.factlab.community.entity.PostComment;
+import com.factlab.news.entity.NewsComment;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,9 +28,40 @@ public class CommentResponseDto {
     // Constructors
     public CommentResponseDto() {}
     
-    public CommentResponseDto(Comment comment) {
+    // Constructor for PostComment
+    public CommentResponseDto(PostComment comment) {
         this.id = comment.getId();
         this.postId = comment.getPost() != null ? comment.getPost().getId() : null;
+        this.newsId = null;
+        this.parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
+        this.userId = comment.getUser() != null ? comment.getUser().getId() : null;
+        this.authorName = comment.getIsAnonymous() ? "익명" : 
+            (comment.getUser() != null ? comment.getUser().getNickname() : "알 수 없음");
+        this.content = comment.getContent();
+        this.depth = comment.getDepth();
+        this.likeCount = comment.getLikeCount();
+        this.replyCount = comment.getReplyCount();
+        this.isAnonymous = comment.getIsAnonymous();
+        this.status = comment.getStatus().name();
+        this.createdAt = comment.getCreatedAt();
+        this.updatedAt = comment.getUpdatedAt();
+    }
+    
+    public CommentResponseDto(PostComment comment, boolean includeReplies) {
+        this(comment);
+        if (includeReplies && comment.getReplies() != null) {
+            for (PostComment reply : comment.getReplies()) {
+                if (reply.getStatus() == PostComment.CommentStatus.ACTIVE) {
+                    this.replies.add(new CommentResponseDto(reply, true));
+                }
+            }
+        }
+    }
+    
+    // Constructor for NewsComment
+    public CommentResponseDto(NewsComment comment) {
+        this.id = comment.getId();
+        this.postId = null;
         this.newsId = comment.getNews() != null ? comment.getNews().getId().longValue() : null;
         this.parentCommentId = comment.getParentComment() != null ? comment.getParentComment().getId() : null;
         this.userId = comment.getUser() != null ? comment.getUser().getId() : null;
@@ -45,11 +77,11 @@ public class CommentResponseDto {
         this.updatedAt = comment.getUpdatedAt();
     }
     
-    public CommentResponseDto(Comment comment, boolean includeReplies) {
+    public CommentResponseDto(NewsComment comment, boolean includeReplies) {
         this(comment);
         if (includeReplies && comment.getReplies() != null) {
-            for (Comment reply : comment.getReplies()) {
-                if (reply.getStatus() == Comment.CommentStatus.ACTIVE) {
+            for (NewsComment reply : comment.getReplies()) {
+                if (reply.getStatus() == NewsComment.CommentStatus.ACTIVE) {
                     this.replies.add(new CommentResponseDto(reply, true));
                 }
             }

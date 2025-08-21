@@ -12,11 +12,11 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 import re
 import hashlib
+import os
 from urllib.parse import urljoin, quote
 import random
 from dataclasses import dataclass
 import sys
-import os
 from pathlib import Path
 from PIL import Image
 import io
@@ -544,18 +544,32 @@ class NaverMobileCrawler:
             logger.debug(f"썸네일 유효성 검사 오류: {e}")
             return False
     
-    async def resize_and_optimize_image(self, image_url: str, max_width: int = 300, max_height: int = 200) -> str:
-        """이미지 다운로드, 리사이즈 후 base64로 인코딩"""
+    async def resize_and_optimize_image(self, image_url: str, 
+                                      mobile_size: tuple = (200, 150), 
+                                      desktop_size: tuple = (400, 300), 
+                                      retina_size: tuple = (800, 600)) -> str:
+        """이미지 다운로드, 리사이즈 후 파일로 저장 - 파일 경로 반환"""
         try:
             if not image_url:
                 return None
                 
             # 이미지 다운로드
-            async with self.session.get(image_url) as response:
+            headers = {
+                'User-Agent': self.user_agent,
+                'Referer': 'https://news.naver.com/'
+            }
+            
+            async with self.session.get(image_url, headers=headers, timeout=10) as response:
                 if response.status != 200:
-                    return None
+                    logger.debug(f"이미지 다운로드 실패 ({image_url}): HTTP {response.status}")
+                    return image_url
                     
                 image_data = await response.read()
+                
+                # 이미지 크기 체크 (10MB 제한)
+                if len(image_data) > 10 * 1024 * 1024:
+                    logger.debug(f"이미지 크기 초과 ({image_url}): {len(image_data)} bytes")
+                    return image_url
                 
             # PIL로 이미지 처리
             image = Image.open(io.BytesIO(image_data))
@@ -569,17 +583,29 @@ class NaverMobileCrawler:
                 background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
                 image = background
             
-            # 비율 유지하면서 리사이즈
-            image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+            # 데스크탑용 썸네일 생성 (400x300, 고해상도는 800x600)
+            image_desktop = image.copy()
+            image_desktop.thumbnail(desktop_size, Image.Resampling.LANCZOS)
             
-            # JPEG로 최적화하여 저장
-            output = io.BytesIO()
-            image.save(output, format='JPEG', quality=85, optimize=True)
-            output.seek(0)
+            # 고유한 파일명 생성 (URL 해시 + 타임스탬프)
+            import hashlib
+            url_hash = hashlib.md5(image_url.encode()).hexdigest()[:8]
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"thumb_{url_hash}_{timestamp}.jpg"
             
-            # base64 인코딩
-            image_base64 = base64.b64encode(output.getvalue()).decode('utf-8')
-            return f"data:image/jpeg;base64,{image_base64}"
+            # 썸네일 저장 디렉토리 생성
+            thumb_dir = "/app/thumbnails"
+            os.makedirs(thumb_dir, exist_ok=True)
+            
+            # 데스크탑용 썸네일 저장
+            desktop_path = os.path.join(thumb_dir, filename)
+            image_desktop.save(desktop_path, format='JPEG', quality=85, optimize=True)
+            
+            # 웹에서 접근 가능한 경로 반환 (nginx를 통해 서빙)
+            web_path = f"/thumbnails/{filename}"
+            logger.debug(f"썸네일 저장 완료: {web_path} (크기: {image_desktop.size})")
+            
+            return web_path
             
         except Exception as e:
             logger.debug(f"이미지 리사이즈 실패 ({image_url}): {e}")
