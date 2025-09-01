@@ -11,6 +11,14 @@ import FactlabNewsFeed from './pages/FactlabNewsFeed';
 import FactlabNewsDetail from './pages/FactlabNewsDetail';
 import FactlabRegister from './pages/FactlabRegister';
 import FactlabMypage from './pages/FactlabMypage';
+import FactlabNotice from './pages/FactlabNotice';
+import FactlabNoticeDetail from './pages/FactlabNoticeDetail';
+import LoginCallback from './pages/LoginCallback';
+
+// Bill pages
+import BillMain from './pages/BillMain';
+import BillList from './pages/BillList';
+import BillDetail from './pages/BillDetail';
 
 const App = () => (
   <AuthProvider>
@@ -28,8 +36,17 @@ const App = () => (
         <Route path="/news/detail/:id" element={<FactlabNewsDetail />} />
         <Route path="/news_detail" element={<FactlabNewsDetail />} />
         <Route path="/login" element={<div>로그인 페이지 (개발 예정)</div>} />
+        <Route path="/login/callback" element={<LoginCallback />} />
         <Route path="/register" element={<FactlabRegister />} />
         <Route path="/mypage" element={<FactlabMypage />} />
+        <Route path="/notice" element={<FactlabNotice />} />
+        <Route path="/notice/:id" element={<FactlabNoticeDetail />} />
+
+        {/* Bill Routes */}
+        <Route path="/bill" element={<BillMain />} />
+        <Route path="/bill/list" element={<BillList />} />
+        <Route path="/bill/:billId" element={<BillDetail />} />
+
         <Route path="*" element={<div>404 - 페이지를 찾을 수 없습니다</div>} />
       </Routes>
     </Router>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/LoginModal.css';
 
-const LoginModal = ({ isOpen, onClose, initialEmail = '' }) => {
+const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     email: initialEmail,
     password: ''
@@ -47,9 +47,14 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '' }) => {
         // 모달 닫기
         onClose();
         
-        // 메인 페이지로 이동 (현재 페이지가 메인이 아닌 경우)
-        if (window.location.pathname !== '/') {
-          navigate('/');
+        // 로그인 성공 콜백 호출 (있는 경우)
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          // 메인 페이지로 이동 (현재 페이지가 메인이 아닌 경우)
+          if (window.location.pathname !== '/') {
+            navigate('/');
+          }
         }
       } else {
         console.error('로그인 실패:', result.error);

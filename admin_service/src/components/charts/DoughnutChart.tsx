@@ -1,48 +1,64 @@
 import React from 'react';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData
-} from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import '../../styles/Charts.css';
 
 interface DoughnutChartProps {
-  data: ChartData<'doughnut'>;
+  data: any;
   height?: number;
   title?: string;
 }
 
 const DoughnutChart: React.FC<DoughnutChartProps> = ({ data, height = 200, title }) => {
-  const options: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        },
-      },
-      title: {
-        display: !!title,
-        text: title,
-        padding: {
-          bottom: 20,
-        },
-      },
-    },
-    cutout: '50%',
-  };
+  // 차트 데이터에서 값 추출
+  const datasets = data?.datasets?.[0];
+  const labels = data?.labels || [];
+  const values = datasets?.data || [];
+  const colors = datasets?.backgroundColor || [];
+
+  const total = values.reduce((sum: number, val: number) => sum + val, 0);
 
   return (
-    <div style={{ height: `${height}px` }}>
-      <Doughnut data={data} options={options} />
+    <div className="admin-chart-container" style={{ height }}>
+      {title && (
+        <h4 className="admin-chart-title">
+          {title}
+        </h4>
+      )}
+      
+      <div className="admin-chart-content">
+        <div className="admin-chart-bars">
+          {labels.map((label: string, index: number) => {
+            const value = values[index] || 0;
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            
+            return (
+              <div key={index} className="admin-chart-bar-item">
+                <div className="admin-chart-bar-label">
+                  <span>{label}</span>
+                  <span>{value} ({percentage}%)</span>
+                </div>
+                <div className="admin-chart-bar-track">
+                  <div 
+                    className="admin-chart-bar-fill"
+                    style={{ 
+                      width: `${percentage}%`, 
+                      backgroundColor: colors[index] || '#64748b'
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="admin-chart-total">
+          <div className="admin-chart-total-number">
+            {total}
+          </div>
+          <div className="admin-chart-total-label">
+            전체
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

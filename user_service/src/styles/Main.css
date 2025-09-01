@@ -2,16 +2,7 @@
    - 공통(헤더/푸터/버튼 등)은 Common.css에서 관리
    - 이 파일은 메인 전용 레이아웃, 그리드, 카드, 광고, 사이드바 등만 포함 */
 
-.main-container {
-    max-width: 1560px; /* 160px(좌측광고) + 1200px(콘텐츠) + 160px(우측광고) + 40px(gap) */
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 160px 1200px 160px; /* 콘텐츠 영역을 정확히 1200px로 설정 */
-    gap: 20px;
-    padding: 20px;
-    border: none !important;
-    box-shadow: none !important;
-}
+/* main-container는 Common.css에서 정의됨 */
 
 .main-top-banner-ad {
     background-color: #f0f8ff;
@@ -28,18 +19,7 @@
     margin: 0 auto; /* 중앙 정렬 */
 }
 
-.main-side-ad {
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-size: 12px;
-    position: sticky;
-    top: 20px;
-}
+/* main-side-ad는 Common.css에서 정의됨 */
 
 .main-content {
     background-color: white;

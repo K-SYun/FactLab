@@ -1,0 +1,153 @@
+package com.factlab.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+@Profile("prod")  // Production 환경에서만 활성화
+public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // CSRF 설정
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/auth/**", "/api/public/**")
+                .csrfTokenRepository(new org.springframework.security.web.csrf.CookieCsrfTokenRepository())
+            )
+            
+            // CORS 설정
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // 세션 관리
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(3)  // 사용자당 최대 3개 세션
+                .maxSessionsPreventsLogin(false)
+                .sessionRegistry(sessionRegistry())
+            )
+            
+            // 헤더 보안 설정
+            .headers(headers -> headers
+                .frameOptions().deny()
+                .contentTypeOptions().and()
+                .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                    .maxAgeInSeconds(31536000)
+                    .includeSubdomains(true)
+                    .preload(true)
+                )
+                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                .and()
+                .addHeaderWriter((request, response) -> {
+                    response.setHeader("X-Content-Type-Options", "nosniff");
+                    response.setHeader("X-XSS-Protection", "1; mode=block");
+                    response.setHeader("Content-Security-Policy", 
+                        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;");
+                })
+            )
+            
+            // URL 접근 권한 설정
+            .authorizeHttpRequests(auth -> auth
+                // 공개 API
+                .requestMatchers("/api/public/**", "/api/auth/**", "/health").permitAll()
+                .requestMatchers("/api/news/**", "/api/boards/**").permitAll()  // 뉴스, 게시판 읽기는 공개
+                
+                // 관리자 전용
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                
+                // 인증 필요
+                .requestMatchers("/api/user/**").authenticated()
+                .requestMatchers("/api/comments/**", "/api/votes/**").authenticated()
+                
+                // 내부 서비스간 통신 (IP 제한)
+                .requestMatchers("/api/internal/**").hasIpAddress("172.16.0.0/12")
+                
+                // 나머지 모든 요청은 인증 필요
+                .anyRequest().authenticated()
+            )
+            
+            // 로그인/로그아웃 설정
+            .formLogin(form -> form
+                .loginPage("/api/auth/login")
+                .loginProcessingUrl("/api/auth/login")
+                .defaultSuccessUrl("/")
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessUrl("/")
+                .deleteCookies("JSESSIONID")
+                .invalidateHttpSession(true)
+                .permitAll()
+            )
+            
+            // OAuth2 로그인
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/api/auth/login")
+                .defaultSuccessUrl("/")
+                .failureUrl("/login?error=oauth2")
+            )
+            
+            // 예외 처리
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"접근 권한이 없습니다\"}");
+                })
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"인증이 필요합니다\"}");
+                })
+            );
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);  // 보안 강화를 위해 rounds 12 사용
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public org.springframework.security.core.session.SessionRegistry sessionRegistry() {
+        return new org.springframework.security.core.session.SessionRegistryImpl();
+    }
+}

@@ -5,13 +5,11 @@ import com.factlab.user.entity.User.UserStatus;
 import com.factlab.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -20,11 +18,40 @@ public class AdminUserService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    public long getUserCount() {
+        System.out.println("=== getUserCount() 호출됨 ===");
+        long count = userRepository.count();
+        System.out.println("=== count: " + count + " ===");
+        return count;
+    }
 
     public Page<User> getUsers(Pageable pageable, String status, String keyword) {
-        // 실제로는 복잡한 조건부 쿼리 필요
-        // 임시로 빈 페이지 반환
-        return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        try {
+            // 디버그용: 전체 사용자 수 확인
+            long totalCount = userRepository.count();
+            System.out.println("=== DEBUG: Total user count = " + totalCount + " ===");
+            
+            // 간단하게 전체 사용자 조회부터 시작
+            if (status == null && (keyword == null || keyword.trim().isEmpty())) {
+                Page<User> result = userRepository.findAll(pageable);
+                System.out.println("=== DEBUG: findAll result size = " + result.getTotalElements() + " ===");
+                return result;
+            }
+            
+            UserStatus userStatus = null;
+            if (status != null && !status.trim().isEmpty()) {
+                try {
+                    userStatus = UserStatus.valueOf(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // 잘못된 status 값인 경우 무시하고 전체 조회
+                }
+            }
+            
+            return userRepository.findUsersWithFilters(userStatus, keyword, pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("사용자 목록 조회 중 오류 발생: " + e.getMessage(), e);
+        }
     }
 
     public User getUserDetails(Long userId) {

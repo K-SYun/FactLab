@@ -1,4 +1,4 @@
-# crawler-ai-service/analyzers/gemini_analyzer.py
+# ai-service/analyzers/gemini_analyzer.py
 import os
 import re
 import time

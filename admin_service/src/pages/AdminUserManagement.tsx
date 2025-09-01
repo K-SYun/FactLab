@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 // Using text labels instead of icons for compatibility
 import '../styles/AdminUserManagement.css';
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '../api/auth';
 
 interface AdminUser {
   id: number;
@@ -39,16 +40,9 @@ const AdminUserManagement: React.FC = () => {
   const fetchAdminUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/accounts', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setAdminUsers(data.data);
-        }
+      const response = await getAdminUsers();
+      if (response.success) {
+        setAdminUsers(response.data);
       }
     } catch (error) {
       console.error('관리자 사용자 조회 실패:', error);
@@ -109,29 +103,25 @@ const AdminUserManagement: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const url = editingUser 
-        ? `/api/admin/accounts/${editingUser.id}` 
-        : '/api/admin/accounts';
-      
-      const method = editingUser ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      });
+      let response;
+      if (editingUser) {
+        // 수정
+        response = await updateAdminUser(editingUser.id, formData);
+      } else {
+        // 새 사용자 추가
+        response = await createAdminUser(formData);
+      }
 
-      if (response.ok) {
+      if (response.success) {
         await fetchAdminUsers();
         closeModal();
+        alert(editingUser ? '관리자가 수정되었습니다.' : '관리자가 등록되었습니다.');
       } else {
-        console.error('사용자 저장 실패');
+        alert(response.message || '저장에 실패했습니다.');
       }
     } catch (error) {
       console.error('사용자 저장 중 오류:', error);
+      alert('저장 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -144,20 +134,16 @@ const AdminUserManagement: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/accounts/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
-
-      if (response.ok) {
+      const response = await deleteAdminUser(id);
+      if (response.success) {
         await fetchAdminUsers();
+        alert('관리자 계정이 삭제되었습니다.');
       } else {
-        console.error('사용자 삭제 실패');
+        alert(response.message || '삭제에 실패했습니다.');
       }
     } catch (error) {
       console.error('사용자 삭제 중 오류:', error);
+      alert('삭제 중 오류가 발생했습니다.');
     }
   };
 

@@ -23,7 +23,7 @@ public class Post {
     private Board board;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true) // 관리자 공지사항의 경우 null 가능
     private User user;
     
     @Column(nullable = false, length = 200)
@@ -57,6 +57,13 @@ public class Post {
     @Column(name = "excluded_from_best", nullable = false)
     private Boolean excludedFromBest = false;
     
+    @Column(name = "author_name", length = 50)
+    private String author; // 관리자가 작성한 공지사항의 경우 '관리자'로 설정
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notice_category", length = 20)
+    private NoticeCategory noticeCategory; // 공지사항 카테고리
+    
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PostComment> comments = new ArrayList<>();
     
@@ -70,6 +77,13 @@ public class Post {
     
     public enum PostStatus {
         ACTIVE, HIDDEN, DELETED, PENDING
+    }
+    
+    public enum NoticeCategory {
+        ALL,        // 전체 - 모든 게시판에 출력
+        IMPORTANT,  // 중요 - 관리자가 지정한 특정 게시판에 출력
+        EVENT,      // 이벤트 - 모든 게시판에 출력
+        UPDATE      // 업데이트 - notice에만 출력, 게시판에는 출력 안됨
     }
     
     // Constructors
@@ -110,6 +124,10 @@ public class Post {
     public String getDisplayAuthorName() {
         if (isAnonymous) {
             return "익명";
+        }
+        // 관리자가 작성한 공지사항의 경우 author 필드 사용
+        if (author != null && !author.trim().isEmpty()) {
+            return author;
         }
         return user != null ? user.getNickname() : "알 수 없음";
     }
@@ -242,5 +260,21 @@ public class Post {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public String getAuthor() {
+        return author;
+    }
+    
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    
+    public NoticeCategory getNoticeCategory() {
+        return noticeCategory;
+    }
+    
+    public void setNoticeCategory(NoticeCategory noticeCategory) {
+        this.noticeCategory = noticeCategory;
     }
 }

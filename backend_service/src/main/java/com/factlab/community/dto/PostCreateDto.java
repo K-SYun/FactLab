@@ -3,6 +3,7 @@ package com.factlab.community.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public class PostCreateDto {
     
@@ -20,6 +21,10 @@ public class PostCreateDto {
     private Boolean isAnonymous = false; // 익명 게시글 여부
     
     private Boolean isNotice = false; // 공지사항 여부 (관리자만)
+    
+    private String noticeCategory; // 공지사항 카테고리 (ALL, IMPORTANT, EVENT, UPDATE)
+    
+    private List<Long> selectedBoardIds; // 중요 공지사항에서 선택된 게시판 ID 목록
     
     // Constructors
     public PostCreateDto() {}
@@ -69,5 +74,21 @@ public class PostCreateDto {
     
     public void setIsNotice(Boolean isNotice) {
         this.isNotice = isNotice;
+    }
+    
+    public List<Long> getSelectedBoardIds() {
+        return selectedBoardIds;
+    }
+    
+    public void setSelectedBoardIds(List<Long> selectedBoardIds) {
+        this.selectedBoardIds = selectedBoardIds;
+    }
+    
+    public String getNoticeCategory() {
+        return noticeCategory;
+    }
+    
+    public void setNoticeCategory(String noticeCategory) {
+        this.noticeCategory = noticeCategory;
     }
 }

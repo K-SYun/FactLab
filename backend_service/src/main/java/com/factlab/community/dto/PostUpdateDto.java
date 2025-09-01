@@ -2,6 +2,7 @@ package com.factlab.community.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public class PostUpdateDto {
     
@@ -14,6 +15,10 @@ public class PostUpdateDto {
     private String content;
     
     private Boolean isAnonymous = false; // 익명 게시글 여부
+    
+    private String noticeCategory; // 공지사항 카테고리 (ALL, IMPORTANT, EVENT, UPDATE)
+    
+    private List<Long> selectedBoardIds; // 중요 공지사항에서 선택된 게시판 ID 목록
     
     // Constructors
     public PostUpdateDto() {}
@@ -46,5 +51,21 @@ public class PostUpdateDto {
     
     public void setIsAnonymous(Boolean isAnonymous) {
         this.isAnonymous = isAnonymous;
+    }
+    
+    public List<Long> getSelectedBoardIds() {
+        return selectedBoardIds;
+    }
+    
+    public void setSelectedBoardIds(List<Long> selectedBoardIds) {
+        this.selectedBoardIds = selectedBoardIds;
+    }
+    
+    public String getNoticeCategory() {
+        return noticeCategory;
+    }
+    
+    public void setNoticeCategory(String noticeCategory) {
+        this.noticeCategory = noticeCategory;
     }
 }

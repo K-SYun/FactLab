@@ -27,9 +27,8 @@ public class User {
     @Column(nullable = false)
     private String nickname;
     
-    @NotBlank
     @Size(min = 8)
-    @Column(nullable = false)
+    @Column(nullable = true) // 소셜 로그인 사용자는 비밀번호가 없을 수 있음
     private String password;
     
     @Column(name = "user_level", nullable = false)
@@ -57,6 +56,17 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // 소셜 로그인 필드 추가
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_method", nullable = false)
+    private RegistrationMethod registrationMethod = RegistrationMethod.EMAIL;
+
+    @Column(name = "social_provider_id")
+    private String socialProviderId;
+
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     public enum UserStatus {
         ACTIVE, WARNED, SUSPENDED, BANNED, INACTIVE
     }
@@ -65,14 +75,27 @@ public class User {
         USER, ADMIN, MODERATOR
     }
 
+    public enum RegistrationMethod {
+        EMAIL, GOOGLE, NAVER, KAKAO
+    }
+
     // 기본 생성자
     public User() {}
 
-    // 생성자
+    // 생성자 (일반 회원가입용)
     public User(String email, String nickname, String password) {
         this.email = email;
         this.nickname = nickname;
         this.password = password;
+    }
+
+    // 생성자 (소셜 로그인용)
+    public User(String email, String nickname, RegistrationMethod registrationMethod, String socialProviderId) {
+        this.email = email;
+        this.nickname = nickname;
+        this.password = null;
+        this.registrationMethod = registrationMethod;
+        this.socialProviderId = socialProviderId;
     }
 
     // Getters and Setters
@@ -108,4 +131,13 @@ public class User {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public RegistrationMethod getRegistrationMethod() { return registrationMethod; }
+    public void setRegistrationMethod(RegistrationMethod registrationMethod) { this.registrationMethod = registrationMethod; }
+
+    public String getSocialProviderId() { return socialProviderId; }
+    public void setSocialProviderId(String socialProviderId) { this.socialProviderId = socialProviderId; }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 }

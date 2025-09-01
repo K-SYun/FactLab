@@ -7,7 +7,7 @@ FactLab은 한국의 뉴스 커뮤니티 플랫폼으로, 실시간 뉴스 수�
 ```
 [사용자/관리자] → [Nginx:80] → [User Service:3000 | Admin Service:3001]
                                       ↓
-                              [Backend API:8080] ← [Crawler AI:3002]
+                              [Backend API:8080] ← [Crawler:3002] ← [AI:8001]
                                       ↓
                               [PostgreSQL:5433]
 ```
@@ -16,7 +16,8 @@ FactLab은 한국의 뉴스 커뮤니티 플랫폼으로, 실시간 뉴스 수�
 - **User Service** (Port 3000): React 사용자 프론트엔드
 - **Admin Service** (Port 3001): React 관리자 대시보드  
 - **Backend Service** (Port 8080): Spring Boot API 서버
-- **Crawler AI Service** (Port 3002): Python FastAPI 뉴스 수집 및 AI 분석
+- **Crawler Service** (Port 3002): Python FastAPI 뉴스 수집 전담
+- **AI Service** (Port 8001): Python FastAPI AI 분석 전담
 - **Database**: PostgreSQL 데이터베이스
 - **Nginx**: 리버스 프록시 및 로드 밸런서
 
@@ -73,11 +74,18 @@ cd backend_service
 mvn spring-boot:run  # http://localhost:8080
 ```
 
-#### Crawler AI Service (Python)
+#### Crawler Service (Python)
 ```bash
 cd crawler
 pip install -r requirements.txt
 uvicorn main:app --reload --port 3002  # http://localhost:3002
+```
+
+#### AI Service (Python)
+```bash
+cd ai_service  
+pip install -r requirements.txt
+uvicorn app:app --reload --port 8001  # http://localhost:8001
 ```
 
 #### Database (PostgreSQL)
@@ -100,11 +108,15 @@ docker run -d --name factlab-db \
 - `POST /api/news` - 뉴스 생성
 - `GET /api/admin/dashboard` - 관리자 대시보드 데이터
 
-### Crawler AI API (/crawler)
+### Crawler API (/crawler)
 - `POST /crawler/crawl/news` - 특정 카테고리 뉴스 수집
 - `POST /crawler/crawl/all` - 전체 카테고리 뉴스 수집
-- `POST /crawler/ai/analyze` - 텍스트 AI 분석
-- `GET /crawler/db/stats` - 데이터베이스 통계
+- `GET /crawler/status` - 크롤링 상태 조회
+
+### AI API (/ai)  
+- `POST /ai/analyze/news` - 뉴스 AI 분석
+- `POST /ai/analyze/batch` - 배치 AI 분석
+- `GET /ai/health` - AI 서비스 상태
 
 ## 🗃️ 데이터베이스 스키마
 
@@ -134,9 +146,13 @@ docker run -d --name factlab-db \
 - 사용자 관리 및 제재 기능
 - 통계 대시보드
 
-### 크롤러/AI 기능
-- 네이버/다음 뉴스 자동 수집 (2시간 간격)
-- OpenAI 기반 뉴스 요약 및 분석
+### 크롤러 기능
+- 네이버/다음 모바일 뉴스 자동 수집 (2시간 간격)
+- 분산 스케줄링 (네이버:정시, 다음:20분)
+- 중복 제거 및 로그 관리
+
+### AI 분석 기능
+- Gemini API 기반 뉴스 요약 및 분석
 - 신뢰도 점수 산정 (0-100점)
 - 핵심 주장 및 의심 포인트 추출
 - 자동 질문 생성
@@ -171,7 +187,7 @@ docker-compose logs -f
 
 # 특정 서비스 로그
 docker-compose logs -f backend-service
-docker-compose logs -f crawler-ai-service
+docker-compose logs -f crawler-service
 ```
 
 ## 📈 확장 계획

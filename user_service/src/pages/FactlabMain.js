@@ -6,7 +6,9 @@ import LoginModal from '../components/LoginModal';
 import PopupDisplay from '../components/PopupDisplay';
 import '../styles/Main.css';
 import '../styles/Common.css';
+import '../styles/AdStyle.css';
 import { newsApi } from '../services/api';
+import AdBanner from '../components/AdBanner';
 
 const FactlabMain = () => {
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ const FactlabMain = () => {
         // 관리자가 메인에 지정한 실시간 이슈 뉴스만 가져오기
         const response = await newsApi.getFeaturedNews();
         const newsData = response.data.data || [];
-        
+
         // 메인 실시간 이슈 뉴스가 없으면 최신 승인 뉴스 사용 (fallback)
         if (newsData.length === 0) {
           const fallbackResponse = await newsApi.getLatestNews(8);
@@ -42,7 +44,7 @@ const FactlabMain = () => {
         setError(null);
       } catch (err) {
         console.error('메인 뉴스 로드 실패:', err);
-        
+
         // API 오류 시 fallback으로 최신 뉴스 시도
         try {
           const fallbackResponse = await newsApi.getLatestNews(8);
@@ -178,6 +180,20 @@ const FactlabMain = () => {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
+  const getCategoryName = (category) => {
+    const categoryMap = {
+      'politics': '정치',
+      'economy': '경제',
+      'society': '사회',
+      'technology': 'IT/과학',
+      'world': '세계',
+      'entertainment': '연예',
+      'sports': '스포츠',
+      'environment': '기후/환경'
+    };
+    return categoryMap[category] || category;
+  };
+
   const goToNewsDetail = (newsId) => {
     // 조회수는 뉴스 상세 페이지에서만 증가
     navigate(`/news_detail?id=${newsId}`);
@@ -191,12 +207,20 @@ const FactlabMain = () => {
     <>
       <Header />
       <div className="main-top-banner-ad">
-        🎯 상단 배너 광고 영역 (1200px x 90px)
+        <AdBanner
+          adSlot="1471043815"
+          adFormat="horizontal"
+          style={{ display: 'block', width: '100%', height: '90px' }}
+        />
       </div>
       <div className="main-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
-          📢<br />좌측<br />광고<br />영역<br />(160px)
+          <AdBanner
+            adSlot="6197876443"
+            adFormat="vertical"
+            style={{ display: 'block', width: '160px', minHeight: '600px' }}
+          />
         </div>
         {/* 메인 컨텐츠 */}
         <div className="main-content">
@@ -240,7 +264,7 @@ const FactlabMain = () => {
                       <h3 className="main-news-title" onClick={() => goToNewsDetail(item.id)}>{item.title}</h3>
                       <p className="main-news-summary" onClick={() => goToNewsDetail(item.id)}>{item.content.substring(0, 120)}...</p>
                       <div className="main-news-meta">
-                        <span>{item.source} | {item.category} | {formatDate(item.publishDate)} | 👀 {item.viewCount || 0}</span>
+                        <span>{item.source} | {getCategoryName(item.category)} | {formatDate(item.publishDate)} | 👀 {item.viewCount || 0}</span>
                         <div className="main-vote-buttons">
                           <span className="main-vote-btn agree">사실 ({item.factCount || 0})</span>
                           <span className="main-vote-btn disagree">의심 ({item.doubtCount || 0})</span>
@@ -252,7 +276,11 @@ const FactlabMain = () => {
               )}
             </div>
             {/* 사이드바 */}
-            <div className="main-sidebar">
+            <div className="">
+              <div className="news-content-banner-ad">
+                🎯 법안 카드 영역
+              </div>
+
               <div className="news-sidebar-item">
                 <div className="news-sidebar-title">📈 트렌딩 키워드</div>
                 {trendingKeywords.map((item, index) => (
@@ -281,11 +309,8 @@ const FactlabMain = () => {
                 <div className="news-board-item"><span>축구</span><span className="news-board-posts">276</span></div>
                 <div className="news-board-item"><span>게임</span><span className="news-board-posts">254</span></div>
                 <div className="news-board-item"><span>게임</span><span className="news-board-posts">254</span></div>
+              </div>
 
-              </div>
-              <div className="news-content-banner-ad">
-                🎯 콘텐츠 배너 광고 영역 (210px x 370px)
-              </div>
             </div>
           </div>
           {/* 하단 섹션 */}
@@ -355,9 +380,19 @@ const FactlabMain = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          📢<br />우측<br />광고<br />영역<br />(160px)
+          <AdBanner adSlot="7878052952" />
         </div>
       </div>
+
+      {/* 하단 광고 */}
+      <div className="main-bottom-banner-ad">
+        <AdBanner
+          adSlot="3571713105"
+          adFormat="horizontal"
+          style={{ display: 'block', width: '100%', height: '200px' }}
+        />
+      </div>
+
       <Footer />
       <button className="floating-write" onClick={() => window.location.href = '/board/write'}>✏️</button>
 

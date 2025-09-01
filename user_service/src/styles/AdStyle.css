@@ -1,0 +1,128 @@
+/* 구글 애드센스 광고 스타일 */
+
+/* 상단 배너 광고 - 1200px x 90px */
+.main-top-banner-ad {
+  width: 100%;
+  max-width: 1200px;
+  height: 90px;
+  margin: 0 auto 20px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.main-top-banner-ad .ad-banner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 사이드 광고 - 160px 너비 */
+.main-side-ad {
+  width: 160px;
+  min-height: 600px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  position: sticky;
+  top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.main-side-ad .ad-banner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 하단 배너 광고 - 1200px x 200px */
+.main-bottom-banner-ad {
+  width: 100%;
+  max-width: 1200px;
+  height: 200px;
+  margin: 20px auto;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.main-bottom-banner-ad .ad-banner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 반응형 처리 */
+@media (max-width: 1280px) {
+  .main-side-ad {
+    display: none; /* 모바일에서는 사이드 광고 숨김 */
+  }
+  
+  .main-top-banner-ad,
+  .main-bottom-banner-ad {
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: calc(100% - 20px);
+  }
+}
+
+@media (max-width: 768px) {
+  .main-top-banner-ad {
+    height: 60px; /* 모바일에서는 높이 축소 */
+  }
+  
+  .main-bottom-banner-ad {
+    height: 120px; /* 모바일에서는 높이 축소 */
+  }
+}
+
+/* 로딩 상태 스타일 */
+.ad-banner {
+  position: relative;
+}
+
+.ad-banner .adsbygoogle:empty {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.ad-banner .adsbygoogle:empty::after {
+  content: "광고 로딩 중...";
+}
+
+/* 광고 차단기 대응 */
+.adsbygoogle[data-adsbygoogle-status="unfilled"] {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.adsbygoogle[data-adsbygoogle-status="unfilled"]::after {
+  content: "광고";
+}

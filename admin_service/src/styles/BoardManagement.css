@@ -207,6 +207,7 @@
 
 .board-table-container {
   overflow-x: auto;
+  min-width: 100%;
 }
 
 .board-table {
@@ -225,6 +226,7 @@
   white-space: nowrap;
 }
 
+
 .board-table td {
   padding: 12px 8px;
   border-bottom: 1px solid #dee2e6;
@@ -242,7 +244,8 @@
 
 /* Board Name Cell */
 .board-name-cell {
-  min-width: 200px;
+  width: 100%;
+  max-width: none;
 }
 
 .board-name {
@@ -461,8 +464,7 @@
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  display: flex;
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -685,7 +687,7 @@
   }
   
   .form-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
   
   .board-modal {
@@ -695,10 +697,14 @@
   
   .board-table {
     font-size: 12px;
+    min-width: 900px;
   }
   
   .board-table th,
   .board-table td {
     padding: 8px 4px;
   }
+
+  .board-table th:nth-child(2) { width: 250px; }   /* 게시판명 줄임 */
+  .board-table th:nth-child(8) { width: 180px; }   /* 관리 버튼 줄임 */
 }

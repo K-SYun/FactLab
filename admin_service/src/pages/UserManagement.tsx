@@ -5,7 +5,7 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('ACTIVE');
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState<UserStats | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -19,7 +19,7 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       const response = await userApi.getUsers({
-        status: filterStatus === 'all' ? undefined : filterStatus,
+        status: filterStatus,
         search: searchTerm || undefined,
         page: currentPage,
         size: pageSize,
@@ -199,13 +199,13 @@ const UserManagement: React.FC = () => {
       WARNED: { text: '경고', class: 'admin-status-orange' },
       SUSPENDED: { text: '정지', class: 'admin-status-red' },
       BANNED: { text: '차단', class: 'admin-status-red' },
-      INACTIVE: { text: '비활성', class: 'admin-status-red' }
+      INACTIVE: { text: '삭제', class: 'admin-status-red' }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ACTIVE;
     
     return (
-      <span className={`admin-status-badge ${config.class}`} style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600' }}>
+      <span className={`admin-status-badge ${config.class} admin-user-status-badge`}>
         {config.text}
       </span>
     );
@@ -234,17 +234,52 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* 필터 및 검색 */}
+      {/* 상태별 탭 */}
+      <div className="admin-tabs-container admin-mb-6">
+        <div className="admin-tabs">
+          <button
+            className={`admin-tab ${filterStatus === 'ACTIVE' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('ACTIVE')}
+          >
+            활성 ({stats?.activeUsers || 0})
+          </button>
+          <button
+            className={`admin-tab ${filterStatus === 'WARNED' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('WARNED')}
+          >
+            경고 ({stats?.warnedUsers || 0})
+          </button>
+          <button
+            className={`admin-tab ${filterStatus === 'SUSPENDED' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('SUSPENDED')}
+          >
+            정지 ({stats?.suspendedUsers || 0})
+          </button>
+          <button
+            className={`admin-tab ${filterStatus === 'BANNED' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('BANNED')}
+          >
+            차단 ({stats?.bannedUsers || 0})
+          </button>
+          <button
+            className={`admin-tab ${filterStatus === 'INACTIVE' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('INACTIVE')}
+          >
+            삭제 ({stats ? (stats.totalUsers - stats.activeUsers - stats.warnedUsers - stats.suspendedUsers - stats.bannedUsers) : 0})
+          </button>
+        </div>
+      </div>
+
+      {/* 검색 */}
       <div className="admin-card admin-mb-6">
         <div className="admin-grid admin-grid-cols-3" style={{ gap: '16px', alignItems: 'end' }}>
-          <div>
+          <div style={{ display: 'none' }}>
             <label className="admin-label">상태 필터</label>
             <select 
               className="admin-select"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
             >
-              <option value="all">전체</option>
               <option value="ACTIVE">정상</option>
               <option value="WARNED">경고</option>
               <option value="SUSPENDED">정지</option>

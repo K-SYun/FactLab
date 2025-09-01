@@ -8,6 +8,9 @@ CREATE TABLE users (
   activity_score INT DEFAULT 0,
   status VARCHAR(20) DEFAULT 'ACTIVE',
   role VARCHAR(20) DEFAULT 'USER',
+  registration_method VARCHAR(20) DEFAULT 'EMAIL',
+  social_provider_id VARCHAR(255),
+  profile_image_url VARCHAR(500),
   last_login_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -81,6 +84,7 @@ CREATE TABLE news_summary (
   ai_model VARCHAR(50),
   processing_time INT,
   error_message TEXT,
+  suspicious_points TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -177,7 +181,7 @@ CREATE TABLE posts (
   is_anonymous BOOLEAN NOT NULL DEFAULT false,
   excluded_from_best BOOLEAN NOT NULL DEFAULT false,
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'HIDDEN', 'DELETED', 'PENDING')),
-  ip_address INET,
+  ip_address TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -203,7 +207,7 @@ CREATE TABLE comments (
   reply_count INT NOT NULL DEFAULT 0,
   is_anonymous BOOLEAN NOT NULL DEFAULT false,
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'HIDDEN', 'DELETED')),
-  ip_address INET,
+  ip_address TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -222,7 +226,7 @@ CREATE TABLE likes (
   target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('POST', 'COMMENT')),
   target_id INT NOT NULL,
   user_id INT NOT NULL REFERENCES users(id),
-  ip_address INET,
+  ip_address TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(target_type, target_id, user_id)
 );
@@ -416,6 +420,252 @@ CREATE INDEX idx_popups_start_date ON popups(start_date);
 CREATE INDEX idx_popups_end_date ON popups(end_date);
 CREATE INDEX idx_popups_display_period ON popups(start_date, end_date, active);
 CREATE INDEX idx_popups_created_at ON popups(created_at);
+
+-- =============================================
+-- 공지사항 게시판 연결 매핑 테이블
+-- =============================================
+
+-- 공지사항-게시판 매핑 테이블 (중요 공지사항이 어느 게시판에 노출될지 관리)
+CREATE TABLE notice_board_mappings (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    board_id INT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, board_id) -- 같은 공지사항이 같은 게시판에 중복 매핑 방지
+);
+
+-- 공지사항 매핑 인덱스 생성
+CREATE INDEX idx_notice_board_mappings_post_id ON notice_board_mappings(post_id);
+CREATE INDEX idx_notice_board_mappings_board_id ON notice_board_mappings(board_id);
+CREATE INDEX idx_notice_board_mappings_display_order ON notice_board_mappings(display_order);
+
+-- =============================================
+-- 법안감시 플랫폼 관련 테이블
+-- =============================================
+
+-- 정당 테이블
+CREATE TABLE political_parties (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    short_name VARCHAR(20),
+    english_name VARCHAR(100),
+    representative VARCHAR(50),
+    founding_date DATE,
+    official_website VARCHAR(255),
+    logo_url VARCHAR(500),
+    description TEXT,
+    ideology VARCHAR(100),
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 정치인 테이블
+CREATE TABLE politicians (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    english_name VARCHAR(100),
+    party_id INT REFERENCES political_parties(id),
+    position VARCHAR(50), -- 의원, 장관, 대통령 등
+    electoral_district VARCHAR(100), -- 선거구
+    committee VARCHAR(100), -- 소속 위원회
+    profile_image_url VARCHAR(500),
+    birth_date DATE,
+    career TEXT,
+    education TEXT,
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    office_address TEXT,
+    homepage VARCHAR(255),
+    sns_facebook VARCHAR(255),
+    sns_twitter VARCHAR(255),
+    sns_instagram VARCHAR(255),
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    term_start_date DATE,
+    term_end_date DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 법안 테이블
+CREATE TABLE bills (
+    id SERIAL PRIMARY KEY,
+    bill_number VARCHAR(50) NOT NULL UNIQUE, -- 의안번호
+    title VARCHAR(500) NOT NULL,
+    summary TEXT,
+    full_text TEXT,
+    proposer_id INT REFERENCES politicians(id), -- 대표발의자
+    proposer_name VARCHAR(50), -- 대표발의자명 (캐싱용)
+    party_name VARCHAR(100), -- 정당명 (캐싱용)
+    proposal_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL, -- 접수, 심사중, 소위심사, 법안소위, 본회의, 통과, 폐기 등
+    category VARCHAR(50) NOT NULL, -- 정치/행정, 경제/산업, 노동/복지, 교육/문화, 환경/에너지, 디지털/AI/데이터
+    committee VARCHAR(100), -- 소관위원회
+    stage VARCHAR(50), -- 심의단계
+    passage_probability VARCHAR(20), -- 통과가능성: HIGH, MEDIUM, LOW
+    urgency_level VARCHAR(20) DEFAULT 'NORMAL', -- 긴급도: URGENT, HIGH, NORMAL, LOW
+    public_interest_score INT DEFAULT 0, -- 공공관심도 (0-100)
+    media_attention_score INT DEFAULT 0, -- 언론관심도 (0-100)
+    voting_for INT DEFAULT 0, -- 찬성 투표수
+    voting_against INT DEFAULT 0, -- 반대 투표수
+    view_count INT DEFAULT 0,
+    is_featured BOOLEAN DEFAULT false, -- 주요 법안 여부
+    is_approved BOOLEAN DEFAULT false, -- 관리자 승인 여부
+    admin_notes TEXT, -- 관리자 메모
+    ai_summary TEXT, -- AI 요약
+    ai_impact_analysis TEXT, -- AI 영향 분석
+    ai_keywords VARCHAR(500), -- AI 추출 키워드
+    ai_reliability_score INT, -- AI 신뢰도 점수 (0-100)
+    source_url VARCHAR(500), -- 원본 URL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 법안 공동발의자 테이블
+CREATE TABLE bill_co_proposers (
+    id SERIAL PRIMARY KEY,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    politician_id INT NOT NULL REFERENCES politicians(id),
+    is_representative BOOLEAN DEFAULT false, -- 대표발의자 여부
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(bill_id, politician_id)
+);
+
+-- 법안 투표 기록 테이블 (국회 표결)
+CREATE TABLE bill_votes (
+    id SERIAL PRIMARY KEY,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    politician_id INT NOT NULL REFERENCES politicians(id),
+    vote_type VARCHAR(20) NOT NULL, -- FOR(찬성), AGAINST(반대), ABSTAIN(기권), ABSENT(불참)
+    vote_date TIMESTAMP NOT NULL,
+    session_name VARCHAR(100), -- 회의명
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(bill_id, politician_id)
+);
+
+-- 사용자 법안 투표 테이블 (커뮤니티 투표)
+CREATE TABLE user_bill_votes (
+    id SERIAL PRIMARY KEY,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vote_type VARCHAR(20) NOT NULL, -- FOR(찬성), AGAINST(반대)
+    comment TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(bill_id, user_id)
+);
+
+-- 법안 댓글 테이블
+CREATE TABLE bill_comments (
+    id SERIAL PRIMARY KEY,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    parent_id INT REFERENCES bill_comments(id), -- 대댓글
+    content TEXT NOT NULL,
+    is_anonymous BOOLEAN DEFAULT false,
+    like_count INT DEFAULT 0,
+    dislike_count INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, HIDDEN, DELETED
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 법안 구독 테이블
+CREATE TABLE bill_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    notification_enabled BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, bill_id)
+);
+
+-- 정치인 구독 테이블
+CREATE TABLE politician_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    politician_id INT NOT NULL REFERENCES politicians(id) ON DELETE CASCADE,
+    notification_enabled BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, politician_id)
+);
+
+-- 정당 구독 테이블
+CREATE TABLE party_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    party_id INT NOT NULL REFERENCES political_parties(id) ON DELETE CASCADE,
+    notification_enabled BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, party_id)
+);
+
+-- 사용자 관심 분야 테이블
+CREATE TABLE user_interests (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category VARCHAR(50) NOT NULL, -- 정치/행정, 경제/산업, 노동/복지, 교육/문화, 환경/에너지, 디지털/AI/데이터
+    keywords VARCHAR(500),
+    priority_level INT DEFAULT 1, -- 1(높음) ~ 5(낮음)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 법안 키워드 테이블
+CREATE TABLE bill_keywords (
+    id SERIAL PRIMARY KEY,
+    bill_id INT NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+    keyword VARCHAR(100) NOT NULL,
+    weight INT DEFAULT 1, -- 키워드 가중치
+    source VARCHAR(50) DEFAULT 'AI', -- AI, MANUAL, USER
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(bill_id, keyword)
+);
+
+-- 트렌딩 키워드 테이블 (정치 분야)
+CREATE TABLE trending_political_keywords (
+    id SERIAL PRIMARY KEY,
+    keyword VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    mention_count INT DEFAULT 1,
+    trend_date DATE NOT NULL,
+    trend_rank INT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(keyword, trend_date)
+);
+
+-- 법안 관련 인덱스 생성
+CREATE INDEX idx_bills_status ON bills(status);
+CREATE INDEX idx_bills_category ON bills(category);
+CREATE INDEX idx_bills_proposal_date ON bills(proposal_date);
+CREATE INDEX idx_bills_is_approved ON bills(is_approved);
+CREATE INDEX idx_bills_is_featured ON bills(is_featured);
+CREATE INDEX idx_bills_proposer_id ON bills(proposer_id);
+
+CREATE INDEX idx_politicians_party_id ON politicians(party_id);
+CREATE INDEX idx_politicians_is_active ON politicians(is_active);
+
+CREATE INDEX idx_bill_votes_bill_id ON bill_votes(bill_id);
+CREATE INDEX idx_bill_votes_politician_id ON bill_votes(politician_id);
+CREATE INDEX idx_bill_votes_vote_date ON bill_votes(vote_date);
+
+CREATE INDEX idx_user_bill_votes_bill_id ON user_bill_votes(bill_id);
+CREATE INDEX idx_user_bill_votes_user_id ON user_bill_votes(user_id);
+
+CREATE INDEX idx_bill_comments_bill_id ON bill_comments(bill_id);
+CREATE INDEX idx_bill_comments_user_id ON bill_comments(user_id);
+CREATE INDEX idx_bill_comments_parent_id ON bill_comments(parent_id);
+
+CREATE INDEX idx_bill_subscriptions_user_id ON bill_subscriptions(user_id);
+CREATE INDEX idx_politician_subscriptions_user_id ON politician_subscriptions(user_id);
+CREATE INDEX idx_party_subscriptions_user_id ON party_subscriptions(user_id);
+
+CREATE INDEX idx_bill_keywords_bill_id ON bill_keywords(bill_id);
+CREATE INDEX idx_bill_keywords_keyword ON bill_keywords(keyword);
+
+CREATE INDEX idx_trending_keywords_trend_date ON trending_political_keywords(trend_date);
+CREATE INDEX idx_trending_keywords_trend_rank ON trending_political_keywords(trend_rank);
 
 -- =============================================
 -- 기존 테스트 데이터 (뉴스 관련)

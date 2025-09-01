@@ -76,8 +76,8 @@ public class AdminAuthService {
             System.out.println("Input password: " + loginRequest.getPassword());
             System.out.println("Stored password: " + adminUser.getPassword());
             
-            // 개발 단계에서는 평문 비교 사용
-            boolean passwordMatches = PasswordUtil.matchesPlain(loginRequest.getPassword(), adminUser.getPassword());
+            // BCrypt 해시 비교 사용
+            boolean passwordMatches = PasswordUtil.matches(loginRequest.getPassword(), adminUser.getPassword());
             System.out.println("Password matches: " + passwordMatches);
             
             logger.debug("비밀번호 검증: username={}, matches={}, inputPassword={}, storedHash={}", 

@@ -63,6 +63,7 @@ public class NewsController {
         return ApiResponse.success(news);
     }
 
+
     @GetMapping("/approved/category/{category}")
     @Operation(summary = "승인된 카테고리별 뉴스 조회", description = "승인된 특정 카테고리의 뉴스를 조회합니다.")
     public ApiResponse<List<NewsDto>> getApprovedNewsByCategory(@PathVariable String category,

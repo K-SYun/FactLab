@@ -1,6 +1,23 @@
 /* mypage.html 전용 스타일 */
 /* Common.css와 News.css에 없는, 이 페이지에서만 사용되는 스타일 정의 */
 
+/* 마이페이지 전용 헤더 */
+.mypage-page-header {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.mypage-page-header-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
 .news-mypage-content {
     display: grid;
     grid-template-columns: 250px 1fr;
@@ -28,7 +45,7 @@
     padding: 8px 10px;
     color: #333;
     text-decoration: none;
-    font-size: 12px;
+    font-size: 14px;
     border: 1px solid transparent;
     border-radius: 0.375rem; /* rounded-md */
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
@@ -179,7 +196,7 @@
 .news-mypage-activity-list {
     border-collapse: collapse;
     width: 100%;
-    font-size: 11px;
+    font-size: 13px;
     margin-top: 15px; /* 테이블 상단 여백 */
 }
 
@@ -261,6 +278,14 @@
     border-color: #0066cc;
 }
 
+.news-mypage-page-btn.disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    border-color: #e0e0e0;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
     .news-mypage-content {
@@ -312,4 +337,275 @@
     .news-mypage-activity-title {
         max-width: 150px; /* 모바일에서 제목 너비 조정 */
     }
+}
+
+/* 소셜 계정 연동 관리 스타일 */
+.social-accounts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.social-account-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+    transition: border-color 0.2s ease;
+}
+
+.social-account-card:hover {
+    border-color: #ccc;
+}
+
+.social-account-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.social-account-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+}
+
+.social-account-info {
+    flex: 1;
+}
+
+.social-account-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.social-account-status {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.social-account-details {
+    margin-top: 8px;
+}
+
+.social-account-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-outline:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* 마이페이지에서 main-container 사용 시 news-container 스타일 조정 */
+.main-container .news-container {
+    max-width: none; /* main-container의 그리드 제약을 따름 */
+    margin: 0; /* main-container가 이미 중앙 정렬 */
+    border: none; /* 중복 테두리 제거 */
+    background-color: transparent; /* main-content가 배경 처리 */
+    padding: 0; /* main-container가 이미 패딩 제공 */
+}
+
+/* 마이페이지 콘텐츠 영역을 다시 흰색 배경으로 */
+.main-container .news-mypage-content {
+    background-color: white;
+    border-radius: 8px;
+
+}
+
+/* 페이지 헤더도 스타일 조정 */
+.main-container .news-page-header {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .social-account-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .social-account-header {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .social-account-actions {
+        justify-content: center;
+    }
+    
+    /* 모바일에서 main-container 조정 */
+    .main-container {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+    
+    .main-side-ad {
+        display: none; /* 모바일에서 사이드 광고 숨김 */
+    }
+}
+
+/* 추가 스타일 - 인라인 CSS 제거용 */
+.news-mypage-profile-image.has-image {
+    background-image: var(--bg-image);
+    background-size: cover;
+    background-position: center;
+}
+
+.news-mypage-vote-fact {
+    color: #009900;
+}
+
+.news-mypage-vote-doubt {
+    color: #cc0000;
+}
+
+.news-mypage-vote-partial {
+    color: #ff6600;
+}
+
+.news-mypage-chart-title {
+    margin-bottom: 10px;
+}
+
+.news-mypage-social-loading {
+    text-align: center;
+    padding: 20px;
+}
+
+.social-icon-google {
+    background-color: #4285F4;
+}
+
+.social-icon-naver {
+    background-color: #03C75A;
+}
+
+.social-icon-kakao {
+    background-color: #FEE500;
+}
+
+.social-status-connected {
+    color: #28a745;
+}
+
+.social-status-disconnected {
+    color: #6c757d;
+}
+
+.social-account-email-info {
+    font-size: 12px;
+    color: #666;
+}
+
+.social-account-date-info {
+    font-size: 12px;
+    color: #666;
+}
+
+.btn-sync-profile {
+    margin-right: 8px;
+}
+
+.social-accounts-notice {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.social-notice-title {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.social-notice-list {
+    padding-left: 20px;
+    margin: 0;
+}
+
+/* 빈 상태 스타일 */
+.news-mypage-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.news-mypage-empty a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.news-mypage-empty a:hover {
+    text-decoration: underline;
+}
+
+/* 인라인 CSS 대체 */
+.news-mypage-empty-container {
+    text-align: center;
+    padding: 50px;
+}
+
+/* 프로필 관리 폼 스타일 */
+.news-mypage-form-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
 }

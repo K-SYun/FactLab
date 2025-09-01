@@ -366,6 +366,95 @@ class DaumMobileCrawler:
             logger.debug(f"썸네일 유효성 검사 오류: {e}")
             return False
     
+    def extract_news_source(self, soup: BeautifulSoup) -> str:
+        """다음 뉴스에서 실제 언론사명 추출"""
+        try:
+            # 1순위: 다음 뉴스 구조에서 언론사명 추출
+            source_selectors = [
+                '.info_news .txt_info',  # 다음 뉴스 정보 영역
+                '.head_view .info_news .link_cp',  # 언론사 링크
+                '.info_news .txt_cp',  # 언론사명
+                '.news_cp img',  # 언론사 로고 이미지의 alt
+                '.cp_name',  # 언론사명 클래스
+                '.source',  # 출처
+                '.media_cp_name',  # 미디어 언론사명
+            ]
+            
+            for selector in source_selectors:
+                elements = soup.select(selector)
+                for element in elements:
+                    # img 태그의 alt 속성에서 추출
+                    if element.name == 'img':
+                        alt_text = element.get('alt', '').strip()
+                        if alt_text and alt_text not in ['logo', 'icon', '로고']:
+                            logger.info(f"✅ 다음 이미지 alt에서 언론사명 추출: {alt_text}")
+                            return alt_text
+                    
+                    # 텍스트 요소에서 추출
+                    text = element.get_text().strip()
+                    if text and len(text) > 1 and len(text) < 20:
+                        logger.info(f"✅ 다음 텍스트에서 언론사명 추출: {text}")
+                        return text
+                        
+                    # 링크의 title 속성에서 추출
+                    title_text = element.get('title', '').strip()
+                    if title_text and '언론사' not in title_text and len(title_text) < 20:
+                        logger.info(f"✅ 다음 title 속성에서 언론사명 추출: {title_text}")
+                        return title_text
+            
+            # 2순위: meta 태그에서 출처 정보 추출
+            # og:article:author 먼저 확인
+            meta_og_author = soup.find('meta', property='og:article:author')
+            if meta_og_author and meta_og_author.get('content'):
+                source = meta_og_author['content'].strip()
+                if source and len(source) < 30:  # 길이 제한 완화
+                    logger.info(f"✅ 다음 meta og:article:author에서 언론사명 추출: {source}")
+                    return source
+            
+            # og:site_name에서 추출 (다음 - 언론사명 형태)
+            meta_og_site_name = soup.find('meta', property='og:site_name')
+            if meta_og_site_name and meta_og_site_name.get('content'):
+                site_name = meta_og_site_name['content'].strip()
+                if site_name and '다음 -' in site_name:
+                    # "다음 - 헤럴드경제" 형태에서 언론사명만 추출
+                    source = site_name.split('다음 -')[-1].strip()
+                    if source and len(source) < 30:
+                        logger.info(f"✅ 다음 meta og:site_name에서 언론사명 추출: {source}")
+                        return source
+                        
+            # 기존 article:author도 확인 (호환성)
+            meta_source = soup.find('meta', property='article:author')
+            if meta_source and meta_source.get('content'):
+                source = meta_source['content'].strip()
+                if source and len(source) < 30:
+                    logger.info(f"✅ 다음 meta article:author에서 언론사명 추출: {source}")
+                    return source
+            
+            # 3순위: JSON-LD에서 publisher 정보 추출
+            script_tags = soup.find_all('script', type='application/ld+json')
+            for script in script_tags:
+                try:
+                    import json
+                    data = json.loads(script.get_text())
+                    if isinstance(data, dict):
+                        publisher = data.get('publisher', {})
+                        if isinstance(publisher, dict) and 'name' in publisher:
+                            publisher_name = publisher['name'].strip()
+                            if publisher_name and len(publisher_name) < 20:
+                                logger.info(f"✅ 다음 JSON-LD에서 언론사명 추출: {publisher_name}")
+                                return publisher_name
+                except Exception as e:
+                    logger.debug(f"다음 JSON-LD 파싱 중 오류: {e}")
+                    continue
+            
+            # 추출 실패 시 기본값
+            logger.warning("⚠️ 다음 언론사명 추출 실패, 알수없음으로 처리")
+            return "알수없음"
+            
+        except Exception as e:
+            logger.error(f"❌ 다음 언론사명 추출 실패: {e}")
+            return "알수없음"
+    
     async def resize_and_optimize_image(self, image_url: str, 
                                       mobile_size: tuple = (200, 150), 
                                       desktop_size: tuple = (400, 300), 
@@ -508,13 +597,25 @@ class DaumMobileCrawler:
                 html = await response.text()
                 soup = BeautifulSoup(html, 'html.parser')
                 
-                # 제목 추출
+                # 제목 추출 - 다음 뉴스 구조에 맞게 수정
                 title_elem = soup.find('h1', class_='tit_view') or \
-                           soup.find('h2', class_='screen_out') or \
+                           soup.find('h3', class_='tit_view') or \
+                           soup.find('h1', class_='news_title') or \
+                           soup.find('h2', class_='news_title') or \
                            soup.find('h1') or \
                            soup.find('h2')
                 
                 title = self.clean_text(title_elem.get_text()) if title_elem else "제목 없음"
+                
+                # 다음 뉴스 특유의 불필요한 접두사 제거
+                if title:
+                    # "[숫자] 속보" 형태 제거
+                    title = re.sub(r'^\[\d+\]\s*속보\s*', '', title)
+                    # "[카테고리]" 형태 접두사 제거 (예: [정치], [경제] 등)
+                    title = re.sub(r'^\[[^\]]+\]\s*', '', title)
+                    # "속보:" 또는 "단독:" 등 접두사 제거
+                    title = re.sub(r'^(속보|단독|긴급|특보)\s*[:：]\s*', '', title)
+                    title = title.strip()
                 
                 # 본문 추출 - 다음 뉴스 구조
                 content_elem = soup.find('div', class_='news_view') or \
@@ -551,6 +652,9 @@ class DaumMobileCrawler:
                 if thumbnail_url:
                     thumbnail_url = await self.resize_and_optimize_image(thumbnail_url)
                 
+                # 실제 언론사명 추출
+                actual_source = self.extract_news_source(soup)
+                
                 # 수집된 카테고리 그대로 사용 (페이지에서 수집되었으므로 해당 카테고리로 분류)
                 final_category = category
                 
@@ -558,7 +662,7 @@ class DaumMobileCrawler:
                     title=title,
                     content=content,
                     url=url,
-                    source="다음뉴스",
+                    source=actual_source,  # 실제 언론사명 사용
                     category=final_category,
                     publish_date=datetime.now(),
                     thumbnail=thumbnail_url

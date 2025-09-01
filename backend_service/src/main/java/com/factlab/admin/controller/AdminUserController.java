@@ -90,4 +90,17 @@ public class AdminUserController {
             return ApiResponse.error("사용자 통계 조회 실패: " + e.getMessage());
         }
     }
+
+    @GetMapping("/debug/count")
+    @Operation(summary = "사용자 수 확인", description = "데이터베이스의 전체 사용자 수를 확인합니다")
+    public ApiResponse<Long> getUserCount() {
+        try {
+            System.out.println("=== getUserCount 엔드포인트 호출됨 ===");
+            long count = adminUserService.getUserCount();
+            return ApiResponse.success(count);
+        } catch (Exception e) {
+            System.out.println("=== ERROR: " + e.getMessage() + " ===");
+            return ApiResponse.error("사용자 수 조회 실패: " + e.getMessage());
+        }
+    }
 }

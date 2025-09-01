@@ -213,6 +213,22 @@ const boardService = {
       console.error('조회수 증가 실패:', error);
       throw error;
     }
+  },
+
+  // 공지사항 포함 게시글 목록 조회
+  getPostsWithNotices: async (boardId, page = 0, size = 20) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/posts/boards/${boardId}/posts-with-notices`, {
+        params: {
+          page,
+          size
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('공지사항 포함 게시글 목록 조회 실패:', error);
+      throw error;
+    }
   }
 };
 

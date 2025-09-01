@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance';
+import { adminLogin } from '../api/auth';
 import '../styles/AdminLogin.css';
 
 interface LoginForm {
@@ -40,28 +40,28 @@ const AdminLogin: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form Data:', formData); // Log the form data
     setIsLoading(true);
     setErrorMessage('');
 
     try {
-      const response = await axiosInstance.post('/admin/auth/login', formData);
-      
-      const data = response.data;
-      if (data.success) {
+      const response = await adminLogin(formData);
+
+      if (response.success) {
         // JWT 토큰과 사용자 정보 저장
-        localStorage.setItem('adminToken', data.data.token);
-        localStorage.setItem('adminUser', JSON.stringify(data.data.user));
-        
+        localStorage.setItem('adminToken', response.data.token);
+        localStorage.setItem('adminUser', JSON.stringify(response.data.user));
+
         // Remember Me 기능 처리
         if (rememberMe) {
           localStorage.setItem('rememberedUsername', formData.username);
         } else {
           localStorage.removeItem('rememberedUsername');
         }
-        
+
         navigate('/dashboard');
       } else {
-        setErrorMessage(data.message || '로그인에 실패했습니다.');
+        setErrorMessage(response.message || '로그인에 실패했습니다.');
       }
     } catch (error: any) {
       if (error.response) {

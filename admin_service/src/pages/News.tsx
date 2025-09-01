@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import StatusBadge from '../components/common/StatusBadge';
 import { NEWS_STATUS_LABELS, NEWS_CATEGORY_LABELS } from '../services/newsApi';
 import { newsApi } from '../services/api'; // 실제 백엔드 API 추가
@@ -42,7 +42,8 @@ interface NewsItem {
 
 const News: React.FC = () => {
   const [mainTab, setMainTab] = useState<'news_management' | 'main_featured'>('news_management');
-  const [selectedTab, setSelectedTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [selectedTab, setSelectedTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all'); // 분야별 필터링
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [allNewsData, setAllNewsData] = useState<NewsItem[]>([]); // 필터링 전 전체 데이터
@@ -51,7 +52,7 @@ const News: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNewsIds, setSelectedNewsIds] = useState<number[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
-  
+
   // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(100);
@@ -60,6 +61,7 @@ const News: React.FC = () => {
   const [featuredNews, setFeaturedNews] = useState<NewsItem[]>([]);
   const [approvedNews, setApprovedNews] = useState<NewsItem[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [selectedCategoryForMain, setSelectedCategoryForMain] = useState<string>('all'); // 메인 추가용 카테고리 필터
 
   // 환경에 따라 백엔드 API 경로 설정하는 공통 함수
   const getBackendApiBase = () => {
@@ -72,16 +74,16 @@ const News: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // 실제 백엔드에서 뉴스 데이터 가져오기
         const success = await refreshNewsData();
-        
+
         // 연결 실패 시에만 오류 표시 (빈 데이터는 정상)
         if (!success) {
           setError('백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
           setAllNewsData([]);
         }
-        
+
       } catch (err: any) {
         console.error('뉴스 데이터 가져오기 실패:', err);
         setError('뉴스 데이터를 가져오는데 실패했습니다: ' + (err.message || err));
@@ -101,36 +103,52 @@ const News: React.FC = () => {
     }
   }, [mainTab]);
 
-  // 선택된 탭에 따른 필터링
+  // 선택된 탭과 카테고리에 따른 필터링 (데이터 업데이트는 페이지 리셋 없음)
   useEffect(() => {
     // News 화면에서는 AI 분석이 완료된 뉴스만 표시 (크롤링만 된 뉴스는 제외)
     // AI 분석 완료 = review_pending, approved, rejected, processing 상태만
-    const newsForReview = allNewsData.filter(news => 
-      news.status === 'review_pending' || 
-      news.status === 'approved' || 
-      news.status === 'rejected' || 
+    const newsForReview = allNewsData.filter(news =>
+      news.status === 'review_pending' ||
+      news.status === 'approved' ||
+      news.status === 'rejected' ||
       news.status === 'processing'
     );
-    
-    let filteredNews = newsForReview;
-    if (selectedTab !== 'all') {
-      const statusMap: { [key: string]: string[] } = {
-        'pending': ['review_pending', 'processing'], // AI 분석 완료된 뉴스와 처리 중인 뉴스만 승인 대기에 포함
-        'approved': ['approved'], 
-        'rejected': ['rejected']
-      };
-      const targetStatuses = statusMap[selectedTab];
-      filteredNews = newsForReview.filter(news => targetStatuses.includes(news.status));
+
+    // 상태별 필터링
+    const statusMap: { [key: string]: string[] } = {
+      'pending': ['review_pending', 'processing'], // AI 분석 완료된 뉴스와 처리 중인 뉴스만 승인 대기에 포함
+      'approved': ['approved'],
+      'rejected': ['rejected']
+    };
+    const targetStatuses = statusMap[selectedTab];
+    let filteredNews = newsForReview.filter(news => targetStatuses.includes(news.status));
+
+    // 카테고리별 필터링
+    if (selectedCategory !== 'all') {
+      filteredNews = filteredNews.filter(news => news.category === selectedCategory);
     }
-    
+
     setNewsItems(filteredNews);
-    setCurrentPage(1); // 탭 변경 시 첫 페이지로 리셋
-  }, [selectedTab, allNewsData]);
+  }, [selectedTab, selectedCategory, allNewsData]);
+
+  // 이전 값을 추적하기 위한 ref
+  const prevSelectedTabRef = useRef(selectedTab);
+  const prevSelectedCategoryRef = useRef(selectedCategory);
+
+  // 탭이나 카테고리 변경 시에만 페이지 리셋
+  useEffect(() => {
+    if (selectedTab !== prevSelectedTabRef.current || selectedCategory !== prevSelectedCategoryRef.current) {
+      console.log(`Tab/Category changed: ${prevSelectedTabRef.current}→${selectedTab}, ${prevSelectedCategoryRef.current}→${selectedCategory}`);
+      setCurrentPage(1);
+      prevSelectedTabRef.current = selectedTab;
+      prevSelectedCategoryRef.current = selectedCategory;
+    }
+  }, [selectedTab, selectedCategory]);
 
   // 체크박스 토글
   const toggleSelectNews = (newsId: number) => {
-    setSelectedNewsIds(prev => 
-      prev.includes(newsId) 
+    setSelectedNewsIds(prev =>
+      prev.includes(newsId)
         ? prev.filter(id => id !== newsId)
         : [...prev, newsId]
     );
@@ -169,7 +187,7 @@ const News: React.FC = () => {
           const status = news.status?.toLowerCase();
           return status === 'review_pending' || status === 'approved' || status === 'rejected';
         });
-        
+
         const convertedNews: NewsItem[] = filteredNews.map((news: any) => ({
           id: news.id,
           title: news.title || '제목 없음',
@@ -182,31 +200,31 @@ const News: React.FC = () => {
           status: (news.status || 'pending') as NewsItem['status'],
           thumbnail: news.thumbnail,  // 썸네일 필드 추가
           aiSummary: news.aiSummary || '요약 정보 없음',
-          aiKeywords: Array.isArray(news.aiKeywords) ? news.aiKeywords : 
-                    (typeof news.aiKeywords === 'string' && news.aiKeywords ? 
-                     news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
+          aiKeywords: Array.isArray(news.aiKeywords) ? news.aiKeywords :
+            (typeof news.aiKeywords === 'string' && news.aiKeywords ?
+              news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
           reliabilityScore: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0,
           confidenceScore: typeof news.confidenceScore === 'number' ? news.confidenceScore : 0,
           aiAnalysisResult: {
             summary: news.aiSummary || '요약 정보 없음',
-            keywords: Array.isArray(news.aiKeywords) ? news.aiKeywords : 
-                     (typeof news.aiKeywords === 'string' && news.aiKeywords ? 
-                      news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
+            keywords: Array.isArray(news.aiKeywords) ? news.aiKeywords :
+              (typeof news.aiKeywords === 'string' && news.aiKeywords ?
+                news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
             sentiment: news.sentiment || '중립',
             factCheck: news.factCheck || '검증 필요',
             reliability: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0
           },
           comments: typeof news.comments === 'number' ? news.comments : 0,
-          votes: { 
-            fact: typeof news.votes?.fact === 'number' ? news.votes.fact : 0, 
-            doubt: typeof news.votes?.doubt === 'number' ? news.votes.doubt : 0 
+          votes: {
+            fact: typeof news.votes?.fact === 'number' ? news.votes.fact : 0,
+            doubt: typeof news.votes?.doubt === 'number' ? news.votes.doubt : 0
           },
           createdAt: news.createdAt || news.publishDate || new Date().toISOString(),
           updatedAt: news.updatedAt || news.publishDate || new Date().toISOString(),
           rejectReason: news.rejectReason,
           isVisible: news.isVisible !== undefined ? news.isVisible : true // 기본값: 노출
         }));
-        
+
         setAllNewsData(convertedNews);
         return true;
       } else {
@@ -223,10 +241,10 @@ const News: React.FC = () => {
   const handleApprove = async (newsId: number) => {
     try {
       setActionLoading(true);
-      
+
       // 실제 백엔드 API 호출로 뉴스 승인
       const result = await newsApi.approveNews(newsId);
-      
+
       if (result.success) {
         // 백엔드에서 최신 데이터 다시 불러오기
         await refreshNewsData();
@@ -246,13 +264,13 @@ const News: React.FC = () => {
   const handleReject = async (newsId: number) => {
     const reason = prompt('거부 사유를 입력해주세요:');
     if (reason === null) return; // 취소한 경우
-    
+
     try {
       setActionLoading(true);
-      
+
       // 실제 백엔드 API 호출로 뉴스 거부
       const result = await newsApi.rejectNews(newsId);
-      
+
       if (result.success) {
         // 백엔드에서 최신 데이터 다시 불러오기
         await refreshNewsData();
@@ -281,10 +299,10 @@ const News: React.FC = () => {
 
     try {
       setActionLoading(true);
-      
+
       // 실제 백엔드 API 호출로 일괄 승인
       const result = await newsApi.bulkApproveNews(selectedNewsIds);
-      
+
       if (result.success) {
         // 백엔드에서 최신 데이터 다시 불러오기
         await refreshNewsData();
@@ -318,10 +336,10 @@ const News: React.FC = () => {
 
     try {
       setActionLoading(true);
-      
+
       // 실제 백엔드 API 호출로 일괄 거부
       const result = await newsApi.bulkRejectNews(selectedNewsIds);
-      
+
       if (result.success) {
         // 백엔드에서 최신 데이터 다시 불러오기
         await refreshNewsData();
@@ -359,7 +377,7 @@ const News: React.FC = () => {
 
     try {
       setActionLoading(true);
-      
+
       // 1. 뉴스 상태를 PROCESSING으로 변경
       await fetch(`http://localhost:8080/api/news/${newsId}/status?status=PROCESSING`, {
         method: 'PUT',
@@ -369,10 +387,10 @@ const News: React.FC = () => {
       });
 
       // UI에서 즉시 상태 반영
-      setAllNewsData(prev => prev.map(news => 
+      setAllNewsData(prev => prev.map(news =>
         news.id === newsId ? { ...news, status: 'processing' as const } : news
       ));
-      setNewsItems(prev => prev.map(news => 
+      setNewsItems(prev => prev.map(news =>
         news.id === newsId ? { ...news, status: 'processing' as const } : news
       ));
 
@@ -389,7 +407,7 @@ const News: React.FC = () => {
         if (aiResponse.ok) {
           const aiResult = await aiResponse.json();
           console.log(`✅ AI 재분석 완료: 뉴스 ID ${newsId}`, aiResult);
-          
+
           // 3. 재분석 성공 시 REVIEW_PENDING으로 상태 변경
           await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REVIEW_PENDING`, {
             method: 'PUT',
@@ -397,20 +415,20 @@ const News: React.FC = () => {
               'Content-Type': 'application/json',
             }
           });
-          
+
           // UI에서 상태 반영
-          setAllNewsData(prev => prev.map(news => 
+          setAllNewsData(prev => prev.map(news =>
             news.id === newsId ? { ...news, status: 'review_pending' as const, rejectReason: undefined } : news
           ));
-          setNewsItems(prev => prev.map(news => 
+          setNewsItems(prev => prev.map(news =>
             news.id === newsId ? { ...news, status: 'review_pending' as const, rejectReason: undefined } : news
           ));
-          
+
           alert('🤖 AI 재분석이 완료되었습니다!\n승인 대기 상태로 변경되었습니다.');
-          
+
         } else {
           console.error(`❌ AI 재분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
-          
+
           // 재분석 실패 시 REJECTED으로 되돌리기
           await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REJECTED`, {
             method: 'PUT',
@@ -418,20 +436,20 @@ const News: React.FC = () => {
               'Content-Type': 'application/json',
             }
           });
-          
-          setAllNewsData(prev => prev.map(news => 
+
+          setAllNewsData(prev => prev.map(news =>
             news.id === newsId ? { ...news, status: 'rejected' as const } : news
           ));
-          setNewsItems(prev => prev.map(news => 
+          setNewsItems(prev => prev.map(news =>
             news.id === newsId ? { ...news, status: 'rejected' as const } : news
           ));
-          
+
           alert('AI 재분석에 실패했습니다.\ncrwaler_ai_service가 실행되고 있는지 확인해주세요.');
         }
-        
+
       } catch (aiError) {
         console.error(`❌ AI 재분석 오류: 뉴스 ID ${newsId}`, aiError);
-        
+
         // 재분석 오류 시 REJECTED으로 되돌리기
         await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REJECTED`, {
           method: 'PUT',
@@ -439,17 +457,17 @@ const News: React.FC = () => {
             'Content-Type': 'application/json',
           }
         });
-        
-        setAllNewsData(prev => prev.map(news => 
+
+        setAllNewsData(prev => prev.map(news =>
           news.id === newsId ? { ...news, status: 'rejected' as const } : news
         ));
-        setNewsItems(prev => prev.map(news => 
+        setNewsItems(prev => prev.map(news =>
           news.id === newsId ? { ...news, status: 'rejected' as const } : news
         ));
-        
+
         alert('AI 재분석 중 오류가 발생했습니다.\n네트워크 연결을 확인해주세요.');
       }
-      
+
     } catch (error) {
       console.error('AI 재분석 처리 오류:', error);
       alert('AI 재분석 요청 중 오류가 발생했습니다.');
@@ -480,7 +498,7 @@ const News: React.FC = () => {
 
     try {
       setActionLoading(true);
-      
+
       // 백엔드 API 호출로 노출 상태 변경
       const response = await fetch(`http://localhost:8080/api/news/${newsId}/visibility?visible=${newVisibility}`, {
         method: 'PUT',
@@ -491,18 +509,18 @@ const News: React.FC = () => {
 
       if (response.ok) {
         // UI에서 즉시 상태 반영
-        setAllNewsData(prev => prev.map(news => 
+        setAllNewsData(prev => prev.map(news =>
           news.id === newsId ? { ...news, isVisible: newVisibility } : news
         ));
-        setNewsItems(prev => prev.map(news => 
+        setNewsItems(prev => prev.map(news =>
           news.id === newsId ? { ...news, isVisible: newVisibility } : news
         ));
-        
+
         alert(`뉴스가 사용자 화면에서 ${action} 상태로 변경되었습니다.`);
       } else {
         throw new Error('노출 상태 변경 실패');
       }
-      
+
     } catch (error) {
       console.error('노출 상태 변경 오류:', error);
       alert('노출 상태 변경 중 오류가 발생했습니다.');
@@ -525,7 +543,7 @@ const News: React.FC = () => {
 
     try {
       setActionLoading(true);
-      
+
       // 백엔드에서 뉴스 삭제
       const response = await fetch(`http://localhost:8080/api/news/${newsId}`, {
         method: 'DELETE',
@@ -538,12 +556,12 @@ const News: React.FC = () => {
         // UI에서 뉴스 제거
         setAllNewsData(prev => prev.filter(news => news.id !== newsId));
         setNewsItems(prev => prev.filter(news => news.id !== newsId));
-        
+
         alert('뉴스가 삭제되었습니다.');
       } else {
         throw new Error('삭제 실패');
       }
-      
+
     } catch (error) {
       console.error('뉴스 삭제 오류:', error);
       alert('뉴스 삭제 중 오류가 발생했습니다.');
@@ -556,11 +574,11 @@ const News: React.FC = () => {
   const loadMainFeaturedData = async () => {
     try {
       setFeaturedLoading(true);
-      
+
       // 메인에 노출된 뉴스 가져오기
       const featuredResponse = await fetch(`${getBackendApiBase()}/news/main/featured`);
       const featuredResult = await featuredResponse.json();
-      
+
       if (featuredResult.success) {
         const convertedFeatured = featuredResult.data.map((news: any) => ({
           ...news,
@@ -570,21 +588,54 @@ const News: React.FC = () => {
         }));
         setFeaturedNews(convertedFeatured);
       }
-      
+
       // 승인된 뉴스 목록 가져오기 (메인 노출 후보)
       const approvedResponse = await fetch(`${getBackendApiBase()}/news/approved?page=0&size=200`);
       const approvedResult = await approvedResponse.json();
-      
+
       if (approvedResult.success) {
         const convertedApproved = approvedResult.data.map((news: any) => ({
-          ...news,
+          id: news.id,
+          title: news.title || '제목 없음',
+          content: news.content || '',
+          url: news.url || '',
+          source: news.source || '알 수 없음',
+          publisher: news.publisher || news.source || '알 수 없음',
+          category: news.category || 'others',
+          publishDate: news.publishDate || new Date().toISOString(),
+          status: (news.status || 'pending') as NewsItem['status'],
+          thumbnail: news.thumbnail,
+          aiSummary: news.aiSummary || '요약 정보 없음',
+          aiKeywords: Array.isArray(news.aiKeywords) ? news.aiKeywords :
+            (typeof news.aiKeywords === 'string' && news.aiKeywords ?
+              news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
+          reliabilityScore: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0,
+          confidenceScore: typeof news.confidenceScore === 'number' ? news.confidenceScore : 0,
+          aiAnalysisResult: {
+            summary: news.aiSummary || '요약 정보 없음',
+            keywords: Array.isArray(news.aiKeywords) ? news.aiKeywords :
+              (typeof news.aiKeywords === 'string' && news.aiKeywords ?
+                news.aiKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0) : []),
+            sentiment: news.sentiment || '중립',
+            factCheck: news.factCheck || '검증 필요',
+            reliability: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0
+          },
+          comments: typeof news.comments === 'number' ? news.comments : 0,
+          votes: {
+            fact: typeof news.votes?.fact === 'number' ? news.votes.fact : 0,
+            doubt: typeof news.votes?.doubt === 'number' ? news.votes.doubt : 0
+          },
+          createdAt: news.createdAt || news.publishDate || new Date().toISOString(),
+          updatedAt: news.updatedAt || news.publishDate || new Date().toISOString(),
+          rejectReason: news.rejectReason,
+          isVisible: news.isVisible !== undefined ? news.isVisible : true,
           mainFeatured: news.mainFeatured || false,
           mainDisplayOrder: news.mainDisplayOrder,
           featuredAt: news.featuredAt
         }));
         setApprovedNews(convertedApproved);
       }
-      
+
     } catch (error) {
       console.error('메인 실시간 이슈 데이터 로드 실패:', error);
       alert('메인 실시간 이슈 데이터를 불러오는데 실패했습니다.');
@@ -597,7 +648,7 @@ const News: React.FC = () => {
   const handleAddToMain = async (newsId: number, displayOrder?: number) => {
     try {
       setActionLoading(true);
-      
+
       const order = displayOrder || (featuredNews.length + 1);
       const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-featured?displayOrder=${order}`, {
         method: 'PUT',
@@ -612,7 +663,7 @@ const News: React.FC = () => {
       } else {
         throw new Error('메인 추가 실패');
       }
-      
+
     } catch (error) {
       console.error('메인 추가 오류:', error);
       alert('메인 실시간 이슈 추가 중 오류가 발생했습니다.');
@@ -625,7 +676,7 @@ const News: React.FC = () => {
   const handleRemoveFromMain = async (newsId: number) => {
     try {
       setActionLoading(true);
-      
+
       const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-featured`, {
         method: 'DELETE',
         headers: {
@@ -639,7 +690,7 @@ const News: React.FC = () => {
       } else {
         throw new Error('메인 제거 실패');
       }
-      
+
     } catch (error) {
       console.error('메인 제거 오류:', error);
       alert('메인 실시간 이슈 제거 중 오류가 발생했습니다.');
@@ -652,7 +703,7 @@ const News: React.FC = () => {
   const handleUpdateOrder = async (newsId: number, newOrder: number) => {
     try {
       setActionLoading(true);
-      
+
       const response = await fetch(`${getBackendApiBase()}/news/${newsId}/main-display-order?newOrder=${newOrder}`, {
         method: 'PUT',
         headers: {
@@ -666,7 +717,7 @@ const News: React.FC = () => {
       } else {
         throw new Error('순서 변경 실패');
       }
-      
+
     } catch (error) {
       console.error('순서 변경 오류:', error);
       alert('노출 순서 변경 중 오류가 발생했습니다.');
@@ -678,13 +729,34 @@ const News: React.FC = () => {
   // 시간 포맷팅
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('ko-KR');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  // 카테고리 레이블 가져오기
+  const getCategoryLabel = (categoryKey: string) => {
+    const categoryLabels: { [key: string]: string } = {
+      'politics': '정치',
+      'economy': '경제',
+      'society': '사회',
+      'technology': 'IT/과학',
+      'world': '국제',
+      'environment': '기후/환경',
+      'others': '기타'
+    };
+    return categoryLabels[categoryKey] || categoryKey;
   };
 
   // 신뢰도 점수 색상 클래스
   const getReliabilityClass = (score: number) => {
     if (score >= 90) return 'admin-reliability-high';
-    if (score >= 80) return 'admin-reliability-medium'; 
+    if (score >= 80) return 'admin-reliability-medium';
     if (score >= 70) return 'admin-reliability-low';
     return 'admin-reliability-very-low';
   };
@@ -708,7 +780,7 @@ const News: React.FC = () => {
           <div className="admin-flex-center" style={{ padding: '40px' }}>
             <div className="admin-text-center">
               <p className="admin-text-red-500 admin-mb-4">오류가 발생했습니다: {error}</p>
-              <button 
+              <button
                 className="admin-btn admin-btn-primary"
                 onClick={() => window.location.reload()}
               >
@@ -728,7 +800,7 @@ const News: React.FC = () => {
         <div className="admin-flex" style={{ gap: '12px' }}>
           {selectedTab === 'pending' && newsItems.length > 0 && (
             <>
-              <button 
+              <button
                 className={`admin-btn ${isSelectMode ? 'admin-btn-secondary' : 'admin-btn-primary'}`}
                 onClick={() => {
                   setIsSelectMode(!isSelectMode);
@@ -739,10 +811,10 @@ const News: React.FC = () => {
                 <i className={`fas ${isSelectMode ? 'fa-times' : 'fa-check-square'} mr-2`}></i>
                 {isSelectMode ? '선택 취소' : '일괄 선택'}
               </button>
-              
+
               {/* 전체 선택 버튼 */}
               {isSelectMode && (
-                <button 
+                <button
                   className="admin-btn admin-btn-secondary"
                   onClick={selectAllPendingNews}
                   disabled={actionLoading}
@@ -755,7 +827,7 @@ const News: React.FC = () => {
               {/* 전체 승인 버튼 */}
               {selectedNewsIds.length > 0 && (
                 <>
-                  <button 
+                  <button
                     className="admin-btn admin-btn-success"
                     onClick={handleApproveAll}
                     disabled={actionLoading}
@@ -763,9 +835,9 @@ const News: React.FC = () => {
                     <i className="fas fa-check mr-2"></i>
                     전체 승인 ({selectedNewsIds.length}개)
                   </button>
-                  
+
                   {/* 전체 거부 버튼 */}
-                  <button 
+                  <button
                     className="admin-btn admin-btn-danger"
                     onClick={handleRejectAll}
                     disabled={actionLoading}
@@ -778,8 +850,8 @@ const News: React.FC = () => {
             </>
           )}
 
-          
-          <button 
+
+          <button
             className="admin-btn admin-btn-secondary"
             onClick={() => window.location.reload()}
             disabled={loading || actionLoading}
@@ -817,387 +889,457 @@ const News: React.FC = () => {
       {/* 뉴스 관리 탭 내용 */}
       {mainTab === 'news_management' && (
         <>
-      {/* 탭 네비게이션 */}
-      <div className="admin-card admin-mb-6">
-        <nav className="admin-tab-nav">
-          <div className="admin-tab-container">
-            {(() => {
-              // News 화면에서는 AI 분석 완료된 뉴스만 카운트 (소문자 상태값 사용)
-              const newsForReview = allNewsData.filter(news => 
-                news.status === 'review_pending' || 
-                news.status === 'approved' || 
-                news.status === 'rejected' || 
-                news.status === 'processing'
-              );
-              
-              const tabs = [
-                { key: 'all', label: '전체', icon: 'fas fa-newspaper', count: newsForReview.length },
-                { key: 'pending', label: '승인 대기', icon: 'fas fa-clock', count: newsForReview.filter(n => n.status === 'review_pending' || n.status === 'processing').length },
-                { key: 'approved', label: '승인됨', icon: 'fas fa-check-circle', count: newsForReview.filter(n => n.status === 'approved').length },
-                { key: 'rejected', label: '거부됨', icon: 'fas fa-times-circle', count: newsForReview.filter(n => n.status === 'rejected').length }
-              ];
-              
-              return tabs;
-            })().map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setSelectedTab(tab.key as any)}
-                className={`admin-tab-button ${selectedTab === tab.key ? 'active' : ''}`}
-              >
-                <i className={tab.icon}></i>
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="admin-status-badge admin-status-blue admin-ml-1">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </div>
+          {/* 탭 네비게이션 */}
+          <div className="admin-card admin-mb-6">
+            <nav className="admin-tab-nav">
+              <div className="admin-tab-container">
+                {(() => {
+                  // News 화면에서는 AI 분석 완료된 뉴스만 카운트 (소문자 상태값 사용)
+                  const newsForReview = allNewsData.filter(news =>
+                    news.status === 'review_pending' ||
+                    news.status === 'approved' ||
+                    news.status === 'rejected' ||
+                    news.status === 'processing'
+                  );
 
-      {/* 뉴스 목록 */}
-      <div className="admin-flex admin-flex-col admin-gap-4">
-        {newsItems.length === 0 ? (
-          <div className="admin-card admin-empty-state">
-            <div className="admin-text-gray-600">
-              <i className="fas fa-newspaper admin-empty-state-icon"></i>
-              <p className="admin-empty-state-text">
-                {selectedTab === 'all' ? '뉴스가' : 
-                 selectedTab === 'pending' ? '승인 대기 중인 뉴스가' : 
-                 selectedTab === 'approved' ? '승인된 뉴스가' : 
-                 '거부된 뉴스가'} 없습니다.
-              </p>
-            </div>
-          </div>
-        ) : (
-          (() => {
-            // 현재 페이지에 표시할 뉴스 계산
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const currentNewsItems = newsItems.slice(startIndex, endIndex);
-            
-            return currentNewsItems.map(news => (
-            <React.Fragment key={news.id}>
-              <div className="admin-card admin-p-6 admin-news-item">
-              <div className="admin-news-header">
-                <div className="admin-flex-1">
-                  <div className="admin-flex admin-items-start admin-gap-3 admin-mb-2">
-                    {isSelectMode && (news.status === 'review_pending') && (
-                      <input
-                        type="checkbox"
-                        checked={selectedNewsIds.includes(news.id)}
-                        onChange={() => toggleSelectNews(news.id)}
-                        className="admin-checkbox"
-                        style={{ marginTop: '2px' }}
-                      />
-                    )}
-                    
-                    {/* 썸네일 이미지 */}
-                    {news.thumbnail && (
-                      <div style={{ 
-                        width: '100px', 
-                        height: '75px', 
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        flexShrink: 0,
-                        backgroundColor: '#f3f4f6'
-                      }}>
-                        <img 
-                          src={news.thumbnail} 
-                          alt="뉴스 썸네일"
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover' 
-                          }}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="admin-flex-1">
-                      <div className="admin-flex admin-items-center admin-gap-2 admin-mb-2">
-                        <span className="admin-news-id-badge">
-                          ID: {news.id}
-                        </span>
-                        <h3 className="admin-text-lg admin-font-medium admin-text-gray-900">
-                          {news.title}
-                        </h3>
-                      </div>
-                      <div className="admin-flex admin-items-center admin-gap-2">
-                        <StatusBadge 
-                          status={news.status as 'pending' | 'approved' | 'rejected' | 'processing' | 'review_pending' | 'ai_completed' | 'draft'} 
-                          text={(NEWS_STATUS_LABELS as any)[news.status] || (NEWS_STATUS_LABELS as any)[news.status.toLowerCase()] || '대기중'} 
-                        />
-                        {news.status === 'review_pending' && (
-                          <span className="admin-ai-completed-badge">
-                            <i className="fas fa-robot mr-1"></i>AI 분석완료
-                          </span>
-                        )}
-                        {news.status === 'processing' && (
-                          <span className="admin-processing-badge">
-                            <i className="fas fa-spinner fa-spin mr-1"></i>AI 분석중
-                          </span>
-                        )}
-                        {news.status === 'approved' && (
-                          <span className={`admin-visibility-badge ${news.isVisible ? 'visible' : 'hidden'}`}>
-                            <i className={`fas ${news.isVisible ? 'fa-eye' : 'fa-eye-slash'} mr-1`}></i>
-                            {news.isVisible ? '노출중' : '미노출'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* 오른쪽 위 버튼 영역 */}
-                <div className="admin-news-actions-top">
-                  {(news.status === 'review_pending') && (
-                    <>
-                      <button 
-                        className="admin-btn admin-btn-success admin-btn-sm"
-                        onClick={() => handleApprove(news.id)}
-                        disabled={actionLoading}
-                      >
-                        <i className="fas fa-check mr-1"></i>승인
-                      </button>
-                      <button 
-                        className="admin-btn admin-btn-danger admin-btn-sm"
-                        onClick={() => handleReject(news.id)}
-                        disabled={actionLoading}
-                      >
-                        <i className="fas fa-times mr-1"></i>거부
-                      </button>
-                    </>
-                  )}
+                  const tabs = [
+                    { key: 'pending', label: '승인 대기', icon: 'fas fa-clock', count: newsForReview.filter(n => n.status === 'review_pending' || n.status === 'processing').length },
+                    { key: 'approved', label: '승인완료', icon: 'fas fa-check-circle', count: newsForReview.filter(n => n.status === 'approved').length },
+                    { key: 'rejected', label: '거부', icon: 'fas fa-times-circle', count: newsForReview.filter(n => n.status === 'rejected').length }
+                  ];
 
-                  {/* 승인된 뉴스 노출/미노출 버튼 */}
-                  {news.status === 'approved' && (
-                    <button 
-                      className={`admin-btn admin-btn-sm ${news.isVisible ? 'admin-btn-warning' : 'admin-btn-success'}`}
-                      onClick={() => handleToggleVisibility(news.id)}
-                      disabled={actionLoading}
-                      title={news.isVisible ? '사용자 화면에서 숨기기' : '사용자 화면에 노출하기'}
-                    >
-                      <i className={`fas ${news.isVisible ? 'fa-eye-slash' : 'fa-eye'} mr-1`}></i>
-                      {news.isVisible ? '미노출' : '노출'}
-                    </button>
-                  )}
-
-                  {news.status === 'processing' && (
-                    <div className="admin-processing-text">
-                      <i className="fas fa-spinner fa-spin mr-2"></i>AI 재분석 진행 중...
-                    </div>
-                  )}
-                  
-                  <button 
-                    className="admin-btn admin-btn-secondary admin-btn-sm"
-                    onClick={() => setSelectedNews(selectedNews?.id === news.id ? null : news)}
+                  return tabs;
+                })().map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      setSelectedTab(tab.key as any);
+                      setSelectedCategory('all'); // 탭 변경 시 카테고리 초기화
+                    }}
+                    className={`admin-tab-button ${selectedTab === tab.key ? 'active' : ''}`}
                   >
-                    <i className="fas fa-eye mr-1"></i>상세보기
+                    <i className={tab.icon}></i>
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span className="admin-status-badge admin-status-blue admin-ml-1">
+                        {tab.count}
+                      </span>
+                    )}
                   </button>
-                  
-                  {/* 거부된 뉴스에 대한 추가 버튼들 */}
-                  {news.status === 'rejected' && (
-                    <>
-                      <button 
-                        className="admin-btn admin-btn-info admin-btn-sm"
-                        onClick={() => handleAIReanalysis(news.id)}
-                        disabled={actionLoading}
-                        title="AI로 재분석하여 승인 대기 상태로 변경합니다"
-                      >
-                        <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-robot'} mr-1`}></i>AI 재분석
-                      </button>
-                      <button 
-                        className="admin-btn admin-btn-delete admin-btn-sm"
-                        onClick={() => handleDeleteNews(news.id)}
-                        disabled={actionLoading}
-                        title="뉴스를 완전히 삭제합니다 (복구 불가)"
-                      >
-                        <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-trash'} mr-1`}></i>삭제
-                      </button>
-                    </>
-                  )}
-                </div>
+                ))}
               </div>
+            </nav>
+          </div>
 
-              <div className="admin-news-content">
-                  
-                  {/* 뉴스 원본 링크 */}
-                  <div className="admin-mb-3">
-                    <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                      <i className="fas fa-external-link-alt mr-2"></i>원본 기사
-                    </p>
-                    <a 
-                      href={news.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="admin-news-link"
-                    >
-                      <i className="fas fa-newspaper mr-2"></i>
-                      {news.title}
-                      <i className="fas fa-external-link-alt ml-2"></i>
-                    </a>
-                  </div>
-                  
-                  {/* AI 분석 요약 */}
-                  <div className="admin-mb-3">
-                    <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                      <i className="fas fa-robot mr-2"></i>AI 분석 요약
-                    </p>
-                    <div className="admin-ai-summary">
-                      {news.aiSummary && news.aiSummary !== '요약 정보 없음' ? 
-                        news.aiSummary : 
-                        <span className="admin-ai-summary-placeholder">
-                          <i className="fas fa-info-circle mr-2"></i>
-                          AI 분석이 아직 완료되지 않았습니다.
-                        </span>
+          {/* 카테고리 필터 (승인대기, 승인완료 탭에만 표시) */}
+          {(selectedTab === 'pending' || selectedTab === 'approved') && (
+            <div className="admin-card admin-mb-6">
+              <div className="admin-flex admin-items-center admin-gap-4 admin-p-4">
+                <span className="admin-text-sm admin-font-medium admin-text-gray-700">
+                  <i className="fas fa-filter mr-2"></i>분야별 정렬:
+                </span>
+                <div className="admin-flex admin-flex-wrap admin-gap-2">
+                  {[
+                    { key: 'all', label: '전체', icon: 'fas fa-list' },
+                    { key: 'politics', label: '정치', icon: 'fas fa-landmark' },
+                    { key: 'economy', label: '경제', icon: 'fas fa-chart-line' },
+                    { key: 'society', label: '사회', icon: 'fas fa-users' },
+                    { key: 'technology', label: 'IT/과학', icon: 'fas fa-microchip' },
+                    { key: 'world', label: '국제', icon: 'fas fa-globe' },
+                    { key: 'environment', label: '기후/환경', icon: 'fas fa-leaf' },
+                    { key: 'others', label: '기타', icon: 'fas fa-ellipsis-h' }
+                  ].map(category => {
+                    // 현재 탭에서 해당 카테고리의 뉴스 개수 계산
+                    const categoryCount = (() => {
+                      const newsForReview = allNewsData.filter(news =>
+                        news.status === 'review_pending' ||
+                        news.status === 'approved' ||
+                        news.status === 'rejected' ||
+                        news.status === 'processing'
+                      );
+                      const statusMap: { [key: string]: string[] } = {
+                        'pending': ['review_pending', 'processing'],
+                        'approved': ['approved'],
+                        'rejected': ['rejected']
+                      };
+                      const targetStatuses = statusMap[selectedTab];
+                      let filteredNews = newsForReview.filter(news => targetStatuses.includes(news.status));
+
+                      if (category.key === 'all') {
+                        return filteredNews.length;
+                      } else {
+                        return filteredNews.filter(news => news.category === category.key).length;
                       }
-                    </div>
-                  </div>
+                    })();
 
-                  {/* AI 키워드 */}
-                  <div className="admin-mb-3">
-                    <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                      <i className="fas fa-tags mr-2"></i>AI 추출 키워드
-                    </p>
-                    <div className="admin-keyword-container">
-                      {news.aiKeywords && Array.isArray(news.aiKeywords) && news.aiKeywords.length > 0 ? (
-                        news.aiKeywords.map((keyword, index) => (
-                          <span key={index} className="admin-keyword-tag">
-                            <i className="fas fa-tag mr-1"></i>
-                            {keyword}
+                    return (
+                      <button
+                        key={category.key}
+                        onClick={() => setSelectedCategory(category.key)}
+                        className={`admin-btn admin-btn-sm ${selectedCategory === category.key
+                          ? 'admin-btn-primary'
+                          : 'admin-btn-secondary'
+                          }`}
+                      >
+                        <i className={`${category.icon} mr-1`}></i>
+                        {category.label}
+                        {categoryCount > 0 && (
+                          <span className="admin-ml-1 admin-text-xs">
+                            ({categoryCount})
                           </span>
-                        ))
-                      ) : (
-                        <span className="admin-keyword-placeholder">
-                          키워드가 추출되지 않았습니다.
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* AI 분석 결과 */}
-                  <div className="admin-mb-3">
-                    <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                      <i className="fas fa-chart-bar mr-2"></i>AI 분석 결과
-                    </p>
-                    <div className="admin-grid admin-grid-cols-2 admin-gap-3">
-                      <div className="admin-analysis-card">
-                        <span className="admin-analysis-label">
-                          <i className="fas fa-heart mr-1"></i>감정 분석
-                        </span>
-                        <p className="admin-analysis-value">
-                          {news.aiAnalysisResult?.sentiment || '중립'}
-                        </p>
-                      </div>
-                      <div className="admin-analysis-card">
-                        <span className="admin-analysis-label">
-                          <i className="fas fa-check-circle mr-1"></i>팩트 체크
-                        </span>
-                        <p className="admin-analysis-value">
-                          {news.aiAnalysisResult?.factCheck || '검증 필요'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* AI 신뢰도 정보 */}
-                  <div className="admin-mb-3">
-                    <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                      <i className="fas fa-chart-line mr-2"></i>신뢰도 정보
-                    </p>
-                    <div className="admin-flex admin-gap-4">
-                      <span className={`admin-reliability-badge ${getReliabilityClass(news.reliabilityScore || 0)}`}>
-                        <i className="fas fa-shield-alt mr-1"></i>
-                        콘텐츠 신뢰도: {news.reliabilityScore || 0}%
-                        {(news.reliabilityScore || 0) === 0 && (
-                          <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
                         )}
-                      </span>
-                      <span className={`admin-reliability-badge ${getReliabilityClass(news.confidenceScore ? news.confidenceScore * 100 : 0)}`}>
-                        <i className="fas fa-brain mr-1"></i>
-                        AI 신뢰도: {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%
-                        {(news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0) === 0 && (
-                          <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                  
-
-
-                  <div className="admin-flex admin-text-sm admin-text-gray-600" style={{ gap: '16px' }}>
-                    <span><i className="fas fa-building mr-1"></i>{news.source} / {news.publisher}</span>
-                    <span><i className="fas fa-folder mr-1"></i>{(NEWS_CATEGORY_LABELS as any)[news.category] || news.category}</span>
-                    <span><i className="fas fa-comments mr-1"></i>{news.comments} 댓글</span>
-                    <span><i className="fas fa-thumbs-up mr-1"></i>{news.votes.fact} 사실</span>
-                    <span><i className="fas fa-thumbs-down mr-1"></i>{news.votes.doubt} 의심</span>
-                    <span><i className="fas fa-clock mr-1"></i>{formatDateTime(news.createdAt)}</span>
-                  </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* 거부 사유 */}
-              {news.status === 'rejected' && news.rejectReason && (
-                <div className="admin-rejection-reason">
-                  <p className="admin-rejection-reason-text">
-                    <i className="fas fa-exclamation-circle mr-2"></i>
-                    거부 사유: {news.rejectReason}
+          {/* 뉴스 목록 */}
+          <div className="admin-flex admin-flex-col admin-gap-4">
+            {newsItems.length === 0 ? (
+              <div className="admin-card admin-empty-state">
+                <div className="admin-text-gray-600">
+                  <i className="fas fa-newspaper admin-empty-state-icon"></i>
+                  <p className="admin-empty-state-text">
+                    {selectedTab === 'pending' ?
+                      (selectedCategory === 'all' ? '승인 대기 중인 뉴스가' : `승인 대기 중인 ${getCategoryLabel(selectedCategory)} 뉴스가`) :
+                      selectedTab === 'approved' ?
+                        (selectedCategory === 'all' ? '승인된 뉴스가' : `승인된 ${getCategoryLabel(selectedCategory)} 뉴스가`) :
+                        (selectedCategory === 'all' ? '거부된 뉴스가' : `거부된 ${getCategoryLabel(selectedCategory)} 뉴스가`)
+                    } 없습니다.
                   </p>
                 </div>
-              )}
+              </div>
+            ) : (
+              (() => {
+                // 현재 페이지에 표시할 뉴스 계산
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const currentNewsItems = newsItems.slice(startIndex, endIndex);
 
-              {/* 상세 정보 */}
-              {selectedNews?.id === news.id && (
-                <div className="admin-border-t admin-pt-4 admin-mt-4">
-                  <div className="admin-grid admin-grid-cols-1 admin-gap-4">
-                    <div>
-                      <h4 className="admin-text-sm admin-font-medium admin-text-gray-700 admin-mb-2">
-                        <i className="fas fa-analytics mr-2"></i>AI 분석 상세 결과
-                      </h4>
-                      <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
-                        <div className="admin-analysis-card admin-mb-2">
-                          <p><strong><i className="fas fa-heart mr-1"></i>감정 분석:</strong> {news.aiAnalysisResult?.sentiment || '중립'}</p>
+                return currentNewsItems.map(news => (
+                  <React.Fragment key={news.id}>
+                    <div className="admin-card admin-p-6 admin-news-item">
+                      <div className="admin-news-header">
+                        <div className="admin-flex-1">
+                          <div className="admin-flex admin-items-start admin-gap-3 admin-mb-2">
+                            {isSelectMode && (news.status === 'review_pending') && (
+                              <input
+                                type="checkbox"
+                                checked={selectedNewsIds.includes(news.id)}
+                                onChange={() => toggleSelectNews(news.id)}
+                                className="admin-checkbox"
+                                style={{ marginTop: '2px' }}
+                              />
+                            )}
+
+                            {/* 썸네일 이미지 */}
+                            {news.thumbnail && (
+                              <div style={{
+                                width: '100px',
+                                height: '75px',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                flexShrink: 0,
+                                backgroundColor: '#f3f4f6'
+                              }}>
+                                <img
+                                  src={news.thumbnail}
+                                  alt="뉴스 썸네일"
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                  }}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            <div className="admin-flex-1">
+                              <div className="admin-flex admin-items-center admin-gap-2 admin-mb-2">
+                                <span className="admin-news-id-badge">
+                                  ID: {news.id}
+                                </span>
+                                <h3 className="admin-text-lg admin-font-medium admin-text-gray-900">
+                                  {news.title}
+                                </h3>
+                              </div>
+                              <div className="admin-flex admin-items-center admin-gap-2">
+                                <StatusBadge
+                                  status={news.status as 'pending' | 'approved' | 'rejected' | 'processing' | 'review_pending' | 'ai_completed' | 'draft'}
+                                  text={(NEWS_STATUS_LABELS as any)[news.status] || (NEWS_STATUS_LABELS as any)[news.status.toLowerCase()] || '대기중'}
+                                />
+                                {news.status === 'review_pending' && (
+                                  <span className="admin-ai-completed-badge">
+                                    <i className="fas fa-robot mr-1"></i>AI 분석완료
+                                  </span>
+                                )}
+                                {news.status === 'processing' && (
+                                  <span className="admin-processing-badge">
+                                    <i className="fas fa-spinner fa-spin mr-1"></i>AI 분석중
+                                  </span>
+                                )}
+                                {news.status === 'approved' && (
+                                  <span className={`admin-visibility-badge ${news.isVisible ? 'visible' : 'hidden'}`}>
+                                    <i className={`fas ${news.isVisible ? 'fa-eye' : 'fa-eye-slash'} mr-1`}></i>
+                                    {news.isVisible ? '노출중' : '미노출'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="admin-analysis-card admin-mb-2">
-                          <p><strong><i className="fas fa-check-circle mr-1"></i>팩트 체크:</strong> {news.aiAnalysisResult?.factCheck || '검증 필요'}</p>
+
+                        {/* 오른쪽 위 버튼 영역 */}
+                        <div className="admin-news-actions-top">
+                          {(news.status === 'review_pending') && (
+                            <>
+                              <button
+                                className="admin-btn admin-btn-success admin-btn-sm"
+                                onClick={() => handleApprove(news.id)}
+                                disabled={actionLoading}
+                              >
+                                <i className="fas fa-check mr-1"></i>승인
+                              </button>
+                              <button
+                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                onClick={() => handleReject(news.id)}
+                                disabled={actionLoading}
+                              >
+                                <i className="fas fa-times mr-1"></i>거부
+                              </button>
+                            </>
+                          )}
+
+                          {/* 승인된 뉴스 노출/미노출 버튼 */}
+                          {news.status === 'approved' && (
+                            <button
+                              className={`admin-btn admin-btn-sm ${news.isVisible ? 'admin-btn-warning' : 'admin-btn-success'}`}
+                              onClick={() => handleToggleVisibility(news.id)}
+                              disabled={actionLoading}
+                              title={news.isVisible ? '사용자 화면에서 숨기기' : '사용자 화면에 노출하기'}
+                            >
+                              <i className={`fas ${news.isVisible ? 'fa-eye-slash' : 'fa-eye'} mr-1`}></i>
+                              {news.isVisible ? '미노출' : '노출'}
+                            </button>
+                          )}
+
+                          {news.status === 'processing' && (
+                            <div className="admin-processing-text">
+                              <i className="fas fa-spinner fa-spin mr-2"></i>AI 재분석 진행 중...
+                            </div>
+                          )}
+
+                          <button
+                            className="admin-btn admin-btn-secondary admin-btn-sm"
+                            onClick={() => setSelectedNews(selectedNews?.id === news.id ? null : news)}
+                          >
+                            <i className="fas fa-eye mr-1"></i>상세보기
+                          </button>
+
+                          {/* 거부된 뉴스에 대한 추가 버튼들 */}
+                          {news.status === 'rejected' && (
+                            <>
+                              <button
+                                className="admin-btn admin-btn-info admin-btn-sm"
+                                onClick={() => handleAIReanalysis(news.id)}
+                                disabled={actionLoading}
+                                title="AI로 재분석하여 승인 대기 상태로 변경합니다"
+                              >
+                                <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-robot'} mr-1`}></i>AI 재분석
+                              </button>
+                              <button
+                                className="admin-btn admin-btn-delete admin-btn-sm"
+                                onClick={() => handleDeleteNews(news.id)}
+                                disabled={actionLoading}
+                                title="뉴스를 완전히 삭제합니다 (복구 불가)"
+                              >
+                                <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-trash'} mr-1`}></i>삭제
+                              </button>
+                            </>
+                          )}
                         </div>
-                        <div className="admin-analysis-card admin-mb-2">
-                          <p><strong><i className="fas fa-shield-alt mr-1"></i>콘텐츠 신뢰도:</strong> {news.aiAnalysisResult?.reliability || news.reliabilityScore || 0}%</p>
+                      </div>
+
+                      <div className="admin-news-content">
+
+                        {/* 뉴스 원본 링크 */}
+                        <div className="admin-mb-3">
+                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                            <i className="fas fa-external-link-alt mr-2"></i>원본 기사
+                          </p>
+                          <a
+                            href={news.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-news-link"
+                          >
+                            <i className="fas fa-newspaper mr-2"></i>
+                            {news.title}
+                            <i className="fas fa-external-link-alt ml-2"></i>
+                          </a>
                         </div>
-                        <div className="admin-analysis-card">
-                          <p><strong><i className="fas fa-brain mr-1"></i>AI 신뢰도:</strong> {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%</p>
+
+                        {/* AI 분석 요약 */}
+                        <div className="admin-mb-3">
+                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                            <i className="fas fa-robot mr-2"></i>AI 분석 요약
+                          </p>
+                          <div className="admin-ai-summary">
+                            {news.aiSummary && news.aiSummary !== '요약 정보 없음' ?
+                              news.aiSummary :
+                              <span className="admin-ai-summary-placeholder">
+                                <i className="fas fa-info-circle mr-2"></i>
+                                AI 분석이 아직 완료되지 않았습니다.
+                              </span>
+                            }
+                          </div>
+                        </div>
+
+                        {/* AI 키워드 */}
+                        <div className="admin-mb-3">
+                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                            <i className="fas fa-tags mr-2"></i>AI 추출 키워드
+                          </p>
+                          <div className="admin-keyword-container">
+                            {news.aiKeywords && Array.isArray(news.aiKeywords) && news.aiKeywords.length > 0 ? (
+                              news.aiKeywords.map((keyword, index) => (
+                                <span key={index} className="admin-keyword-tag">
+                                  <i className="fas fa-tag mr-1"></i>
+                                  {keyword}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="admin-keyword-placeholder">
+                                키워드가 추출되지 않았습니다.
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* AI 분석 결과 */}
+                        <div className="admin-mb-3">
+                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                            <i className="fas fa-chart-bar mr-2"></i>AI 분석 결과
+                          </p>
+                          <div className="admin-grid admin-grid-cols-2 admin-gap-3">
+                            <div className="admin-analysis-card">
+                              <span className="admin-analysis-label">
+                                <i className="fas fa-heart mr-1"></i>감정 분석
+                              </span>
+                              <p className="admin-analysis-value">
+                                {news.aiAnalysisResult?.sentiment || '중립'}
+                              </p>
+                            </div>
+                            <div className="admin-analysis-card">
+                              <span className="admin-analysis-label">
+                                <i className="fas fa-check-circle mr-1"></i>팩트 체크
+                              </span>
+                              <p className="admin-analysis-value">
+                                {news.aiAnalysisResult?.factCheck || '검증 필요'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* AI 신뢰도 정보 */}
+                        <div className="admin-mb-3">
+                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                            <i className="fas fa-chart-line mr-2"></i>신뢰도 정보
+                          </p>
+                          <div className="admin-flex admin-gap-4">
+                            <span className={`admin-reliability-badge ${getReliabilityClass(news.reliabilityScore || 0)}`}>
+                              <i className="fas fa-shield-alt mr-1"></i>
+                              콘텐츠 신뢰도: {news.reliabilityScore || 0}%
+                              {(news.reliabilityScore || 0) === 0 && (
+                                <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
+                              )}
+                            </span>
+                            <span className={`admin-reliability-badge ${getReliabilityClass(news.confidenceScore ? news.confidenceScore * 100 : 0)}`}>
+                              <i className="fas fa-brain mr-1"></i>
+                              AI 신뢰도: {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%
+                              {(news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0) === 0 && (
+                                <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+
+
+                        <div className="admin-flex admin-text-sm admin-text-gray-600" style={{ gap: '16px' }}>
+                          <span><i className="fas fa-building mr-1"></i>{news.source} / {news.publisher}</span>
+                          <span><i className="fas fa-folder mr-1"></i>{(NEWS_CATEGORY_LABELS as any)[news.category] || news.category}</span>
+                          <span><i className="fas fa-comments mr-1"></i>{news.comments} 댓글</span>
+                          <span><i className="fas fa-thumbs-up mr-1"></i>{news.votes.fact} 사실</span>
+                          <span><i className="fas fa-thumbs-down mr-1"></i>{news.votes.doubt} 의심</span>
+                          <span><i className="fas fa-clock mr-1"></i>{formatDateTime(news.createdAt)}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
-            </React.Fragment>
-            ));
-          })()
-        )}
-        
-        {/* 페이징 */}
-        {newsItems.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(newsItems.length / itemsPerPage)}
-            totalItems={newsItems.length}
-            itemsPerPage={itemsPerPage}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              setSelectedNewsIds([]);
-            }}
-            maxVisiblePages={10}
-          />
-        )}
-      </div>
+
+                    {/* 거부 사유 */}
+                    {news.status === 'rejected' && news.rejectReason && (
+                      <div className="admin-rejection-reason">
+                        <p className="admin-rejection-reason-text">
+                          <i className="fas fa-exclamation-circle mr-2"></i>
+                          거부 사유: {news.rejectReason}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 상세 정보 */}
+                    {selectedNews?.id === news.id && (
+                      <div className="admin-border-t admin-pt-4 admin-mt-4">
+                        <div className="admin-grid admin-grid-cols-1 admin-gap-4">
+                          <div>
+                            <h4 className="admin-text-sm admin-font-medium admin-text-gray-700 admin-mb-2">
+                              <i className="fas fa-analytics mr-2"></i>AI 분석 상세 결과
+                            </h4>
+                            <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
+                              <div className="admin-analysis-card admin-mb-2">
+                                <p><strong><i className="fas fa-heart mr-1"></i>감정 분석:</strong> {news.aiAnalysisResult?.sentiment || '중립'}</p>
+                              </div>
+                              <div className="admin-analysis-card admin-mb-2">
+                                <p><strong><i className="fas fa-check-circle mr-1"></i>팩트 체크:</strong> {news.aiAnalysisResult?.factCheck || '검증 필요'}</p>
+                              </div>
+                              <div className="admin-analysis-card admin-mb-2">
+                                <p><strong><i className="fas fa-shield-alt mr-1"></i>콘텐츠 신뢰도:</strong> {news.aiAnalysisResult?.reliability || news.reliabilityScore || 0}%</p>
+                              </div>
+                              <div className="admin-analysis-card">
+                                <p><strong><i className="fas fa-brain mr-1"></i>AI 신뢰도:</strong> {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ));
+              })()
+            )}
+
+            {/* 페이징 */}
+            {newsItems.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(newsItems.length / itemsPerPage)}
+                totalItems={newsItems.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => {
+                  console.log('Page changed to:', page);
+                  setCurrentPage(page);
+                  setSelectedNewsIds([]);
+                }}
+                maxVisiblePages={10}
+              />
+            )}
+          </div>
         </>
       )}
 
@@ -1232,53 +1374,53 @@ const News: React.FC = () => {
                       {featuredNews
                         .sort((a, b) => (a.mainDisplayOrder || 0) - (b.mainDisplayOrder || 0))
                         .map((news, index) => (
-                        <div key={news.id} className="admin-featured-news-item">
-                          <div className="admin-flex admin-items-center admin-gap-3">
-                            <div className="admin-featured-order-badge">
-                              {news.mainDisplayOrder || index + 1}
-                            </div>
-                            {news.thumbnail && (
-                              <img 
-                                src={news.thumbnail} 
-                                alt="뉴스 썸네일"
-                                className="admin-featured-thumbnail"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                              />
-                            )}
-                            <div className="admin-flex-1">
-                              <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
-                                {news.title}
-                              </h3>
-                              <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
-                                <span><i className="fas fa-building mr-1"></i>{news.source}</span>
-                                <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.featuredAt || news.createdAt)}</span>
+                          <div key={news.id} className="admin-featured-news-item">
+                            <div className="admin-flex admin-items-center admin-gap-3">
+                              <div className="admin-featured-order-badge">
+                                {news.mainDisplayOrder || index + 1}
+                              </div>
+                              {news.thumbnail && (
+                                <img
+                                  src={news.thumbnail}
+                                  alt="뉴스 썸네일"
+                                  className="admin-featured-thumbnail"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              )}
+                              <div className="admin-flex-1">
+                                <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
+                                  {news.title}
+                                </h3>
+                                <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
+                                  <span><i className="fas fa-building mr-1"></i>{news.source}</span>
+                                  <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.featuredAt || news.createdAt)}</span>
+                                </div>
+                              </div>
+                              <div className="admin-flex admin-gap-2">
+                                <select
+                                  value={news.mainDisplayOrder || index + 1}
+                                  onChange={(e) => handleUpdateOrder(news.id, parseInt(e.target.value))}
+                                  className="admin-select admin-select-sm"
+                                  disabled={actionLoading}
+                                >
+                                  {Array.from({ length: featuredNews.length }, (_, i) => i + 1).map(order => (
+                                    <option key={order} value={order}>{order}번째</option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={() => handleRemoveFromMain(news.id)}
+                                  className="admin-btn admin-btn-danger admin-btn-sm"
+                                  disabled={actionLoading}
+                                  title="메인에서 제거"
+                                >
+                                  <i className="fas fa-times"></i>
+                                </button>
                               </div>
                             </div>
-                            <div className="admin-flex admin-gap-2">
-                              <select
-                                value={news.mainDisplayOrder || index + 1}
-                                onChange={(e) => handleUpdateOrder(news.id, parseInt(e.target.value))}
-                                className="admin-select admin-select-sm"
-                                disabled={actionLoading}
-                              >
-                                {Array.from({ length: featuredNews.length }, (_, i) => i + 1).map(order => (
-                                  <option key={order} value={order}>{order}번째</option>
-                                ))}
-                              </select>
-                              <button
-                                onClick={() => handleRemoveFromMain(news.id)}
-                                className="admin-btn admin-btn-danger admin-btn-sm"
-                                disabled={actionLoading}
-                                title="메인에서 제거"
-                              >
-                                <i className="fas fa-times"></i>
-                              </button>
-                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -1289,60 +1431,118 @@ const News: React.FC = () => {
                 <div className="admin-card-header">
                   <h2 className="admin-text-xl admin-font-bold admin-text-gray-800">
                     <i className="fas fa-plus-circle mr-2"></i>
-                    메인 추가 가능한 뉴스 ({approvedNews.filter(n => !n.mainFeatured).length}개)
+                    메인 추가 가능한 뉴스 ({approvedNews.filter(n => !n.mainFeatured && (selectedCategoryForMain === 'all' || n.category === selectedCategoryForMain)).length}개)
                   </h2>
                   <p className="admin-text-sm admin-text-gray-600">
                     승인된 뉴스 중에서 아직 메인에 노출되지 않은 뉴스입니다. 선택해서 메인 실시간 이슈에 추가할 수 있습니다.
                   </p>
+
+                  {/* 분야별 탭 */}
+                  <div className="admin-flex admin-items-center admin-gap-4 admin-mt-4">
+                    <span className="admin-text-sm admin-font-medium admin-text-gray-700">
+                      <i className="fas fa-filter mr-2"></i>분야별 정렬:
+                    </span>
+                    <div className="admin-flex admin-flex-wrap admin-gap-2">
+                      {[
+                        { key: 'all', label: '전체', icon: 'fas fa-list' },
+                        { key: 'politics', label: '정치', icon: 'fas fa-landmark' },
+                        { key: 'economy', label: '경제', icon: 'fas fa-chart-line' },
+                        { key: 'society', label: '사회', icon: 'fas fa-users' },
+                        { key: 'technology', label: 'IT/과학', icon: 'fas fa-microchip' },
+                        { key: 'world', label: '국제', icon: 'fas fa-globe' },
+                        { key: 'environment', label: '기후/환경', icon: 'fas fa-leaf' },
+                        { key: 'others', label: '기타', icon: 'fas fa-ellipsis-h' }
+                      ].map(category => {
+                        const categoryCount = approvedNews.filter(n =>
+                          !n.mainFeatured &&
+                          (category.key === 'all' ? true : n.category === category.key)
+                        ).length;
+
+                        return (
+                          <button
+                            key={category.key}
+                            onClick={() => setSelectedCategoryForMain(category.key)}
+                            className={`admin-btn admin-btn-sm ${selectedCategoryForMain === category.key
+                              ? 'admin-btn-primary'
+                              : 'admin-btn-secondary'
+                              }`}
+                          >
+                            <i className={`${category.icon} mr-1`}></i>
+                            {category.label}
+                            {categoryCount > 0 && (
+                              <span className="admin-ml-1 admin-text-xs">
+                                ({categoryCount})
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
                 <div className="admin-card-content">
-                  {approvedNews.filter(n => !n.mainFeatured).length === 0 ? (
-                    <div className="admin-empty-state">
-                      <i className="fas fa-newspaper admin-empty-state-icon"></i>
-                      <p className="admin-empty-state-text">메인에 추가할 수 있는 뉴스가 없습니다.</p>
-                    </div>
-                  ) : (
-                    <div className="admin-flex admin-flex-col admin-gap-3">
-                      {approvedNews
-                        .filter(n => !n.mainFeatured)
-                        .slice(0, 20) // 최대 20개만 표시
-                        .map(news => (
-                        <div key={news.id} className="admin-candidate-news-item">
-                          <div className="admin-flex admin-items-center admin-gap-3">
-                            {news.thumbnail && (
-                              <img 
-                                src={news.thumbnail} 
-                                alt="뉴스 썸네일"
-                                className="admin-candidate-thumbnail"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                              />
-                            )}
-                            <div className="admin-flex-1">
-                              <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
-                                {news.title}
-                              </h3>
-                              <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
-                                <span><i className="fas fa-building mr-1"></i>{news.source}</span>
-                                <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.createdAt)}</span>
-                                <span><i className="fas fa-eye mr-1"></i>{news.isVisible ? '노출중' : '미노출'}</span>
+                  {(() => {
+                    const filteredNews = approvedNews.filter(n =>
+                      !n.mainFeatured &&
+                      (selectedCategoryForMain === 'all' || n.category === selectedCategoryForMain)
+                    );
+
+                    if (filteredNews.length === 0) {
+                      return (
+                        <div className="admin-empty-state">
+                          <i className="fas fa-newspaper admin-empty-state-icon"></i>
+                          <p className="admin-empty-state-text">
+                            {selectedCategoryForMain === 'all'
+                              ? '메인에 추가할 수 있는 뉴스가 없습니다.'
+                              : `${getCategoryLabel(selectedCategoryForMain)} 분야에서 메인에 추가할 수 있는 뉴스가 없습니다.`
+                            }
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="admin-flex admin-flex-col admin-gap-3">
+                        {filteredNews
+                          .slice(0, 20) // 최대 20개만 표시
+                          .map(news => (
+                            <div key={news.id} className="admin-candidate-news-item">
+                              <div className="admin-flex admin-items-center admin-gap-3">
+                                {news.thumbnail && (
+                                  <img
+                                    src={news.thumbnail}
+                                    alt="뉴스 썸네일"
+                                    className="admin-candidate-thumbnail"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                )}
+                                <div className="admin-flex-1">
+                                  <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
+                                    {news.title}
+                                  </h3>
+                                  <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
+                                    <span><i className="fas fa-building mr-1"></i>{news.source}</span>
+                                    <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.createdAt)}</span>
+                                    <span><i className="fas fa-eye mr-1"></i>{news.isVisible ? '노출중' : '미노출'}</span>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleAddToMain(news.id)}
+                                  className="admin-btn admin-btn-primary admin-btn-sm"
+                                  disabled={actionLoading}
+                                  title="메인 실시간 이슈에 추가"
+                                >
+                                  <i className="fas fa-plus mr-1"></i>
+                                  메인 추가
+                                </button>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleAddToMain(news.id)}
-                              className="admin-btn admin-btn-primary admin-btn-sm"
-                              disabled={actionLoading}
-                              title="메인 실시간 이슈에 추가"
-                            >
-                              <i className="fas fa-plus mr-1"></i>
-                              메인 추가
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                          ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </>

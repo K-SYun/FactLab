@@ -24,7 +24,7 @@ module.exports = function(app) {
   app.use(
     '/ai/api',
     createProxyMiddleware({
-      target: 'http://crawler-ai-service:3002', // Docker 서비스 이름 사용
+      target: 'http://ai-service:8001', // Docker 서비스 이름 사용
       changeOrigin: true,
       timeout: 60000, // 60초 타임아웃
       proxyTimeout: 60000,
@@ -52,7 +52,7 @@ module.exports = function(app) {
   app.use(
     '/crawler',
     createProxyMiddleware({
-      target: 'http://crawler-ai-service:3002', // Docker 서비스 이름 사용
+      target: 'http://crawler-service:3002', // Docker 서비스 이름 사용
       changeOrigin: true,
       timeout: 60000, // 60초 타임아웃
       proxyTimeout: 60000,

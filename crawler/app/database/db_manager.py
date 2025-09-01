@@ -300,3 +300,106 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Database connection test failed: {e}")
             return False
+    
+    def get_daum_news_with_unknown_source(self, limit: int = 100) -> List[Dict]:
+        """source가 '알수없음'인 다음 뉴스들을 조회"""
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                    query = """
+                        SELECT id, title, url, source, category, publish_date
+                        FROM news 
+                        WHERE url LIKE '%v.daum.net%' 
+                        AND source = '알수없음'
+                        ORDER BY id DESC
+                        LIMIT %s
+                    """
+                    cursor.execute(query, (limit,))
+                    results = cursor.fetchall()
+                    logger.info(f"다음 뉴스 (알수없음) 조회: {len(results)}개")
+                    return [dict(row) for row in results]
+        except Exception as e:
+            logger.error(f"다음 뉴스 조회 실패: {e}")
+            return []
+    
+    def update_news_source(self, news_id: int, new_source: str) -> bool:
+        """뉴스의 source 필드를 업데이트"""
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor() as cursor:
+                    query = """
+                        UPDATE news 
+                        SET source = %s, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = %s
+                    """
+                    cursor.execute(query, (new_source, news_id))
+                    conn.commit()
+                    
+                    if cursor.rowcount > 0:
+                        logger.info(f"뉴스 source 업데이트 성공: ID {news_id} -> {new_source}")
+                        return True
+                    else:
+                        logger.warning(f"업데이트할 뉴스를 찾을 수 없음: ID {news_id}")
+                        return False
+        except Exception as e:
+            logger.error(f"뉴스 source 업데이트 실패 (ID: {news_id}): {e}")
+            return False
+
+    def save_bills_batch(self, bills: List) -> Dict[str, int]:
+        """법안 배치 저장"""
+        result = {
+            'saved': 0,
+            'duplicates': 0,
+            'errors': 0
+        }
+        
+        for bill in bills:
+            try:
+                with self.get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        # 중복 체크 (법안 번호 기준)
+                        cursor.execute("SELECT id FROM bills WHERE bill_number = %s", (bill.bill_number,))
+                        existing = cursor.fetchone()
+                        
+                        if existing:
+                            logger.info(f"🔄 중복 법안 스킵: {bill.title[:50]}... (기존 ID: {existing[0]})")
+                            result['duplicates'] += 1
+                            continue
+                        
+                        # 새 법안 저장
+                        insert_query = """
+                            INSERT INTO bills (bill_number, title, summary, proposer_name, party_name, proposal_date, status, category, committee, stage, source_url, full_text, approval_status, created_at, updated_at)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            RETURNING id
+                        """
+                        
+                        cursor.execute(insert_query, (
+                            bill.bill_number,
+                            bill.title,
+                            bill.summary,
+                            bill.proposer_name,
+                            bill.party_name,
+                            bill.proposal_date,
+                            bill.status,
+                            bill.category,
+                            bill.committee,
+                            bill.stage,
+                            bill.source_url,
+                            bill.full_text,
+                            'PENDING',  # 기본 상태
+                            datetime.now(),
+                            datetime.now()
+                        ))
+                        
+                        bill_id = cursor.fetchone()[0]
+                        conn.commit()
+                        
+                        logger.info(f"✅ DB 저장 성공 (ID: {bill_id}): {bill.title[:50]}...")
+                        result['saved'] += 1
+
+            except Exception as e:
+                logger.error(f"Error saving bill item: {e}")
+                result['errors'] += 1
+        
+        logger.info(f"Batch save result: {result}")
+        return result

@@ -95,11 +95,7 @@ const FactlabBoard = () => {
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const response = await boardService.getPosts(boardId, currentPage, 20, {
-        searchType: searchKeyword ? searchType : null,
-        searchKeyword: searchKeyword || null,
-        sortType: sortType
-      });
+      const response = await boardService.getPostsWithNotices(boardId, currentPage, 20);
       if (response.success && response.data) {
         setPosts(response.data.content || []);
         setTotalPages(response.data.totalPages || 0);
@@ -179,7 +175,7 @@ const FactlabBoard = () => {
         <div className="main-container">
           {/* 좌측 광고 */}
           <div className="main-side-ad">
-            📢<br />좌측<br />광고<br />영역<br />(160px)
+            
           </div>
           {/* 메인 컨텐츠 */}
           <div className="main-content">
@@ -195,7 +191,7 @@ const FactlabBoard = () => {
           </div>
           {/* 우측 광고 */}
           <div className="main-side-ad">
-            📢<br />우측<br />광고<br />영역<br />(160px)
+            
           </div>
         </div>
         <Footer />
@@ -212,7 +208,7 @@ const FactlabBoard = () => {
       <div className="main-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
-          📢<br />좌측<br />광고<br />영역<br />(160px)
+          
         </div>
         {/* 메인 컨텐츠 */}
         <div className="main-content">
@@ -417,7 +413,7 @@ const FactlabBoard = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          📢<br />우측<br />광고<br />영역<br />(160px)
+          
         </div>
       </div>
       <Footer />

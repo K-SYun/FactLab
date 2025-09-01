@@ -7,12 +7,11 @@ import logging
 import os
 from dotenv import load_dotenv
 from routes.analyze_news import router as analyze_router
-from routes.crawler_routes import router as crawler_router
 
 # 환경변수 로드
 load_dotenv()
 
-app = FastAPI(title="FactLab Crawler AI Service", version="1.0.0")
+app = FastAPI(title="FactLab AI Analysis Service", version="1.0.0")
 
 # CORS 설정
 app.add_middleware(
@@ -25,7 +24,6 @@ app.add_middleware(
 
 # 라우터 등록
 app.include_router(analyze_router, tags=["AI Analysis"])  # prefix 제거
-app.include_router(crawler_router, tags=["Crawler"])
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -43,10 +41,10 @@ async def health_check():
     """헬스체크"""
     return {
         "status": "healthy",
-        "service": "FactLab Crawler AI Service",
+        "service": "FactLab AI Analysis Service",
         "timestamp": datetime.now().isoformat()
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

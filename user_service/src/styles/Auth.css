@@ -775,3 +775,83 @@
         letter-spacing: 3px;
     }
 }
+
+/* 소셜 회원가입 섹션 */
+.social-signup {
+    margin: 25px 0;
+}
+
+.social-signup-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--news-text-color);
+}
+
+/* 소셜 버튼 스타일 개선 */
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 20px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-social:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-social:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 개별 소셜 버튼 색상 개선 */
+.btn-google {
+    background: white;
+    border-color: #dadce0;
+    color: #3c4043;
+}
+
+.btn-google:hover {
+    border-color: #4285F4;
+    background: #f8f9ff;
+    color: #3c4043;
+}
+
+.btn-naver {
+    background: #03C75A;
+    color: white;
+    border-color: #03C75A;
+}
+
+.btn-naver:hover {
+    background: #02b351;
+    border-color: #02b351;
+    color: white;
+}
+
+.btn-kakao {
+    background: #FEE500;
+    color: #3c1e1e;
+    border-color: #FEE500;
+}
+
+.btn-kakao:hover {
+    background: #fdd835;
+    border-color: #fdd835;
+    color: #3c1e1e;
+}

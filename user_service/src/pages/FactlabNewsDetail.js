@@ -40,7 +40,8 @@ const FactlabNewsDetail = () => {
     viewCountIncreasedRef.current = false;
     
     const fetchNewsDetail = async () => {
-      if (!newsId) {
+      if (!newsId || newsId === 'null' || newsId === null) {
+        console.error('Invalid newsId:', newsId);
         setError('뉴스 ID가 없습니다.');
         setLoading(false);
         return;
@@ -76,7 +77,7 @@ const FactlabNewsDetail = () => {
   // 댓글 로드
   useEffect(() => {
     const fetchComments = async () => {
-      if (!newsId) return;
+      if (!newsId || newsId === 'null' || newsId === null) return;
 
       try {
         const commentsData = await commentApi.getComments(newsId);
@@ -94,7 +95,7 @@ const FactlabNewsDetail = () => {
   // 투표 결과 로드
   useEffect(() => {
     const fetchVoteData = async () => {
-      if (!newsId) return;
+      if (!newsId || newsId === 'null' || newsId === null) return;
 
       try {
         // 투표 결과 조회
@@ -159,7 +160,7 @@ const FactlabNewsDetail = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
   // 카테고리를 한글로 변환하는 함수
@@ -177,6 +178,7 @@ const FactlabNewsDetail = () => {
     return categoryMap[category] || category;
   };
 
+
   // AI 분석 내용을 문장 단위로 분리하는 함수
   const formatAIAnalysis = (content) => {
     if (!content) return [];
@@ -191,6 +193,13 @@ const FactlabNewsDetail = () => {
 
 
   const vote = async (voteType) => {
+    // newsId 유효성 체크
+    if (!newsId || newsId === 'null' || newsId === null) {
+      console.error('Invalid newsId for voting:', newsId);
+      alert('뉴스 정보가 올바르지 않습니다.');
+      return;
+    }
+    
     // 로그인 체크
     if (!isLoggedIn) {
       setIsLoginModalOpen(true);
@@ -233,7 +242,8 @@ const FactlabNewsDetail = () => {
     }
   };
 
-  const copyLink = () => {
+  const copyLink = (e) => {
+    e.preventDefault(); // 기본 링크 동작 방지
     navigator.clipboard.writeText(window.location.href);
     alert('링크가 복사되었습니다.');
   };
@@ -245,6 +255,13 @@ const FactlabNewsDetail = () => {
 
   // 로그인 체크 및 댓글 작성
   const submitComment = () => {
+    // newsId 유효성 체크
+    if (!newsId || newsId === 'null' || newsId === null) {
+      console.error('Invalid newsId for comment:', newsId);
+      alert('뉴스 정보가 올바르지 않습니다.');
+      return;
+    }
+    
     // 로그인 체크
     if (!isLoggedIn) {
       setIsLoginModalOpen(true);
@@ -292,6 +309,12 @@ const FactlabNewsDetail = () => {
 
   // 댓글 좋아요
   const likeComment = async (commentId, isReply = false, parentId = null) => {
+    // 로그인 체크
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     try {
       // API 호출
       await commentApi.likeComment(commentId, user?.id, newsId);
@@ -304,7 +327,7 @@ const FactlabNewsDetail = () => {
               ...comment,
               replies: comment.replies.map(reply =>
                 reply.id === commentId
-                  ? { ...reply, likes: reply.likes + 1 }
+                  ? { ...reply, likeCount: (reply.likeCount || 0) + 1 }
                   : reply
               )
             };
@@ -314,7 +337,7 @@ const FactlabNewsDetail = () => {
       } else {
         setComments(prev => prev.map(comment =>
           comment.id === commentId
-            ? { ...comment, likes: comment.likes + 1 }
+            ? { ...comment, likeCount: (comment.likeCount || 0) + 1 }
             : comment
         ));
       }
@@ -434,6 +457,12 @@ const FactlabNewsDetail = () => {
   };
 
   const reportComment = (id) => {
+    // 로그인 체크
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     if (window.confirm('이 댓글을 신고하시겠습니까?')) {
       alert('신고가 접수되었습니다.');
     }
@@ -451,11 +480,11 @@ const FactlabNewsDetail = () => {
           🎯 상단 배너 광고 영역 (1200px x 90px)
         </div>
         <div className="main-container">
-          <div className="main-side-ad">📢<br />좌측<br />광고<br />영역<br />(160px)</div>
+          <div className="main-side-ad"></div>
           <div className="main-content">
             <div className="loading">뉴스를 불러오는 중...</div>
           </div>
-          <div className="main-side-ad">📢<br />우측<br />광고<br />영역<br />(160px)</div>
+          <div className="main-side-ad"></div>
         </div>
         <Footer />
       </>
@@ -470,11 +499,11 @@ const FactlabNewsDetail = () => {
           🎯 상단 배너 광고 영역 (1200px x 90px)
         </div>
         <div className="main-container">
-          <div className="main-side-ad">📢<br />좌측<br />광고<br />영역<br />(160px)</div>
+          <div className="main-side-ad"></div>
           <div className="main-content">
             <div className="error">{error || '뉴스를 찾을 수 없습니다.'}</div>
           </div>
-          <div className="main-side-ad">📢<br />우측<br />광고<br />영역<br />(160px)</div>
+          <div className="main-side-ad"></div>
         </div>
         <Footer />
       </>
@@ -489,9 +518,7 @@ const FactlabNewsDetail = () => {
       </div>
       <div className="main-container">
         {/* 좌측 광고 */}
-        <div className="main-side-ad">
-          📢<br />좌측<br />광고<br />영역<br />(160px)
-        </div>
+        <div className="main-side-ad"></div>
         {/* 메인 컨텐츠 - 좌우 분할 레이아웃 */}
         <div className="news-detail-container">
           {/* 좌측: 메인 콘텐츠 */}
@@ -503,19 +530,11 @@ const FactlabNewsDetail = () => {
 
               {/* 썸네일 이미지 */}
               {newsData.thumbnail && (
-                <div className="news-thumbnail" style={{
-                  margin: '20px 0',
-                  textAlign: 'center'
-                }}>
+                <div className="news-thumbnail news-thumbnail-container">
                   <img
                     src={newsData.thumbnail}
                     alt="뉴스 썸네일"
-                    style={{
-                      maxWidth: '100%',
-                      height: 'auto',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                    }}
+                    className="news-thumbnail-image"
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
@@ -524,10 +543,10 @@ const FactlabNewsDetail = () => {
               )}
 
               <div className="news_meta">
-                <div>{formatDate(newsData.publishDate)} | 👀 {newsData.viewCount || 0}</div>
+                <div>{newsData.source} | {getCategoryName(newsData.category)} | {formatDate(newsData.publishDate)} | 👀 {newsData.viewCount || 0}</div>
                 <div>
                   <a href="#" className="original_link" onClick={copyLink}>링크 복사</a>
-                  <span style={{ margin: '0 5px' }}></span>
+                  <span className="news-meta-separator"></span>
                   <a href="#" className="original_link" onClick={(e) => { e.preventDefault(); window.open(newsData.url, '_blank'); }}>
                     원문 보기 →
                   </a>
@@ -594,7 +613,7 @@ const FactlabNewsDetail = () => {
                   </div>
 
                   {newsData.aiKeywords && (
-                    <div className="ai-keywords" style={{ marginTop: '15px' }}>
+                    <div className="ai-keywords news-ai-keywords">
                       <strong>주요 키워드:</strong><br />
                       {newsData.aiKeywords.split(',').map((keyword, index) => (
                         <span key={index} className="keyword-tag">#{keyword.trim()}</span>
@@ -603,7 +622,7 @@ const FactlabNewsDetail = () => {
                   )}
 
                   {newsData.reliabilityScore && (
-                    <div className="ai-reliability" style={{ marginTop: '15px' }}>
+                    <div className="ai-reliability news-ai-reliability">
                       <strong>신뢰도 점수:</strong> {newsData.reliabilityScore}/100점
                     </div>
                   )}
@@ -661,7 +680,7 @@ const FactlabNewsDetail = () => {
               </div>
 
               {voteLoading && (
-                <div style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
+                <div className="news-vote-loading">
                   투표 중...
                 </div>
               )}
@@ -714,12 +733,12 @@ const FactlabNewsDetail = () => {
                       </div>
                       <span>{voteResults.unknown || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.unknown || 0) / voteResults.total * 100) : 0}%)</span>
                     </div>
-                    <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
+                    <div className="news-vote-total-count">
                       총 {voteResults.total || 0}명 참여
                     </div>
                   </>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                  <div className="news-vote-results-loading">
                     투표 결과를 불러오는 중...
                   </div>
                 )}
@@ -773,21 +792,30 @@ const FactlabNewsDetail = () => {
                     <span className="comment_author">{comment.author}</span>
                     <span className="comment_date">{comment.date}</span>
                   </div>
-                  <div className="comment_content" style={{
-                    color: comment.isDeleted ? '#999' : 'inherit',
-                    fontStyle: comment.isDeleted ? 'italic' : 'normal'
-                  }}>
+                  <div className={`comment_content ${comment.isDeleted ? 'news-comment-deleted' : ''}`}>
                     {comment.content}
                   </div>
                   {!comment.isDeleted && (
                     <div className="comment_actions">
-                      <a href="#" onClick={(e) => { e.preventDefault(); likeComment(comment.id); }}>👍 추천 {comment.likes}</a>
-                      <a href="#" onClick={(e) => { e.preventDefault(); toggleReplyBox(comment.id); }}>답글</a>
+                      {/* 본인이 작성한 댓글만 비활성화, 미로그인은 클릭 가능 */}
+                      {isLoggedIn && user?.id === comment.userId ? (
+                        <span className="news-comment-like-disabled">👍 추천 {comment.likeCount || 0}</span>
+                      ) : (
+                        <a href="#" onClick={(e) => { e.preventDefault(); likeComment(comment.id); }}>👍 추천 {comment.likeCount || 0}</a>
+                      )}
+                      
+                      {isLoggedIn ? (
+                        <a href="#" onClick={(e) => { e.preventDefault(); toggleReplyBox(comment.id); }}>답글</a>
+                      ) : (
+                        <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginModalOpen(true); }}>답글</a>
+                      )}
+                      
                       <a href="#" onClick={(e) => { e.preventDefault(); reportComment(comment.id); }}>신고</a>
+                      
                       {(() => {
                         const showDelete = isLoggedIn && user?.id === comment.userId;
                         return showDelete && (
-                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(comment.id); }} style={{ color: '#dc3545' }}>삭제</a>
+                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(comment.id); }} className="news-comment-delete">삭제</a>
                         );
                       })()}
                     </div>
@@ -809,11 +837,11 @@ const FactlabNewsDetail = () => {
                         }}
                         maxLength={1000}
                       ></textarea>
-                      <div className="reply_submit" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="reply_submit news-reply-submit-container">
                         <div className="reply_char_counter">
                           {getCharLength(replyTexts[comment.id] || '')}/1000자
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="news-reply-button-group">
                           <button className="news-btn news-btn-primary" onClick={() => submitReply(comment.id)}>
                             저장
                           </button>
@@ -836,10 +864,17 @@ const FactlabNewsDetail = () => {
                         {reply.content}
                       </div>
                       <div className="comment_actions">
-                        <a href="#" onClick={(e) => { e.preventDefault(); likeComment(reply.id, true, comment.id); }}>👍 추천 {reply.likes}</a>
+                        {/* 본인이 작성한 댓글만 비활성화, 미로그인은 클릭 가능 */}
+                        {isLoggedIn && user?.id === reply.userId ? (
+                          <span className="news-comment-like-disabled">👍 추천 {reply.likeCount || 0}</span>
+                        ) : (
+                          <a href="#" onClick={(e) => { e.preventDefault(); likeComment(reply.id, true, comment.id); }}>👍 추천 {reply.likeCount || 0}</a>
+                        )}
+                        
                         <a href="#" onClick={(e) => { e.preventDefault(); reportComment(reply.id); }}>신고</a>
+                        
                         {isLoggedIn && user?.id === reply.userId && (
-                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(reply.id); }} style={{ color: '#dc3545' }}>삭제</a>
+                          <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(reply.id); }} className="news-comment-delete">삭제</a>
                         )}
                       </div>
                     </div>
@@ -847,7 +882,7 @@ const FactlabNewsDetail = () => {
                 </div>
               ))}
 
-              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+              <div className="news-comments-load-more">
                 <button className="btn" onClick={loadMoreComments}>댓글 더보기</button>
               </div>
             </div>
@@ -855,9 +890,7 @@ const FactlabNewsDetail = () => {
           </div>
         </div>
         {/* 우측 광고 */}
-        <div className="main-side-ad">
-          📢<br />우측<br />광고<br />영역<br />(160px)
-        </div>
+        <div className="main-side-ad"></div>
       </div>
       <Footer />
 

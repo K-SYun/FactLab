@@ -473,6 +473,99 @@ class NaverMobileCrawler:
         
         return None
     
+    def extract_news_source(self, soup: BeautifulSoup) -> str:
+        """네이버 뉴스에서 실제 언론사명 추출"""
+        try:
+            # 1순위: 네이버 뉴스 구조에서 언론사명 추출
+            source_selectors = [
+                '.media_end_head_top_logo img',  # 언론사 로고의 alt 속성
+                '.media_end_head_top_logo_text',  # 언론사명 텍스트
+                '.press_logo img',  # 언론사 로고
+                '.media_end_head_journalist_layer .media_end_head_journalist_layer_press',  # 언론사 정보
+                'a.media_end_head_top_logo_link',  # 언론사 로고 링크 
+                '.go_naver_newsstand strong',  # 네이버 뉴스 스탠드 언론사명
+                '.logo_press',  # 일반 언론사 로고 클래스
+            ]
+            
+            for selector in source_selectors:
+                elements = soup.select(selector)
+                for element in elements:
+                    # img 태그의 alt 속성에서 추출
+                    if element.name == 'img':
+                        alt_text = element.get('alt', '').strip()
+                        if alt_text and alt_text not in ['logo', 'icon', '로고']:
+                            logger.info(f"✅ 이미지 alt에서 언론사명 추출: {alt_text}")
+                            return alt_text
+                    
+                    # 텍스트 요소에서 추출
+                    text = element.get_text().strip()
+                    if text and len(text) > 1 and len(text) < 20:
+                        logger.info(f"✅ 텍스트에서 언론사명 추출: {text}")
+                        return text
+                        
+                    # 링크의 title 속성에서 추출
+                    title_text = element.get('title', '').strip()
+                    if title_text and '언론사' not in title_text and len(title_text) < 20:
+                        logger.info(f"✅ title 속성에서 언론사명 추출: {title_text}")
+                        return title_text
+            
+            # 2순위: meta 태그에서 publisher 정보 추출
+            # og:article:author 먼저 확인
+            meta_og_author = soup.find('meta', property='og:article:author')
+            if meta_og_author and meta_og_author.get('content'):
+                author = meta_og_author['content'].strip()
+                if author and len(author) < 30:  # 길이 제한 완화
+                    logger.info(f"✅ 네이버 meta og:article:author에서 언론사명 추출: {author}")
+                    return author
+            
+            # article:publisher 확인
+            meta_publisher = soup.find('meta', property='article:publisher')
+            if meta_publisher and meta_publisher.get('content'):
+                publisher = meta_publisher['content'].strip()
+                if publisher and len(publisher) < 30:
+                    logger.info(f"✅ 네이버 meta article:publisher에서 언론사명 추출: {publisher}")
+                    return publisher
+                    
+            # og:site_name에서 추출 (네이버 - 언론사명 형태 또는 직접 언론사명)
+            meta_og_site_name = soup.find('meta', property='og:site_name')
+            if meta_og_site_name and meta_og_site_name.get('content'):
+                site_name = meta_og_site_name['content'].strip()
+                if site_name:
+                    # "네이버 뉴스 - 언론사명" 형태에서 언론사명만 추출
+                    if '네이버' in site_name and '-' in site_name:
+                        source = site_name.split('-')[-1].strip()
+                    else:
+                        source = site_name
+                    
+                    if source and len(source) < 30 and '네이버' not in source:
+                        logger.info(f"✅ 네이버 meta og:site_name에서 언론사명 추출: {source}")
+                        return source
+            
+            # 3순위: JSON-LD에서 publisher 정보 추출
+            script_tags = soup.find_all('script', type='application/ld+json')
+            for script in script_tags:
+                try:
+                    import json
+                    data = json.loads(script.get_text())
+                    if isinstance(data, dict):
+                        publisher = data.get('publisher', {})
+                        if isinstance(publisher, dict) and 'name' in publisher:
+                            publisher_name = publisher['name'].strip()
+                            if publisher_name and len(publisher_name) < 20:
+                                logger.info(f"✅ JSON-LD에서 언론사명 추출: {publisher_name}")
+                                return publisher_name
+                except Exception as e:
+                    logger.debug(f"JSON-LD 파싱 중 오류: {e}")
+                    continue
+            
+            # 추출 실패 시 기본값
+            logger.warning("⚠️ 언론사명 추출 실패, 알수없음으로 처리")
+            return "알수없음"
+            
+        except Exception as e:
+            logger.error(f"❌ 언론사명 추출 실패: {e}")
+            return "알수없음"
+    
     def _is_valid_thumbnail(self, src: str, alt: str, skip_keywords_url: list, skip_keywords_alt: list) -> bool:
         """썸네일이 적절한지 검사 (URL과 alt 값 기준) - 강화된 필터링"""
         try:
@@ -784,6 +877,9 @@ class NaverMobileCrawler:
                 original_publish_date = self.extract_original_publish_date(soup)
                 crawling_time = datetime.now()
                 
+                # 실제 언론사명 추출
+                actual_source = self.extract_news_source(soup)
+                
                 logger.info(f"📰 뉴스 아이템 생성:")
                 logger.info(f"   - 크롤링 시간: {crawling_time}")
                 logger.info(f"   - 추출된 발행 시간: {original_publish_date}")
@@ -796,7 +892,7 @@ class NaverMobileCrawler:
                     title=title,
                     content=content,
                     url=url,
-                    source="네이버뉴스",
+                    source=actual_source,  # 실제 언론사명 사용
                     category=final_category,
                     publish_date=crawling_time,  # 크롤링 시간
                     original_publish_date=original_publish_date,  # 실제 발행 시간

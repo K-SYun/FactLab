@@ -8,6 +8,7 @@ import com.factlab.auth.dto.UserLoginResponseDto;
 import com.factlab.user.entity.User;
 import com.factlab.user.repository.UserRepository;
 import com.factlab.common.util.PasswordUtil;
+import com.factlab.admin.service.JwtTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ public class UserAuthService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private JwtTokenService jwtTokenService;
     
     /**
      * 이메일 중복 확인
@@ -126,12 +130,17 @@ public class UserAuthService {
         // 로그인 성공 시 최근 로그인 시간 업데이트
         updateLastLoginTime(user);
         
+        // JWT 토큰 생성
+        String token = jwtTokenService.generateToken(user.getEmail(), user.getId());
+        LocalDateTime loginTime = LocalDateTime.now();
+        
         // 로그인 성공 응답 생성
         return new UserLoginResponseDto(
             user.getId(),
             user.getEmail(),
             user.getNickname(),
-            LocalDateTime.now()
+            token,
+            loginTime
         );
     }
     

@@ -75,4 +75,5 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     // 카테고리별 분석 완료된 뉴스 조회 (AI 분석이 완료된 승인된 뉴스)
     @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary ns WHERE n.category = :category AND n.status = 'APPROVED' AND n.visibility = 'PUBLIC' AND ns.id IS NOT NULL ORDER BY n.approvedAt DESC LIMIT :limit")
     List<News> findAnalyzedNewsByCategory(@Param("category") String category, @Param("limit") int limit);
+    
 }

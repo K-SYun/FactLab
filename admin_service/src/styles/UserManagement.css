@@ -48,6 +48,114 @@
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
+/* 인라인 CSS 분리용 클래스들 */
+.admin-user-status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-search-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+
+.admin-search-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-selected-users-card {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+}
+
+.admin-selected-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-table-container {
+  overflow-x: auto;
+}
+
+.admin-table-header-checkbox {
+  width: 40px;
+}
+
+.admin-table-loading {
+  text-align: center;
+  padding: 40px;
+}
+
+.admin-table-empty {
+  text-align: center;
+  padding: 40px;
+}
+
+.admin-user-level-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-user-level-bar {
+  width: 40px;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.admin-user-level-fill {
+  height: 100%;
+  background-color: #06b6d4;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.admin-user-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-pagination-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-pagination-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-stat-number-total {
+  color: #10b981;
+}
+
+.admin-stat-number-warning {
+  color: #f59e0b;
+}
+
+.admin-stat-number-danger {
+  color: #ef4444;
+}
+
+.admin-stat-number-muted {
+  color: #6b7280;
+}
+
 .admin-user-stat-header {
   display: flex;
   justify-content: space-between;

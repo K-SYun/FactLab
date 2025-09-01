@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import LoginModal from '../components/LoginModal';
 import { useAuth } from '../contexts/AuthContext';
 import boardService from '../services/boardService';
 import { boardCommentApi } from '../services/boardCommentApi';
@@ -16,7 +17,9 @@ const FactlabBoardView = () => {
     const [loading, setLoading] = useState(true);
     const [voteStatus, setVoteStatus] = useState(null); // 'up' or 'down' or null
     const [commentText, setCommentText] = useState('');
+    const [charCount, setCharCount] = useState(0);
     const [comments, setComments] = useState([]);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     const [votes, setVotes] = useState({
         up: 0,
@@ -32,16 +35,16 @@ const FactlabBoardView = () => {
             // /board/view/:id → postId 사용
             // /board/:boardId/post/:postId → urlPostId 사용
             const actualPostId = urlPostId || postId;
-            
+
             // 조회수 증가 (게시글 로드 전에 먼저 실행)
             try {
                 await boardService.increaseViewCount(actualPostId);
             } catch (viewError) {
                 console.error('조회수 증가 실패:', viewError);
             }
-            
+
             const response = await boardService.getPost(actualPostId);
-            
+
             if (response.success && response.data) {
                 setPost({
                     ...response.data,
@@ -63,7 +66,22 @@ const FactlabBoardView = () => {
         try {
             const actualPostId = urlPostId || postId;
             const commentsData = await boardCommentApi.getComments(actualPostId);
-            setComments(commentsData);
+            
+            // 댓글 데이터를 프론트엔드 형식으로 변환
+            const processedComments = commentsData.map(comment => ({
+                ...comment,
+                likes: comment.likeCount || 0,
+                author: comment.authorName || comment.author || '익명',
+                date: comment.createdAt || comment.date,
+                replies: comment.replies ? comment.replies.map(reply => ({
+                    ...reply,
+                    likes: reply.likeCount || 0,
+                    author: reply.authorName || reply.author || '익명',
+                    date: reply.createdAt || reply.date
+                })) : []
+            }));
+            
+            setComments(processedComments);
         } catch (error) {
             console.error('댓글 로드 오류:', error);
             setComments([]);
@@ -80,8 +98,7 @@ const FactlabBoardView = () => {
     // 투표 기능
     const handleVote = async (type) => {
         if (!isLoggedIn) {
-            alert('로그인이 필요합니다.');
-            navigate('/');
+            setIsLoginModalOpen(true);
             return;
         }
 
@@ -93,7 +110,7 @@ const FactlabBoardView = () => {
         try {
             const actualPostId = urlPostId || postId;
             await boardService.votePost(actualPostId, type, user.id);
-            
+
             setVotes(prev => ({
                 ...prev,
                 [type]: prev[type] + 1
@@ -105,11 +122,27 @@ const FactlabBoardView = () => {
         }
     };
 
+    // 댓글 텍스트 변경 처리
+    const handleCommentTextChange = (e) => {
+        const text = e.target.value;
+
+        // 1000자 제한
+        if (text.length <= 1000) {
+            setCommentText(text);
+            setCharCount(text.length);
+        } else {
+            // 1000자를 초과하면 잘라내기
+            const truncatedText = text.substring(0, 1000);
+            setCommentText(truncatedText);
+            setCharCount(1000);
+            alert('댓글은 최대 1000자까지 입력할 수 있습니다.');
+        }
+    };
+
     // 댓글 작성
     const handleSubmitComment = async () => {
         if (!isLoggedIn) {
-            alert('로그인이 필요합니다.');
-            navigate('/');
+            setIsLoginModalOpen(true);
             return;
         }
 
@@ -121,10 +154,11 @@ const FactlabBoardView = () => {
         try {
             const actualPostId = urlPostId || postId;
             await boardCommentApi.createComment(actualPostId, commentText.trim(), user.id);
-            
+
             // 댓글 목록 새로고침
             await loadComments();
             setCommentText('');
+            setCharCount(0);
         } catch (error) {
             console.error('댓글 작성 오류:', error);
             alert('댓글 작성에 실패했습니다.');
@@ -136,15 +170,15 @@ const FactlabBoardView = () => {
         try {
             // API 호출
             await boardCommentApi.likeComment(commentId, user?.id);
-            
+
             // 로컬 상태 업데이트
             if (isReply) {
                 setComments(prev => prev.map(comment => {
                     if (comment.id === parentId) {
                         return {
                             ...comment,
-                            replies: comment.replies.map(reply => 
-                                reply.id === commentId 
+                            replies: comment.replies.map(reply =>
+                                reply.id === commentId
                                     ? { ...reply, likes: reply.likes + 1 }
                                     : reply
                             )
@@ -153,8 +187,8 @@ const FactlabBoardView = () => {
                     return comment;
                 }));
             } else {
-                setComments(prev => prev.map(comment => 
-                    comment.id === commentId 
+                setComments(prev => prev.map(comment =>
+                    comment.id === commentId
                         ? { ...comment, likes: comment.likes + 1 }
                         : comment
                 ));
@@ -168,8 +202,7 @@ const FactlabBoardView = () => {
     // 댓글 답글
     const handleReplyComment = async (commentId) => {
         if (!isLoggedIn) {
-            alert('로그인이 필요합니다.');
-            navigate('/');
+            setIsLoginModalOpen(true);
             return;
         }
 
@@ -178,7 +211,7 @@ const FactlabBoardView = () => {
             try {
                 const actualPostId = urlPostId || postId;
                 await boardCommentApi.createReply(actualPostId, commentId, content.trim(), user.id);
-                
+
                 // 댓글 목록 새로고침
                 await loadComments();
             } catch (error) {
@@ -193,11 +226,11 @@ const FactlabBoardView = () => {
         // 해당 댓글의 답글 개수 확인
         const comment = comments.find(c => c.id === commentId);
         const hasReplies = comment && comment.replies && comment.replies.length > 0;
-        
-        const confirmMessage = hasReplies 
+
+        const confirmMessage = hasReplies
             ? '이 댓글에 답글이 있습니다. 삭제하면 "작성자에 의해 글이 삭제되었습니다."로 표시됩니다. 계속하시겠습니까?'
             : '이 댓글을 삭제하시겠습니까?';
-            
+
         if (!window.confirm(confirmMessage)) {
             return;
         }
@@ -207,10 +240,10 @@ const FactlabBoardView = () => {
 
             if (hasReplies) {
                 // 답글이 있는 경우: 로컬에서 삭제 표시로 변경
-                setComments(prev => prev.map(c => 
-                    c.id === commentId 
-                        ? { 
-                            ...c, 
+                setComments(prev => prev.map(c =>
+                    c.id === commentId
+                        ? {
+                            ...c,
                             content: '작성자에 의해 글이 삭제되었습니다.',
                             author: '삭제된 사용자',
                             isDeleted: true
@@ -299,7 +332,7 @@ const FactlabBoardView = () => {
                 <div className="main-container">
                     {/* 좌측 광고 */}
                     <div className="main-side-ad">
-                        📢<br />좌측<br />광고<br />영역<br />(160px)
+                        
                     </div>
                     {/* 메인 컨텐츠 */}
                     <div className="main-content">
@@ -307,7 +340,7 @@ const FactlabBoardView = () => {
                     </div>
                     {/* 우측 광고 */}
                     <div className="main-side-ad">
-                        📢<br />우측<br />광고<br />영역<br />(160px)
+                        
                     </div>
                 </div>
                 <Footer />
@@ -326,7 +359,7 @@ const FactlabBoardView = () => {
                 <div className="main-container">
                     {/* 좌측 광고 */}
                     <div className="main-side-ad">
-                        📢<br />좌측<br />광고<br />영역<br />(160px)
+                        
                     </div>
                     {/* 메인 컨텐츠 */}
                     <div className="main-content">
@@ -337,7 +370,7 @@ const FactlabBoardView = () => {
                     </div>
                     {/* 우측 광고 */}
                     <div className="main-side-ad">
-                        📢<br />우측<br />광고<br />영역<br />(160px)
+                        
                     </div>
                 </div>
                 <Footer />
@@ -354,199 +387,212 @@ const FactlabBoardView = () => {
             <div className="main-container">
                 {/* 좌측 광고 */}
                 <div className="main-side-ad">
-                    📢<br />좌측<br />광고<br />영역<br />(160px)
+                    
                 </div>
                 {/* 메인 컨텐츠 */}
                 <div className="main-content">
                     <div className="board-view-container">
-                {/* Post Header */}
-                <div className="board-view-header">
-                    <h1 className="board-view-title">{post.title}</h1>
-                    <div className="board-view-meta">
-                        <div className="board-view-info">
-                            <strong>{post.author || post.authorName}</strong> | {post.createdAt || post.created_at} | 조회 {post.viewCount || post.view_count || 0}
-                        </div>
-                        <div className="board-view-vote">
-                            <button 
-                                className={`board-view-vote-btn up ${voteStatus === 'up' ? 'voted' : ''}`}
-                                onClick={() => handleVote('up')}
-                                disabled={voteStatus}
-                            >
-                                👍 추천 {votes.up}
-                            </button>
-                            <button 
-                                className={`board-view-vote-btn down ${voteStatus === 'down' ? 'voted' : ''}`}
-                                onClick={() => handleVote('down')}
-                                disabled={voteStatus}
-                            >
-                                👎 비추천 {votes.down}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Post Content */}
-                <div className="board-view-content">
-                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
-                </div>
-                
-                {/* Post Actions */}
-                <div className="board-view-actions">
-                    <div className="board-view-action-left">
-                        <button className="btn" onClick={handleSharePost}>공유</button>
-                        <button className="btn" onClick={handleReportPost}>신고</button>
-                        <button className="btn" onClick={handleBookmarkPost}>북마크</button>
-                    </div>
-                    <div className="board-view-action-right">
-                        <button className="btn" onClick={() => navigate('/board')}>목록</button>
-                        {post.isAuthor && (
-                            <>
-                                <button className="btn" onClick={() => navigate(`/board/write?mode=edit&id=${post.id}`)}>수정</button>
-                                <button className="btn" onClick={handleDeletePost}>삭제</button>
-                            </>
-                        )}
-                    </div>
-                </div>
-                
-                {/* Comments Section */}
-                <div className="board-view-comments">
-                    <div className="board-view-comments-header">💬 댓글 {comments.length + comments.reduce((acc, comment) => acc + (comment.replies?.length || 0), 0)}개</div>
-                    
-                    {/* Comment Write */}
-                    <div className="board-view-comment-write">
-                        <textarea 
-                            ref={textareaRef}
-                            className="board-view-comment-textarea" 
-                            placeholder="댓글을 입력하세요..."
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                        />
-                        <div className="board-view-comment-submit">
-                            <button className="btn btn-primary" onClick={handleSubmitComment}>
-                                댓글 작성
-                            </button>
-                        </div>
-                    </div>
-                    
-                    {/* Comments List */}
-                    {comments.map((comment) => (
-                        <div key={comment.id} className="board-view-comment-item">
-                            <div className="board-view-comment-header">
-                                <span className="board-view-comment-author">{comment.author}</span>
-                                <span className="board-view-comment-date">{comment.date}</span>
-                            </div>
-                            <div className="board-view-comment-content" style={{ 
-                                color: comment.isDeleted ? '#999' : 'inherit',
-                                fontStyle: comment.isDeleted ? 'italic' : 'normal'
-                            }}>
-                                {comment.content}
-                            </div>
-                            {!comment.isDeleted && (
-                                <div className="board-view-comment-actions">
-                                    <a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        handleLikeComment(comment.id);
-                                    }}>
-                                        👍 {comment.likes}
-                                    </a>
-                                    <a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        handleReplyComment(comment.id);
-                                    }}>
-                                        답글
-                                    </a>
-                                    <a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        handleReportComment(comment.id);
-                                    }}>
-                                        신고
-                                    </a>
-                                    {isLoggedIn && user?.id === comment.userId && (
-                                        <a href="#" onClick={(e) => {
-                                            e.preventDefault();
-                                            handleDeleteComment(comment.id);
-                                        }} style={{ color: '#dc3545' }}>
-                                            삭제
-                                        </a>
-                                    )}
+                        {/* Post Header */}
+                        <div className="board-view-header">
+                            <h1 className="board-view-title">{post.title}</h1>
+                            <div className="board-view-meta">
+                                <div className="board-view-info">
+                                    <strong>{post.author || post.authorName}</strong> | {post.createdAt || post.created_at} | 조회 {post.viewCount || post.view_count || 0}
                                 </div>
-                            )}
-                            
-                            {/* Replies */}
-                            {comment.replies?.map((reply) => (
-                                <div key={reply.id} className="board-view-reply-item">
+                                <div className="board-view-vote">
+                                    <button
+                                        className={`board-view-vote-btn up ${voteStatus === 'up' ? 'voted' : ''}`}
+                                        onClick={() => handleVote('up')}
+                                        disabled={voteStatus}
+                                    >
+                                        👍 추천 {votes.up}
+                                    </button>
+                                    <button
+                                        className={`board-view-vote-btn down ${voteStatus === 'down' ? 'voted' : ''}`}
+                                        onClick={() => handleVote('down')}
+                                        disabled={voteStatus}
+                                    >
+                                        👎 비추천 {votes.down}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Post Content */}
+                        <div className="board-view-content">
+                            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                        </div>
+
+                        {/* Post Actions */}
+                        <div className="board-view-actions">
+                            <div className="board-view-action-left">
+                                <button className="btn" onClick={handleSharePost}>공유</button>
+                                <button className="btn" onClick={handleReportPost}>신고</button>
+                                <button className="btn" onClick={handleBookmarkPost}>북마크</button>
+                            </div>
+                            <div className="board-view-action-right">
+                                <button className="btn" onClick={() => navigate('/board')}>목록</button>
+                                {post.isAuthor && (
+                                    <>
+                                        <button className="btn" onClick={() => navigate(`/board/write?mode=edit&id=${post.id}`)}>수정</button>
+                                        <button className="btn" onClick={handleDeletePost}>삭제</button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Comments Section */}
+                        <div className="board-view-comments">
+                            <div className="board-view-comments-header">💬 댓글 {comments.length + comments.reduce((acc, comment) => acc + (comment.replies?.length || 0), 0)}개</div>
+
+                            {/* Comment Write */}
+                            <div className="board-view-comment-write">
+                                <textarea
+                                    ref={textareaRef}
+                                    className="board-view-comment-textarea"
+                                    placeholder="댓글을 입력하세요..."
+                                    value={commentText}
+                                    onChange={handleCommentTextChange}
+                                    onKeyDown={handleKeyDown}
+                                    maxLength={1000}
+                                />
+                                <div className="board-view-comment-controls">
+                                    <div className="board-view-comment-counter">
+                                        {charCount}/1000자
+                                    </div>
+                                    <div className="board-view-comment-submit">
+                                        <button className="btn btn-primary" onClick={handleSubmitComment}>
+                                            댓글 작성
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Comments List */}
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="board-view-comment-item">
                                     <div className="board-view-comment-header">
-                                        <span className="board-view-comment-author">{reply.author}</span>
-                                        <span className="board-view-comment-date">{reply.date}</span>
+                                        <span className="board-view-comment-author">{comment.author}</span>
+                                        <span className="board-view-comment-date">{comment.date}</span>
                                     </div>
-                                    <div className="board-view-comment-content">
-                                        {reply.content}
+                                    <div className={`board-view-comment-content ${comment.isDeleted ? 'board-view-comment-deleted' : ''}`}>
+                                        {comment.content}
                                     </div>
-                                    <div className="board-view-comment-actions">
-                                        <a href="#" onClick={(e) => {
-                                            e.preventDefault();
-                                            handleLikeComment(reply.id, true, comment.id);
-                                        }}>
-                                            👍 {reply.likes}
-                                        </a>
-                                        <a href="#" onClick={(e) => {
-                                            e.preventDefault();
-                                            handleReportComment(reply.id);
-                                        }}>
-                                            신고
-                                        </a>
-                                        {isLoggedIn && user?.id === reply.userId && (
+                                    {!comment.isDeleted && (
+                                        <div className="board-view-comment-actions">
                                             <a href="#" onClick={(e) => {
                                                 e.preventDefault();
-                                                handleDeleteComment(reply.id);
-                                            }} style={{ color: '#dc3545' }}>
-                                                삭제
+                                                handleLikeComment(comment.id);
+                                            }}>
+                                                👍 추천 {comment.likes || 0}
                                             </a>
-                                        )}
-                                    </div>
+                                            <a href="#" onClick={(e) => {
+                                                e.preventDefault();
+                                                handleReplyComment(comment.id);
+                                            }}>
+                                                답글
+                                            </a>
+                                            <a href="#" onClick={(e) => {
+                                                e.preventDefault();
+                                                handleReportComment(comment.id);
+                                            }}>
+                                                신고
+                                            </a>
+                                            {isLoggedIn && user?.id === comment.userId && (
+                                                <a href="#" onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleDeleteComment(comment.id);
+                                                }} className="board-comment-delete">
+                                                    삭제
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Replies */}
+                                    {comment.replies?.map((reply) => (
+                                        <div key={reply.id} className="board-view-reply-item">
+                                            <div className="board-view-comment-header">
+                                                <span className="board-view-comment-author">{reply.author}</span>
+                                                <span className="board-view-comment-date">{reply.date}</span>
+                                            </div>
+                                            <div className="board-view-comment-content">
+                                                {reply.content}
+                                            </div>
+                                            <div className="board-view-comment-actions">
+                                                <a href="#" onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleLikeComment(reply.id, true, comment.id);
+                                                }}>
+                                                    👍 추천 {reply.likes || 0}
+                                                </a>
+                                                <a href="#" onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleReportComment(reply.id);
+                                                }}>
+                                                    신고
+                                                </a>
+                                                {isLoggedIn && user?.id === reply.userId && (
+                                                    <a href="#" onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleDeleteComment(reply.id);
+                                                    }} className="board-comment-delete">
+                                                        삭제
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             ))}
+
+                            {/* More comments button */}
+                            <div className="board-view-more-comments">
+                                <button className="btn" onClick={handleLoadMoreComments}>
+                                    댓글 더보기 (64개 남음)
+                                </button>
+                            </div>
                         </div>
-                    ))}
-                    
-                    {/* More comments button */}
-                    <div className="board-view-more-comments">
-                        <button className="btn" onClick={handleLoadMoreComments}>
-                            댓글 더보기 (64개 남음)
-                        </button>
-                    </div>
-                </div>
-                
-                {/* Navigation */}
-                <div className="board-view-navigation">
-                    <div className="board-view-nav-links">
-                        <div>
-                            <strong>이전글:</strong>{' '}
-                            <a href="/board/view/1235" className="board-view-nav-link">
-                                선거제도 개편에 대한 시민들의 의견은?
-                            </a>
+
+                        {/* Navigation */}
+                        <div className="board-view-navigation">
+                            <div className="board-view-nav-links">
+                                <div>
+                                    <strong>이전글:</strong>{' '}
+                                    <a href="/board/view/1235" className="board-view-nav-link">
+                                        선거제도 개편에 대한 시민들의 의견은?
+                                    </a>
+                                </div>
+                                <div>
+                                    <strong>다음글:</strong>{' '}
+                                    <a href="/board/view/1233" className="board-view-nav-link">
+                                        오늘 발표된 경제 정책 분석해보겠습니다
+                                    </a>
+                                </div>
+                            </div>
+                            <div className="board-view-nav-buttons">
+                                <a href="/board" className="btn">목록</a>
+                                <a href="/board/write" className="btn btn-primary">글쓰기</a>
+                            </div>
                         </div>
-                        <div>
-                            <strong>다음글:</strong>{' '}
-                            <a href="/board/view/1233" className="board-view-nav-link">
-                                오늘 발표된 경제 정책 분석해보겠습니다
-                            </a>
-                        </div>
-                    </div>
-                    <div className="board-view-nav-buttons">
-                        <a href="/board" className="btn">목록</a>
-                        <a href="/board/write" className="btn btn-primary">글쓰기</a>
-                    </div>
-                </div>
                     </div>
                 </div>
                 {/* 우측 광고 */}
                 <div className="main-side-ad">
-                    📢<br />우측<br />광고<br />영역<br />(160px)
+                    
                 </div>
             </div>
             <Footer />
+
+            {/* 로그인 모달 */}
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onLoginSuccess={() => {
+                    // 로그인 성공 후 현재 페이지 유지
+                    setIsLoginModalOpen(false);
+                }}
+            />
         </>
     );
 };

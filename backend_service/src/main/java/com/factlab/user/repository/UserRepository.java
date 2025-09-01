@@ -50,4 +50,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 사용자 통계 조회
     @Query("SELECT u FROM User u WHERE u.id IN :userIds")
     List<User> findByIdIn(@Param("userIds") List<Long> userIds);
+    
+    // 소셜 로그인 관련 메서드
+    Optional<User> findByRegistrationMethodAndSocialProviderId(User.RegistrationMethod registrationMethod, String socialProviderId);
+    
+    // 소셜 회원가입 방법별 사용자 수 조회
+    long countByRegistrationMethod(User.RegistrationMethod registrationMethod);
 }

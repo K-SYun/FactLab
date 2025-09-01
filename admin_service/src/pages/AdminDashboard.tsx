@@ -159,15 +159,7 @@ const AdminDashboard: React.FC = () => {
     fetchCrawlingStatus();
   }, []);
 
-  // 실시간 데이터 업데이트 (30초마다)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadDashboardData();
-      fetchCrawlingStatus(); // 크롤링 상태도 함께 업데이트
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  
 
   // 크롤링 중일 때는 더 자주 상태 체크 (5초마다)
   useEffect(() => {
@@ -388,12 +380,12 @@ const AdminDashboard: React.FC = () => {
               <button className="admin-btn admin-btn-secondary admin-text-xs">90일</button>
             </div>
           </div>
-          <LineChart data={newsCollectionData} height={200} />
+          <LineChart data={newsCollectionData} height={280} />
         </div>
 
         <div className="admin-card">
           <h3 className="admin-text-lg admin-font-medium admin-text-gray-800 admin-mb-4">카테고리별 게시판 활동</h3>
-          <DoughnutChart data={categoryActivityData} height={200} />
+          <DoughnutChart data={categoryActivityData} height={280} />
         </div>
       </div>
 

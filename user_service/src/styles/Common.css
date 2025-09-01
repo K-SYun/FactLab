@@ -9,7 +9,7 @@
 
 body {
     font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-    background-color: #f5f5f5; /* 기본 배경색, 개별 페이지에서 오버라이드 가능 */
+    background-color: #ffffff; /* 기본 배경색, 개별 페이지에서 오버라이드 가능 */
     color: #333;
     font-size: 14px; /* 본문 기본 폰트 크기 */
 }
@@ -39,13 +39,17 @@ body {
     align-items: center;
 }
 
-.news-logo-img {
-    height: 50px;
+.news-logo-icon {
+    height: 40px; /* 아이콘 크기 조정 */
     width: auto;
-    max-width: 150px;
     object-fit: contain;
-    margin: 0px;
-    padding: 0;
+}
+
+.news-logo-text {
+    height: 25px; /* 서비스명 이미지 크기 조정 */
+    width: auto;
+    object-fit: contain;
+    margin-left: 10px; /* 아이콘과 간격 */
 }
 
 .news-auth-buttons {
@@ -320,6 +324,46 @@ body {
     }
 }
 
+/* 광고 영역 공통 스타일 */
+.main-side-ad {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    width: 200px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 12px;
+    position: sticky;
+    top: 20px;
+    flex-direction: column;
+}
+
+.main-side-ad::before {
+    content: "📢";
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.main-side-ad::after {
+    content: "광고 영역\A(200px × 600px)";
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.main-container {
+    max-width: 1680px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px 1200px 200px;
+    gap: 20px;
+    padding: 20px;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* 404 페이지 스타일 */
 .not-found-container {
     padding: 50px 20px;
@@ -357,4 +401,8 @@ body {
 
 .not-found-button:hover {
     background-color: #0052a3;
+}
+
+.news-footer-logo {
+    margin-bottom: 20px;
 }

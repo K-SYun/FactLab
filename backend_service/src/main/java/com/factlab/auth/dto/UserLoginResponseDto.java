@@ -7,16 +7,18 @@ public class UserLoginResponseDto {
     private Long id;
     private String email;
     private String nickname;
+    private String token;
     private LocalDateTime loginTime;
     
     // 기본 생성자
     public UserLoginResponseDto() {}
     
     // 전체 생성자
-    public UserLoginResponseDto(Long id, String email, String nickname, LocalDateTime loginTime) {
+    public UserLoginResponseDto(Long id, String email, String nickname, String token, LocalDateTime loginTime) {
         this.id = id;
         this.email = email;
         this.nickname = nickname;
+        this.token = token;
         this.loginTime = loginTime;
     }
     
@@ -43,6 +45,14 @@ public class UserLoginResponseDto {
     
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+    
+    public String getToken() {
+        return token;
+    }
+    
+    public void setToken(String token) {
+        this.token = token;
     }
     
     public LocalDateTime getLoginTime() {

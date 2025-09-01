@@ -32,13 +32,13 @@ const FactlabNewsFeed = () => {
         setLoading(true);
         
         // 페이지 기반으로 뉴스 가져오기
-        const offset = (page - 1) * ITEMS_PER_PAGE;
+        const backendPage = page - 1; // 백엔드는 0부터 시작
         let response;
         
         if (category === '전체') {
-          response = await newsApi.getAllNews(offset, ITEMS_PER_PAGE);
+          response = await newsApi.getAllNews(backendPage, ITEMS_PER_PAGE);
         } else {
-          response = await newsApi.getNewsByCategory(category, offset, ITEMS_PER_PAGE);
+          response = await newsApi.getNewsByCategory(category, backendPage, ITEMS_PER_PAGE);
         }
         
         const newsData = response.data.data || [];
@@ -46,19 +46,27 @@ const FactlabNewsFeed = () => {
         // 전체 개수를 위한 별도 요청 (첫 번째 페이지에서만)
         if (page === 1) {
           try {
+            // 더 큰 수로 요청하여 전체 개수 확인 (최대 5000개까지)
             let totalResponse;
             if (category === '전체') {
-              totalResponse = await newsApi.getAllNews(0, 1000); // 충분히 큰 수로 전체 개수 확인
+              totalResponse = await newsApi.getAllNews(0, 5000);
             } else {
-              totalResponse = await newsApi.getNewsByCategory(category, 0, 1000);
+              totalResponse = await newsApi.getNewsByCategory(category, 0, 5000);
             }
             const totalData = totalResponse.data.data || [];
             setTotalCount(totalData.length);
             setTotalPages(Math.ceil(totalData.length / ITEMS_PER_PAGE));
           } catch (totalErr) {
             console.warn('Total count fetch failed:', totalErr);
-            setTotalCount(newsData.length);
-            setTotalPages(1);
+            // 실패 시 현재 페이지 뉴스 개수를 기준으로 추정
+            if (newsData.length === ITEMS_PER_PAGE) {
+              // 현재 페이지가 가득 찬 경우, 더 많은 뉴스가 있을 수 있음
+              setTotalCount(newsData.length * 3); // 보수적 추정
+              setTotalPages(3);
+            } else {
+              setTotalCount(newsData.length);
+              setTotalPages(1);
+            }
           }
         }
         
@@ -133,19 +141,22 @@ const FactlabNewsFeed = () => {
     try {
       setLoading(true);
       
-      const offset = (page - 1) * ITEMS_PER_PAGE;
+      const backendPage = page - 1; // 백엔드는 0부터 시작
       let response;
       
       if (category === '전체') {
-        response = await newsApi.getAllNews(offset, ITEMS_PER_PAGE);
+        response = await newsApi.getAllNews(backendPage, ITEMS_PER_PAGE);
       } else {
-        response = await newsApi.getNewsByCategory(category, offset, ITEMS_PER_PAGE);
+        response = await newsApi.getNewsByCategory(category, backendPage, ITEMS_PER_PAGE);
       }
       
       const newsData = response.data.data || [];
       setNews(newsData);
       setCurrentPage(page);
       setError(null);
+      
+      // 페이지 변경 시 스크롤을 맨 위로 이동
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // 페이지 변경 시에도 투표 결과 가져오기
       const voteResultsData = {};
@@ -199,14 +210,14 @@ const FactlabNewsFeed = () => {
       <div className="main-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
-          📢<br />좌측<br />광고<br />영역<br />(160px)
+          
         </div>
         {/* 메인 컨텐츠 */}
         <div className="main-content">
           <div className="news_feed_container">
             {/* 카테고리 헤더 */}
             <div className="news_category_header">
-              <h1 className="news_category_title">📰 {category} 뉴스 <span className="news_category_stats">(총 {news.length}개)</span></h1>
+              <h1 className="news_category_title">📰 {category} 뉴스 <span className="news_category_stats">(총 {totalCount}개)</span></h1>
             </div>
 
             {/* 트렌딩 키워드 섹션 */}
@@ -241,12 +252,7 @@ const FactlabNewsFeed = () => {
                           <img 
                             src={newsItem.thumbnail} 
                             alt="뉴스 썸네일"
-                            style={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              objectFit: 'cover',
-                              borderRadius: '4px'
-                            }}
+                            className="news-feed-thumbnail-image"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
@@ -254,35 +260,14 @@ const FactlabNewsFeed = () => {
                           />
                         ) : null}
                         <div 
-                          className="news_thumbnail_placeholder"
-                          style={{ 
-                            display: newsItem.thumbnail ? 'none' : 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: '4px'
-                          }}
+                          className={`news_thumbnail_placeholder news-feed-thumbnail-placeholder ${newsItem.thumbnail ? 'news-feed-placeholder-hidden' : ''}`}
                         >
                           <img 
                             src="/Logo.png" 
                             alt="FactLab Logo"
-                            style={{ 
-                              height: '30px',
-                              width: 'auto',
-                              maxWidth: '80px',
-                              marginBottom: '5px',
-                              opacity: '0.7',
-                              objectFit: 'contain'
-                            }}
+                            className="news-feed-placeholder-logo"
                           />
-                          <span style={{ 
-                            color: '#6c757d',
-                            fontSize: '10px',
-                            fontWeight: '500'
-                          }}>
+                          <span className="news-feed-placeholder-text">
                             No Image
                           </span>
                         </div>
@@ -431,7 +416,7 @@ const FactlabNewsFeed = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          📢<br />우측<br />광고<br />영역<br />(160px)
+          
         </div>
       </div>
       <Footer />

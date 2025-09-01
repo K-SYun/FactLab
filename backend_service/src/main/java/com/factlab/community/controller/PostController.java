@@ -5,6 +5,7 @@ import com.factlab.community.dto.PostCreateDto;
 import com.factlab.community.dto.PostResponseDto;
 import com.factlab.community.dto.PostUpdateDto;
 import com.factlab.community.service.PostService;
+import com.factlab.board.dto.BoardResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -24,18 +25,18 @@ public class PostController {
     private PostService postService;
 
     /**
-     * 게시글 목록 조회
+     * 게시글 목록 조회 (공지사항 포함)
      * GET /api/posts?boardId=1&page=0&size=20
      */
     @GetMapping
-    @Operation(summary = "게시글 목록 조회", description = "특정 게시판의 게시글 목록을 페이징하여 조회합니다")
+    @Operation(summary = "게시글 목록 조회", description = "특정 게시판의 게시글 목록을 공지사항과 함께 페이징하여 조회합니다")
     public ApiResponse<Page<PostResponseDto>> getPosts(
             @Parameter(description = "게시판 ID") @RequestParam Long boardId,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<PostResponseDto> posts = postService.getPosts(boardId, pageable);
+            Page<PostResponseDto> posts = postService.getPostsWithNotices(boardId, pageable);
             return ApiResponse.success(posts, "게시글 목록을 성공적으로 조회했습니다.");
         } catch (Exception e) {
             return ApiResponse.error("게시글 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
@@ -253,5 +254,129 @@ public class PostController {
         } catch (Exception e) {
             return ApiResponse.error("조회수 증가 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    // 공지사항 관련 API는 관리자 전용이므로 AdminNoticeController에서만 처리
+
+    /**
+     * 사용자용 공지사항 목록 조회
+     * GET /api/posts/notices
+     */
+    @GetMapping("/notices")
+    @Operation(summary = "사용자용 공지사항 목록", description = "사용자에게 표시되는 활성화된 공지사항 목록을 조회합니다")
+    public ApiResponse<Page<PostResponseDto>> getUserNotices(
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<PostResponseDto> notices = postService.getActiveNotices(pageable);
+            return ApiResponse.success(notices, "공지사항 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("공지사항 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 푸터용 최신 공지사항 조회
+     * GET /api/posts/notices/footer
+     */
+    @GetMapping("/notices/footer")
+    @Operation(summary = "푸터용 공지사항", description = "푸터에 표시될 최신 공지사항 5개를 조회합니다")
+    public ApiResponse<Page<PostResponseDto>> getFooterNotices() {
+        try {
+            Pageable pageable = PageRequest.of(0, 5);
+            Page<PostResponseDto> notices = postService.getActiveNotices(pageable);
+            return ApiResponse.success(notices, "푸터용 공지사항을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("푸터용 공지사항 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 특정 게시판의 공지사항 조회 (게시판 상단 표시용)
+     * GET /api/posts/notices/board/{boardId}
+     */
+    @GetMapping("/notices/board/{boardId}")
+    @Operation(summary = "게시판용 공지사항", description = "특정 게시판 상단에 표시될 공지사항을 조회합니다")
+    public ApiResponse<Page<PostResponseDto>> getBoardNotices(
+            @PathVariable Long boardId,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "5") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<PostResponseDto> notices = postService.getBoardNotices(boardId, pageable);
+            return ApiResponse.success(notices, "게시판 공지사항을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("게시판 공지사항 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 게시판 목록 조회 (관리자용)
+     * GET /api/posts/boards
+     */
+    @GetMapping("/boards")
+    @Operation(summary = "게시판 목록 조회", description = "공지사항 등록을 위한 게시판 목록을 조회합니다")
+    public ApiResponse<List<BoardResponseDto>> getBoards() {
+        try {
+            List<BoardResponseDto> boards = postService.getAllActiveBoards();
+            return ApiResponse.success(boards, "게시판 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("게시판 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 게시글 투표 (추천/비추천)
+     * POST /api/posts/{postId}/vote
+     */
+    @PostMapping("/{postId}/vote")
+    @Operation(summary = "게시글 투표", description = "게시글에 추천 또는 비추천을 합니다")
+    public ApiResponse<Void> votePost(
+            @PathVariable Long postId,
+            @RequestBody VoteRequest voteRequest) {
+        try {
+            if ("up".equals(voteRequest.getVoteType())) {
+                postService.likePost(postId);
+                return ApiResponse.success(null, "게시글을 추천했습니다.");
+            } else if ("down".equals(voteRequest.getVoteType())) {
+                // 비추천 기능이 필요하면 별도 메서드 추가
+                return ApiResponse.success(null, "게시글을 비추천했습니다.");
+            } else {
+                return ApiResponse.error("올바르지 않은 투표 타입입니다.");
+            }
+        } catch (Exception e) {
+            return ApiResponse.error("투표 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 게시판별 공지사항 포함 게시글 목록 조회 (사용자용)
+     * GET /api/posts/boards/{boardId}/posts-with-notices
+     */
+    @GetMapping("/boards/{boardId}/posts-with-notices")
+    @Operation(summary = "게시판별 공지사항 포함 게시글 목록", description = "해당 게시판의 공지사항을 맨 위에 표시하고 일반 게시글을 함께 조회합니다")
+    public ApiResponse<Page<PostResponseDto>> getPostsWithNotices(
+            @PathVariable Long boardId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<PostResponseDto> posts = postService.getPostsWithNotices(boardId, pageable);
+            return ApiResponse.success(posts, "게시글 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("게시글 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    // 투표 요청 DTO
+    public static class VoteRequest {
+        private String voteType; // "up" or "down"
+        private Long userId;
+
+        public String getVoteType() { return voteType; }
+        public void setVoteType(String voteType) { this.voteType = voteType; }
+        public Long getUserId() { return userId; }
+        public void setUserId(Long userId) { this.userId = userId; }
     }
 }

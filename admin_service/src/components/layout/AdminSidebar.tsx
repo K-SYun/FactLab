@@ -169,6 +169,15 @@ const AdminSidebar: React.FC = () => {
           </Link>
 
           <Link
+            to="/bills"
+            className={`admin-nav-link ${isActive('/bills') ? 'active' : ''}`}
+          >
+            <i className="fas fa-gavel" style={{ color: '#7c3aed' }}></i>
+            <span>법안 관리</span>
+            <span className="admin-nav-badge admin-status-purple">정치</span>
+          </Link>
+
+          <Link
             to="/users"
             className={`admin-nav-link ${isActive('/users') ? 'active' : ''}`}
           >

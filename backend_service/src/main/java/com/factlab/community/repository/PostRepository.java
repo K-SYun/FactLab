@@ -117,4 +117,49 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("minViewCount") Integer minViewCount,
             @Param("minLikeCount") Integer minLikeCount,
             Pageable pageable);
+    
+    // ===== 공지사항 관련 쿼리 메서드들 =====
+    
+    /**
+     * 공지사항 목록 조회
+     */
+    Page<Post> findByIsNoticeAndStatusOrderByCreatedAtDesc(
+            Boolean isNotice, PostStatus status, Pageable pageable);
+    
+    /**
+     * 공지사항 상태별 조회
+     */
+    Page<Post> findByIsNoticeAndStatus(Boolean isNotice, PostStatus status, Pageable pageable);
+    
+    /**
+     * 특정 게시판의 공지사항 조회
+     */
+    Page<Post> findByBoard_IdAndIsNoticeAndStatusOrderByCreatedAtDesc(
+            Long boardId, Boolean isNotice, PostStatus status, Pageable pageable);
+    
+    /**
+     * 활성화된 공지사항만 조회 (푸터 표시용)
+     */
+    List<Post> findTop5ByIsNoticeAndStatusOrderByCreatedAtDesc(
+            Boolean isNotice, PostStatus status);
+    
+    /**
+     * 공지사항 개수 조회
+     */
+    Long countByIsNoticeAndStatus(Boolean isNotice, PostStatus status);
+    
+    /**
+     * 특정 게시판의 공지사항만 조회 (리스트)
+     */
+    List<Post> findByBoard_IdAndIsNoticeTrueAndStatus(Long boardId, PostStatus status);
+    
+    /**
+     * 특정 게시판의 일반 게시글만 조회 (공지 제외, 페이징)
+     */
+    Page<Post> findByBoard_IdAndIsNoticeFalseAndStatus(Long boardId, PostStatus status, Pageable pageable);
+    
+    /**
+     * 특정 게시판의 일반 게시글만 조회 (공지 제외, 최신순 정렬)
+     */
+    Page<Post> findByBoard_IdAndIsNoticeFalseAndStatusOrderByCreatedAtDesc(Long boardId, PostStatus status, Pageable pageable);
 }

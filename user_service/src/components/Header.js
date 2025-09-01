@@ -80,7 +80,8 @@ const Header = () => {
       <header className="news-header">
         <div className="news-header-content">
           <Link to="/" className="news-logo">
-            <img src="/Logo.png" alt="FactLab" className="news-logo-img" />
+            <img src="/Logo.png" alt="FactLab Icon" className="news-logo-icon" />
+            <img src="/Logo2.png" alt="FactLab" className="news-logo-text" />
           </Link>
           <div className="news-auth-buttons">
             {isLoggedIn ? (
@@ -109,6 +110,8 @@ const Header = () => {
             )}
           </div>
         </div>
+
+
       </header>
       <LoginModal
         isOpen={isLoginModalOpen}
@@ -123,6 +126,7 @@ const Header = () => {
           <Link to="/news_feed" state={{ category: 'IT과학' }} className="news-nav-item">IT/과학</Link>
           <Link to="/news_feed" state={{ category: '세계' }} className="news-nav-item">세계</Link>
           <Link to="/news_feed" state={{ category: '기후환경' }} className="news-nav-item">기후/환경</Link>
+          <Link to="/bill" className="news-nav-item">법안</Link>
           {/* <Link to="/news_feed" state={{ category: '연예' }} className="news-nav-item">연예</Link>
         <Link to="/news_feed" state={{ category: '스포츠' }} className="news-nav-item">스포츠</Link> */}
           <div className="news-nav-item community-lab" id="communityNav" style={{ position: 'relative' }}>

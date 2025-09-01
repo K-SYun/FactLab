@@ -24,6 +24,7 @@ from app.localization.messages import msg
 from .naver_crawler import NaverMobileCrawler
 from .daum_crawler import DaumMobileCrawler  
 from .googel_crawler import GoogleNewsCrawler
+from .nass_crawler import NassApiCrawler
 
 # 스케줄링
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -35,13 +36,14 @@ logger = logging.getLogger(__name__)
 class NewsItem:
     """공통 뉴스 아이템 클래스"""
     def __init__(self, title: str, content: str, source: str, source_url: str, 
-                 published_at: datetime, category: str = None):
+                 published_at: datetime, category: str = None, thumbnail: str = None):
         self.title = title
         self.content = content
         self.source = source
         self.source_url = source_url
         self.published_at = published_at
         self.category = category
+        self.thumbnail = thumbnail
 
 class UnifiedCrawlerManager:
     def __init__(self, database_url: str = None):
@@ -54,6 +56,7 @@ class UnifiedCrawlerManager:
         self.naver_crawler = NaverMobileCrawler()
         self.daum_crawler = DaumMobileCrawler()
         self.google_crawler = GoogleNewsCrawler()
+        self.nass_crawler = NassApiCrawler()
         
         # 스케줄러 설정
         self.scheduler = AsyncIOScheduler(timezone=pytz.timezone('Asia/Seoul'))
@@ -70,13 +73,23 @@ class UnifiedCrawlerManager:
     
     def convert_mobile_to_standard_newsitem(self, mobile_item, source_prefix: str) -> NewsItem:
         """모바일 크롤러 NewsItem을 표준 NewsItem으로 변환"""
+        # 실제 언론사명이 추출되었으면 사용 - 각 크롤러에서 이미 추출 완료됨
+        actual_source = getattr(mobile_item, 'source', None)
+        if not actual_source:  # source 속성이 없는 경우만 폴백
+            actual_source = f"{source_prefix}뉴스"  # 기본값으로 폴백
+        # "알수없음"은 유효한 추출 결과이므로 그대로 사용
+            
+        # 썸네일 정보 확인
+        thumbnail = getattr(mobile_item, 'thumbnail', None)
+            
         return NewsItem(
             title=mobile_item.title,
             content=mobile_item.content,
-            source=f"{source_prefix}뉴스",  # "다음뉴스" 형태로 통일
+            source=actual_source,  # 실제 추출된 언론사명 사용
             source_url=mobile_item.url,  # DaumMobileCrawler는 url 속성 사용
             published_at=mobile_item.publish_date,
-            category=mobile_item.category
+            category=mobile_item.category,
+            thumbnail=thumbnail  # 썸네일 정보 추가
         )
     
     async def crawl_naver_news(self) -> Dict[str, int]:
@@ -240,6 +253,39 @@ class UnifiedCrawlerManager:
             logger.error(f"❌ 구글 크롤링 오류: {e}")
             await self.log_crawl_result("google", 0, 0, f"ERROR: {str(e)}")
             return {'source': 'google', 'total_saved': 0, 'error': str(e)}
+
+    async def crawl_bills(self, days: int = 30) -> Dict[str, int]:
+        """국회 법안 크롤링"""
+        start_time = datetime.now()
+        logger.info(f"🔥 국회 법안 크롤링 시작 - {start_time}")
+        
+        try:
+            async with self.nass_crawler as crawler:
+                bills = await crawler.crawl_recent_bills(days=days)
+                
+                if self.db_manager:
+                    result = self.db_manager.save_bills_batch(bills)
+                    saved = result.get('saved', 0)
+                else:
+                    saved = 0
+
+                end_time = datetime.now()
+                duration = (end_time - start_time).total_seconds()
+                
+                logger.info(f"✅ 국회 법안 크롤링 완료 - 총 {saved}개 저장, {duration:.1f}초 소요")
+                
+                await self.log_crawl_result("nass", saved, duration, "SUCCESS")
+                
+                return {
+                    'source': 'nass',
+                    'total_saved': saved,
+                    'duration': duration
+                }
+
+        except Exception as e:
+            logger.error(f"❌ 국회 법안 크롤링 오류: {e}")
+            await self.log_crawl_result("nass", 0, 0, f"ERROR: {str(e)}")
+            return {'source': 'nass', 'total_saved': 0, 'error': str(e)}
     
     async def save_to_factlab_db(self, news_items: List[NewsItem], source: str) -> int:
         """FactLab 데이터베이스에 저장 (PostgreSQL 직접 연결)"""
@@ -268,8 +314,8 @@ class UnifiedCrawlerManager:
                     
                     # 뉴스 삽입
                     cursor.execute("""
-                        INSERT INTO news (title, content, url, source, publish_date, category, status, created_at, updated_at)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO news (title, content, url, source, publish_date, category, status, created_at, updated_at, thumbnail)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         RETURNING id
                     """, (
                         news_item.title,
@@ -280,7 +326,8 @@ class UnifiedCrawlerManager:
                         news_item.category,
                         'PENDING',  # 크롤링 후 관리자 승인 대기
                         datetime.now(),
-                        datetime.now()
+                        datetime.now(),
+                        news_item.thumbnail  # 썸네일 정보 추가
                     ))
                     
                     result = cursor.fetchone()

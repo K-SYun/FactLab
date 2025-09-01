@@ -48,6 +48,21 @@ public class AdminBoardController {
     }
 
     /**
+     * 활성화된 게시판 목록 조회 (관리자용)
+     * GET /api/admin/boards/active
+     */
+    @GetMapping("/boards/active")
+    @Operation(summary = "활성화된 게시판 목록 조회", description = "관리자가 활성화된 게시판 목록을 조회합니다")
+    public ApiResponse<List<BoardResponseDto>> getActiveBoards() {
+        try {
+            List<BoardResponseDto> boards = postService.getAllActiveBoards();
+            return ApiResponse.success(boards, "활성화된 게시판 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("활성화된 게시판 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
      * 게시판 생성 (관리자용)
      * POST /api/admin/boards
      */

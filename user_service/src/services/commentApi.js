@@ -130,19 +130,23 @@ class CommentApi {
     }
   }
 
-  // 사용자 댓글 목록 조회 (마이페이지용)
+  // 사용자 댓글 목록 조회 (마이페이지용) - 뉴스 제목 포함
   async getUserComments(userId, page = 0, size = 20) {
     try {
-      const response = await fetch(`${this.baseUrl}/users/${userId}/comments?page=${page}&size=${size}`);
+      const response = await fetch(`${this.baseUrl}/news/comments/user/${userId}?page=${page}&size=${size}`);
       const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || '댓글 목록을 가져오는데 실패했습니다.');
       }
       
-      return result.data;
+      // Page 객체에서 content 배열 추출
+      const comments = result.data?.content || result.data || [];
+      console.log('사용자 뉴스 댓글 API 응답 처리:', comments);
+      
+      return comments;
     } catch (error) {
-      console.error('사용자 댓글 조회 오류:', error);
+      console.error('사용자 뉴스 댓글 조회 오류:', error);
       throw error;
     }
   }

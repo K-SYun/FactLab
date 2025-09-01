@@ -32,8 +32,18 @@ axiosInstance.interceptors.request.use(
     });
     
     const token = localStorage.getItem('adminToken');
+    const adminId = localStorage.getItem('adminId');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Admin-Id 헤더 추가 (백엔드 API에서 요구)
+    if (adminId) {
+      config.headers['Admin-Id'] = adminId;
+    } else {
+      // 임시로 기본 Admin ID 설정 (개발용)
+      config.headers['Admin-Id'] = '1';
     }
     return config;
   },

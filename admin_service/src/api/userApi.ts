@@ -73,7 +73,7 @@ class UserApi {
       success: boolean;
       data: UsersResponse;
       error?: string;
-    }>('/users', { params });
+    }>('/admin/users', { params });
     return response.data;
   }
 
@@ -83,7 +83,7 @@ class UserApi {
       success: boolean;
       data: User;
       error?: string;
-    }>(`/users/${id}`);
+    }>(`/admin/users/${id}`);
     return response.data;
   }
 
@@ -93,7 +93,7 @@ class UserApi {
       success: boolean;
       data: User;
       error?: string;
-    }>(`/users/${id}`, updateData);
+    }>(`/admin/users/${id}`, updateData);
     return response.data;
   }
 
@@ -103,7 +103,7 @@ class UserApi {
       success: boolean;
       data: null;
       error?: string;
-    }>(`/users/${id}`);
+    }>(`/admin/users/${id}`);
     return response.data;
   }
 
@@ -113,7 +113,7 @@ class UserApi {
       success: boolean;
       data: null;
       error?: string;
-    }>('/users/batch-status', data);
+    }>('/admin/users/batch-status', data);
     return response.data;
   }
 
@@ -123,7 +123,7 @@ class UserApi {
       success: boolean;
       data: UserStats;
       error?: string;
-    }>('/users/stats');
+    }>('/admin/users/stats');
     return response.data;
   }
 }

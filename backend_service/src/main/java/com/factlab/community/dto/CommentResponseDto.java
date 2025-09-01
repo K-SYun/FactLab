@@ -12,6 +12,7 @@ public class CommentResponseDto {
     private Long id;
     private Long postId;
     private Long newsId;
+    private String newsTitle; // 뉴스 제목 필드 추가
     private Long parentCommentId;
     private Long userId;
     private String authorName;
@@ -120,6 +121,14 @@ public class CommentResponseDto {
     
     public void setNewsId(Long newsId) {
         this.newsId = newsId;
+    }
+    
+    public String getNewsTitle() {
+        return newsTitle;
+    }
+    
+    public void setNewsTitle(String newsTitle) {
+        this.newsTitle = newsTitle;
     }
     
     public Long getParentCommentId() {

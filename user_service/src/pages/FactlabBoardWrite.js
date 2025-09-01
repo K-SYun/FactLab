@@ -19,8 +19,6 @@ const FactlabBoardWrite = () => {
   });
   const [tags, setTags] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [autoSave, setAutoSave] = useState(true);
-  const [autoSaveStatus, setAutoSaveStatus] = useState('자동 저장됨 (30초 전)');
   const [tagInput, setTagInput] = useState('');
   const [currentBoard, setCurrentBoard] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -75,9 +73,6 @@ const FactlabBoardWrite = () => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    loadDraft();
-    const interval = enableAutoSave();
-    
     // 페이지 나가기 전 경고
     const handleBeforeUnload = (e) => {
       if (formData.title.trim() || formData.content.trim()) {
@@ -89,7 +84,6 @@ const FactlabBoardWrite = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
@@ -135,8 +129,6 @@ const FactlabBoardWrite = () => {
       
       if (response.success) {
         alert('게시글이 등록되었습니다.');
-        // 임시저장 데이터 삭제
-        localStorage.removeItem('factlab_draft');
         // 해당 게시판으로 이동
         navigate(`/board/${formData.boardId}`);
       } else {
@@ -284,75 +276,6 @@ const FactlabBoardWrite = () => {
     setTags(prev => prev.filter(tag => tag !== tagText));
   };
 
-  const saveDraft = () => {
-    const draftData = {
-      ...formData,
-      tags: tags,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('factlab_draft', JSON.stringify(draftData));
-    setAutoSaveStatus('임시저장됨 (방금 전)');
-    alert('임시저장되었습니다.');
-  };
-
-  const enableAutoSave = () => {
-    return setInterval(() => {
-      if (autoSave && (formData.title.trim() || formData.content.trim())) {
-        const draftData = {
-          ...formData,
-          tags: tags,
-          timestamp: new Date().toISOString()
-        };
-        
-        localStorage.setItem('factlab_draft', JSON.stringify(draftData));
-        setAutoSaveStatus('자동저장됨 (방금 전)');
-      }
-    }, 30000); // 30초마다
-  };
-
-  const loadDraft = () => {
-    const savedDraft = localStorage.getItem('factlab_draft');
-    if (savedDraft) {
-      const draftData = JSON.parse(savedDraft);
-      const timeDiff = new Date() - new Date(draftData.timestamp);
-      
-      // 1일 이내의 임시저장만 복원
-      if (timeDiff < 24 * 60 * 60 * 1000) {
-        if (window.confirm('임시저장된 글이 있습니다. 불러오시겠습니까?')) {
-          setFormData({
-            boardId: draftData.boardId || '',
-            title: draftData.title || '',
-            content: draftData.content || '',
-            author: draftData.author || '닉네임'
-          });
-          
-          if (draftData.tags) {
-            setTags(draftData.tags);
-          }
-        }
-      }
-    }
-  };
-
-  const handlePreview = () => {
-    if (!formData.title || !formData.content) {
-      alert('제목과 내용을 입력하세요.');
-      return;
-    }
-    
-    const previewWindow = window.open('', 'preview', 'width=800,height=600');
-    previewWindow.document.write(`
-      <html>
-      <head><title>미리보기</title></head>
-      <body style="font-family: Malgun Gothic; padding: 20px;">
-        <h2>${formData.title}</h2>
-        <hr>
-        <div style="white-space: pre-wrap;">${formData.content}</div>
-      </body>
-      </html>
-    `);
-  };
 
   const handleCancel = () => {
     if (window.confirm('작성 중인 내용이 사라집니다. 계속하시겠습니까?')) {
@@ -387,7 +310,7 @@ const FactlabBoardWrite = () => {
       <div className="main-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
-          📢<br />좌측<br />광고<br />영역<br />(160px)
+          
         </div>
         {/* 메인 컨텐츠 */}
         <div className="main-content">
@@ -542,23 +465,10 @@ const FactlabBoardWrite = () => {
         {/* 폼 하단 */}
         <div className="form-footer">
           <div className="form-options">
-            <div className="checkbox-group">
-              <input 
-                type="checkbox" 
-                id="autoSave" 
-                checked={autoSave}
-                onChange={(e) => setAutoSave(e.target.checked)}
-              />
-              <label htmlFor="autoSave">자동 저장</label>
-            </div>
-            <div className="auto-save-status">
-              {autoSaveStatus}
-            </div>
+            {/* 자동저장 옵션 제거됨 */}
           </div>
           
           <div>
-            <button type="button" className="btn btn-secondary" onClick={saveDraft}>임시저장</button>
-            <button type="button" className="btn" onClick={handlePreview}>미리보기</button>
             <button type="button" className="btn" onClick={handleCancel}>취소</button>
             <button 
               type="submit" 
@@ -574,7 +484,7 @@ const FactlabBoardWrite = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          📢<br />우측<br />광고<br />영역<br />(160px)
+          
         </div>
       </div>
       <Footer />

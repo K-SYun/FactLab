@@ -5,6 +5,10 @@ import '../styles/Main.css';
 const Footer = () => (
   <footer className="news-footer">
     <div className="news-footer-content">
+      <div className="news-footer-logo">
+        <img src="/Logo.png" alt="FactLab Icon" className="news-logo-icon" />
+        <img src="/Logo2.png" alt="FactLab" className="news-logo-text" />
+      </div>
       <div className="news-footer-links">
         <a href="/about">회사소개</a>
         <a href="#">이용약관</a>

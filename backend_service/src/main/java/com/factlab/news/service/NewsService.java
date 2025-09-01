@@ -167,6 +167,7 @@ public class NewsService {
                 .collect(Collectors.toList());
     }
 
+
     // 뉴스 상태 업데이트
     public NewsDto updateNewsStatus(Integer newsId, News.NewsStatus status) {
         News news = newsRepository.findById(newsId)

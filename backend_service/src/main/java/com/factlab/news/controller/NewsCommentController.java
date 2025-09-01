@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -129,6 +132,25 @@ public class NewsCommentController {
             return ApiResponse.success(null, "뉴스 댓글에 좋아요를 추가했습니다.");
         } catch (Exception e) {
             return ApiResponse.error("좋아요 추가 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 사용자가 작성한 뉴스 댓글 목록 (마이페이지용)
+     * GET /api/news/comments/user/{userId}
+     */
+    @GetMapping("/comments/user/{userId}")
+    @Operation(summary = "사용자 뉴스 댓글 목록", description = "특정 사용자가 작성한 뉴스 댓글 목록을 뉴스 제목과 함께 조회합니다")
+    public ApiResponse<Page<CommentResponseDto>> getUserNewsComments(
+            @Parameter(description = "사용자 ID") @PathVariable Long userId,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<CommentResponseDto> comments = newsCommentService.getUserNewsCommentsWithNewsTitle(userId, pageable);
+            return ApiResponse.success(comments, "사용자 뉴스 댓글 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("사용자 뉴스 댓글 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 }

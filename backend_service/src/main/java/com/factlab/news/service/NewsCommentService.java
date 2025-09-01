@@ -186,6 +186,25 @@ public class NewsCommentService {
     }
     
     /**
+     * 사용자가 작성한 뉴스 댓글 목록 (뉴스 제목 포함)
+     */
+    @Transactional(readOnly = true)
+    public Page<CommentResponseDto> getUserNewsCommentsWithNewsTitle(Long userId, Pageable pageable) {
+        Page<NewsComment> comments = newsCommentRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                userId, CommentStatus.ACTIVE, pageable);
+        
+        return comments.map(comment -> {
+            CommentResponseDto dto = new CommentResponseDto(comment);
+            // 뉴스 제목 추가
+            if (comment.getNews() != null) {
+                dto.setNewsTitle(comment.getNews().getTitle());
+                dto.setNewsId(comment.getNews().getId().longValue());
+            }
+            return dto;
+        });
+    }
+    
+    /**
      * 최근 뉴스 댓글 조회
      */
     @Transactional(readOnly = true)

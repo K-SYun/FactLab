@@ -71,7 +71,10 @@ const Pagination: React.FC<PaginationProps> = ({
         {pageNumbers.map(pageNum => (
           <button
             key={pageNum}
-            onClick={() => onPageChange(pageNum)}
+            onClick={() => {
+              console.log(`Pagination button clicked: ${pageNum}, current: ${currentPage}`);
+              onPageChange(pageNum);
+            }}
             className={`admin-pagination-btn ${currentPage === pageNum ? 'active' : ''}`}
           >
             {pageNum}

@@ -1,0 +1,117 @@
+# Multi-stage build for React production
+FROM node:18-alpine as builder
+
+# 보안: non-root 사용자 생성
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 패키지 파일 복사 및 의존성 설치
+COPY package*.json ./
+RUN npm ci --only=production --silent
+
+# 소스 코드 복사
+COPY . .
+
+# 사용자 전환
+USER nextjs
+
+# 프로덕션 빌드
+RUN npm run build
+
+# Production 이미지 - nginx 사용
+FROM nginx:alpine
+
+# 보안 패키지 설치
+RUN apk add --no-cache \
+    curl \
+    ca-certificates
+
+# non-root 사용자로 nginx 실행 설정
+RUN addgroup -g 1001 -S nginx-user && \
+    adduser -S -G nginx-user nginx-user
+
+# Nginx 설정 파일 생성
+COPY --chown=nginx-user:nginx-user <<EOF /etc/nginx/nginx.conf
+user nginx-user;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    # 보안 헤더
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # 로그 형식
+    log_format main '\$remote_addr - \$remote_user [\$time_local] "\$request" '
+                    '\$status \$body_bytes_sent "\$http_referer" '
+                    '"\$http_user_agent" "\$http_x_forwarded_for"';
+    
+    access_log /var/log/nginx/access.log main;
+    
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_tokens off;
+    
+    gzip on;
+    gzip_vary on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+    
+    server {
+        listen 3000;
+        server_name localhost;
+        root /usr/share/nginx/html;
+        index index.html;
+        
+        # SPA 라우팅 지원
+        location / {
+            try_files \$uri \$uri/ /index.html;
+        }
+        
+        # 정적 파일 캐싱
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+        
+        # 보안 파일 접근 차단
+        location ~ /\. {
+            deny all;
+            access_log off;
+            log_not_found off;
+        }
+    }
+}
+EOF
+
+# 빌드된 파일 복사
+COPY --from=builder --chown=nginx-user:nginx-user /app/build /usr/share/nginx/html
+
+# 권한 설정
+RUN chown -R nginx-user:nginx-user /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /etc/nginx/nginx.conf /var/run/nginx.pid
+
+# 사용자 전환
+USER nginx-user
+
+# 포트 노출
+EXPOSE 3000
+
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000 || exit 1
+
+# nginx 실행
+CMD ["nginx", "-g", "daemon off;"]

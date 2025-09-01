@@ -47,14 +47,14 @@ const AIManagement: React.FC = () => {
   const [manualCrawlingMessage, setManualCrawlingMessage] = useState('');
   const [manualCrawlingDetails, setManualCrawlingDetails] = useState<string[]>([]);
   const [manualRemainingTime, setManualRemainingTime] = useState(0);
-  
+
   // 스케줄 크롤링 (배치 자동 실행) - 카드 옆 상태 표시용 
   const [isScheduleCrawling, setIsScheduleCrawling] = useState(false);
   const [scheduleCrawlingProgress, setScheduleCrawlingProgress] = useState(0);
   const [scheduleCrawlingMessage, setScheduleCrawlingMessage] = useState('');
   const [scheduleRemainingTime, setScheduleRemainingTime] = useState(0)
   const [forceUpdate, setForceUpdate] = useState(0); // 강제 리렌더링용
-  
+
   // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(100);
@@ -71,7 +71,7 @@ const AIManagement: React.FC = () => {
     { key: 'world', label: '세계' },
     { key: 'environment', label: '기후/환경' }
   ];
-  
+
 
   // 환경에 따라 AI API 경로 설정하는 공통 함수
   const getAIApiBase = () => {
@@ -94,15 +94,15 @@ const AIManagement: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         const progressData = result.progress;
-        
+
         if (progressData.is_running) {
-          
+
           // React 상태 업데이트를 배치로 처리 (React 18 자동 배치)
-          const progress = progressData.total_articles > 0 
-            ? (progressData.completed_articles / progressData.total_articles) * 100 
+          const progress = progressData.total_articles > 0
+            ? (progressData.completed_articles / progressData.total_articles) * 100
             : 0;
           const newProgress = Math.round(progress);
-          
+
           // 남은 시간 계산 (각 소스당 약 30-60초 소요)
           let estimatedMinutes = 0;
           if (progress > 0 && progress < 100) {
@@ -111,14 +111,14 @@ const AIManagement: React.FC = () => {
           } else if (progressData.completed_articles === 0 && progressData.total_articles > 0) {
             estimatedMinutes = Math.ceil(progressData.total_articles * 1); // 전체 약 3분 예상
           }
-          
-          const newMessage = progressData.current_category 
+
+          const newMessage = progressData.current_category
             ? `${progressData.current_category} 분야 크롤링 중...`
             : '크롤링 중...';
-          
+
           // 로그 포맷: 수집된 뉴스 번호-제목-출처
           const newDetails = progressData.details || [];
-          
+
           // 크롤링 타입에 따라 적절한 상태 설정
           if (progressData.crawl_type === 'manual') {
             setIsManualCrawling(true);
@@ -126,34 +126,34 @@ const AIManagement: React.FC = () => {
             setManualCrawlingMessage(newMessage);
             setManualRemainingTime(estimatedMinutes);
             setManualCrawlingDetails(newDetails);
-            
+
             // 스케줄 크롤링 상태는 해제
             setIsScheduleCrawling(false);
-            
+
           } else if (progressData.crawl_type === 'schedule') {
             setIsScheduleCrawling(true);
             setScheduleCrawlingProgress(newProgress);
             setScheduleCrawlingMessage(newMessage);
             setScheduleRemainingTime(estimatedMinutes);
-            
+
             // 수동 크롤링 상태는 해제
             setIsManualCrawling(false);
-            
+
           } else {
             // crawl_type이 없거나 알 수 없는 경우 - 기본적으로 스케줄 크롤링으로 처리 (카드만 표시)
             setIsScheduleCrawling(true);
             setScheduleCrawlingProgress(newProgress);
             setScheduleCrawlingMessage(newMessage);
             setScheduleRemainingTime(estimatedMinutes);
-            
+
             // 수동 크롤링 상태는 해제
             setIsManualCrawling(false);
           }
-          
+
           setLastStatusCheck(new Date());
           setForceUpdate(prev => prev + 1);
-          
-          
+
+
         } else {
           // 모든 크롤링 상태 해제
           setIsManualCrawling(false);
@@ -161,7 +161,7 @@ const AIManagement: React.FC = () => {
           setManualRemainingTime(0);
           setManualCrawlingMessage('');
           setManualCrawlingDetails([]);
-          
+
           setIsScheduleCrawling(false);
           setScheduleCrawlingProgress(0);
           setScheduleRemainingTime(0);
@@ -190,7 +190,7 @@ const AIManagement: React.FC = () => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
       if (response.ok) {
         setAiServiceStatus('online');
       } else {
@@ -205,25 +205,25 @@ const AIManagement: React.FC = () => {
   useEffect(() => {
     checkAIServiceStatus();
     checkCrawlingStatus(); // 크롤링 상태도 초기 체크
-    
+
     // 전역 크롤링 상태 체크 (5초마다 - 크롤링 여부에 상관없이)
     const globalStatusCheck = setInterval(() => {
       checkCrawlingStatus();
     }, 5000);
-    
+
     return () => clearInterval(globalStatusCheck);
   }, [checkCrawlingStatus, checkAIServiceStatus]);
 
   // 크롤링 상태 주기적 체크 (크롤링 중일 때만)
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isManualCrawling || isScheduleCrawling) {
       interval = setInterval(() => {
         checkCrawlingStatus();
       }, 3000); // 3초마다 체크
     }
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -244,7 +244,7 @@ const AIManagement: React.FC = () => {
   // 실시간 타이머 카운트다운 (1초마다 시간 감소)
   useEffect(() => {
     let countdownInterval: NodeJS.Timeout;
-    
+
     if (isManualCrawling || isScheduleCrawling) {
       countdownInterval = setInterval(() => {
         if (manualRemainingTime > 0) {
@@ -255,7 +255,7 @@ const AIManagement: React.FC = () => {
         }
       }, 1000); // 1초마다 실행
     }
-    
+
     return () => {
       if (countdownInterval) {
         clearInterval(countdownInterval);
@@ -292,23 +292,33 @@ const AIManagement: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         const apiNews = result.data || [];
-        
+
         // API 뉴스를 AIManagement 형식으로 변환 (이미 백엔드에서 필터링됨)
-        const convertedNews: NewsItem[] = apiNews.map((news: any) => ({
-          id: news.id,
-          title: news.title,
-          content: news.content,
-          url: news.url,
-          source: news.source,
-          publisher: news.source,
-          category: news.category,
-          publishDate: news.publishDate,
-          status: news.status,
-          createdAt: news.publishDate,
-          updatedAt: news.publishDate,
-          thumbnail: news.thumbnail  // 썸네일 필드 추가
-        }));
-        
+        const convertedNews: NewsItem[] = apiNews.map((news: any) => {
+          // 크롤링 소스 경로 추출 (네이버/다음)
+          let crawlSource = "알수없음";
+          if (news.url && news.url.includes('naver.com')) {
+            crawlSource = "네이버";
+          } else if (news.url && news.url.includes('daum.net')) {
+            crawlSource = "다음";
+          }
+
+          return {
+            id: news.id,
+            title: news.title,
+            content: news.content,
+            url: news.url,
+            source: crawlSource,  // 크롤링 경로 (네이버/다음)
+            publisher: news.source,  // 실제 언론사명 (세계일보 등)
+            category: news.category,
+            publishDate: news.publishDate,
+            status: news.status,
+            createdAt: news.publishDate,
+            updatedAt: news.publishDate,
+            thumbnail: news.thumbnail
+          };
+        });
+
         return convertedNews;
       } else {
         return [];
@@ -326,11 +336,11 @@ const AIManagement: React.FC = () => {
       try {
         // 1. 전체 뉴스 수 먼저 가져오기
         await getTotalNewsCount();
-        
+
         // 2. 첫 페이지 데이터 로드
         const newsData = await loadNewsData(0, 100);
         setNewsItems(newsData);
-        
+
         // 체크박스 모두 해제 상태로 시작
         setSelectedNewsIds([]);
         setIsSelectAll(false);
@@ -363,7 +373,7 @@ const AIManagement: React.FC = () => {
   useEffect(() => {
     const startIdx = (currentPage - 1) * itemsPerPage;
     const currentPageItems = filteredNewsItems.slice(startIdx, startIdx + itemsPerPage);
-    
+
     if (currentPageItems.length > 0) {
       const currentPageIds = currentPageItems.map(news => news.id);
       const currentPageSelected = currentPageIds.filter(id => selectedNewsIds.includes(id));
@@ -393,22 +403,22 @@ const AIManagement: React.FC = () => {
     if (!news) return;
 
     setSelectedNewsIds(prev => {
-      const newSelected = prev.includes(newsId) 
+      const newSelected = prev.includes(newsId)
         ? prev.filter(id => id !== newsId)
         : [...prev, newsId];
-      
+
       // 전체 선택 상태 업데이트 (현재 페이지 기준)
       const currentPageIds = currentNewsItems.map(news => news.id);
       const currentPageSelected = currentPageIds.filter(id => newSelected.includes(id));
       setIsSelectAll(currentPageSelected.length === currentPageIds.length && currentPageIds.length > 0);
-      
+
       return newSelected;
     });
   };
 
   // AI 분석 시작
   const handleStartAnalysis = async () => {
-    
+
     if (selectedNewsIds.length === 0) {
       alert('분석할 뉴스를 선택해주세요.');
       return;
@@ -436,7 +446,7 @@ const AIManagement: React.FC = () => {
     }
 
     setActionLoading(true);
-    
+
     try {
       // 실제 AI 분석 서비스 API 호출
       const analysisPromises = pendingSelectedIds.map(async (newsId) => {
@@ -452,7 +462,7 @@ const AIManagement: React.FC = () => {
         });
 
         try {
-          // 2. 실제 AI 분석 API 호출 (crawler-ai-service)
+          // 2. 실제 AI 분석 API 호출 (ai-service)
           console.log(`🤖 AI 분석 시작: 뉴스 ID ${newsId}`);
           const aiResponse = await fetch(`${getAIApiBase()}/api/analyze/news/${newsId}`, {
             method: 'POST',
@@ -464,7 +474,7 @@ const AIManagement: React.FC = () => {
           if (aiResponse.ok) {
             const aiResult = await aiResponse.json();
             console.log(`✅ AI 분석 완료: 뉴스 ID ${newsId}`, aiResult);
-            
+
             // 3. 분석 성공 시 REVIEW_PENDING으로 상태 변경
             await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REVIEW_PENDING`, {
               method: 'PUT',
@@ -472,21 +482,21 @@ const AIManagement: React.FC = () => {
                 'Content-Type': 'application/json',
               }
             });
-            
+
             // 4. 뉴스 관리로 자동 전송 (분석 완료된 뉴스는 AI 관리에서 제거)
             setNewsItems(prev => {
               const filteredItems = prev.filter(news => news.id !== newsId);
-              
+
               // 분석 완료 알림 (마지막 뉴스 완료시) - 미사용 변수 제거
-              
+
               // AI 분석 완료 후 자동으로 뉴스 관리로 전송됨 (alert 제거)
-              
+
               return filteredItems;
             });
-            
+
           } else {
             console.error(`❌ AI 분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
-            
+
             // 분석 실패 시 PENDING으로 되돌리기
             await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
               method: 'PUT',
@@ -494,18 +504,18 @@ const AIManagement: React.FC = () => {
                 'Content-Type': 'application/json',
               }
             });
-            
+
             // UI 상태 업데이트
-            setNewsItems(prev => prev.map(news => 
-              news.id === newsId 
+            setNewsItems(prev => prev.map(news =>
+              news.id === newsId
                 ? { ...news, status: 'PENDING' as const, errorMessage: 'AI 분석 실패' }
                 : news
             ));
           }
-          
+
         } catch (aiError) {
           console.error(`❌ AI 분석 오류: 뉴스 ID ${newsId}`, aiError);
-          
+
           // 분석 오류 시 PENDING으로 되돌리기
           await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
             method: 'PUT',
@@ -513,10 +523,10 @@ const AIManagement: React.FC = () => {
               'Content-Type': 'application/json',
             }
           });
-          
+
           // UI 상태 업데이트
-          setNewsItems(prev => prev.map(news => 
-            news.id === newsId 
+          setNewsItems(prev => prev.map(news =>
+            news.id === newsId
               ? { ...news, status: 'PENDING' as const, errorMessage: '네트워크 오류' }
               : news
           ));
@@ -524,19 +534,19 @@ const AIManagement: React.FC = () => {
       });
 
       await Promise.all(analysisPromises);
-      
+
       // UI에서 상태를 PROCESSING으로 즉시 변경
-      setNewsItems(prev => prev.map(news => 
-        pendingSelectedIds.includes(news.id) 
+      setNewsItems(prev => prev.map(news =>
+        pendingSelectedIds.includes(news.id)
           ? { ...news, status: 'PROCESSING' as const, updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
           : news
       ));
-      
+
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-      
+
       alert(`🤖 ${pendingSelectedIds.length}개의 뉴스에 대한 실제 AI 분석(Gemini)이 시작되었습니다!\n\n분석이 완료되면 뉴스 관리 화면으로 자동 전송됩니다.\n뉴스 관리에서 승인하여 사용자 화면에 노출하세요.`);
-      
+
     } catch (error) {
       alert('백엔드 AI 분석 중 오류가 발생했습니다.\n\nbackend-service가 실행되고 있는지 확인해주세요.\n(포트 8080에서 실행되어야 합니다)');
       console.error('Backend AI Analysis Error:', error);
@@ -568,22 +578,22 @@ const AIManagement: React.FC = () => {
     }
 
     setActionLoading(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // 상태를 PENDING으로 되돌리고 진행률 초기화
-      setNewsItems(prev => prev.map(news => 
-        processingSelectedIds.includes(news.id) 
+      setNewsItems(prev => prev.map(news =>
+        processingSelectedIds.includes(news.id)
           ? { ...news, status: 'PENDING' as const, analysisProgress: undefined, updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
           : news
       ));
-      
+
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-      
+
       alert(`${processingSelectedIds.length}개의 뉴스 분석이 중지되었습니다.`);
-      
+
     } catch (error) {
       alert('분석 중지 중 오류가 발생했습니다.');
       console.error('Stop Analysis Error:', error);
@@ -615,22 +625,22 @@ const AIManagement: React.FC = () => {
     }
 
     setActionLoading(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // 상태를 PROCESSING으로 변경
-      setNewsItems(prev => prev.map(news => 
-        rejectedSelectedIds.includes(news.id) 
+      setNewsItems(prev => prev.map(news =>
+        rejectedSelectedIds.includes(news.id)
           ? { ...news, status: 'PROCESSING' as const, analysisProgress: 0, errorMessage: undefined, updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
           : news
       ));
-      
+
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-      
+
       alert(`${rejectedSelectedIds.length}개의 뉴스 재분석이 시작되었습니다.`);
-      
+
     } catch (error) {
       alert('재분석 중 오류가 발생했습니다.');
       console.error('Retry Analysis Error:', error);
@@ -662,7 +672,7 @@ const AIManagement: React.FC = () => {
     }
 
     setActionLoading(true);
-    
+
     try {
       // 실제 백엔드 API 호출로 뉴스 상태를 REVIEW_PENDING으로 변경
       const updatePromises = reviewPendingSelectedIds.map(async (newsId) => {
@@ -685,15 +695,15 @@ const AIManagement: React.FC = () => {
       });
 
       await Promise.all(updatePromises);
-      
+
       // 전송된 뉴스들을 AI 관리 화면에서 제거
       setNewsItems(prev => prev.filter(news => !reviewPendingSelectedIds.includes(news.id)));
-      
+
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-      
+
       alert(`${reviewPendingSelectedIds.length}개의 뉴스가 뉴스 관리로 전송되었습니다.\n뉴스 관리 화면(http://localhost:3001/news)에서 확인하세요.`);
-      
+
     } catch (error) {
       alert('뉴스 전송 중 오류가 발생했습니다: ' + (error as Error).message);
       console.error('Send to News Management Error:', error);
@@ -709,7 +719,7 @@ const AIManagement: React.FC = () => {
     }
 
     setActionLoading(true);
-    
+
     try {
       const crawlerApiBase = getCrawlerApiBase();
       const response = await fetch(`${crawlerApiBase}/crawl/all`, {
@@ -718,7 +728,7 @@ const AIManagement: React.FC = () => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('Crawling started:', result);
@@ -726,7 +736,7 @@ const AIManagement: React.FC = () => {
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
     } catch (error) {
       console.error('Crawling error:', error);
       alert('뉴스 크롤링 시작 중 오류가 발생했습니다: ' + (error as Error).message);
@@ -759,7 +769,7 @@ const AIManagement: React.FC = () => {
 
     setActionLoading(true);
     setCrawlingStatus('선택된 뉴스 삭제 중...');
-    
+
     try {
       // 선택된 뉴스들을 개별적으로 삭제
       const deletePromises = pendingSelectedIds.map(async (newsId) => {
@@ -778,17 +788,21 @@ const AIManagement: React.FC = () => {
       });
 
       await Promise.all(deletePromises);
-      
-      setCrawlingStatus('뉴스 삭제 완료, 화면 업데이트 중...');
-      
-      // 삭제된 뉴스들을 목록에서 제거
-      setNewsItems(prev => prev.filter(news => !pendingSelectedIds.includes(news.id)));
+
+      setCrawlingStatus('뉴스 삭제 완료, 데이터 새로고침 중...');
+
+      // 전체 데이터를 다시 로드
+      await getTotalNewsCount(); // 전체 뉴스 수 재계산
+      const newsData = await loadNewsData(currentPage - 1, itemsPerPage); // 현재 페이지 데이터 다시 로드
+      setNewsItems(newsData);
+
+      // 체크박스 상태 초기화
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-      
+
       setCrawlingStatus('');
       alert(`${pendingSelectedIds.length}개의 AI 분석되지 않은 뉴스가 삭제되었습니다.`);
-      
+
     } catch (error) {
       console.error('Delete news error:', error);
       setCrawlingStatus('');
@@ -802,17 +816,17 @@ const AIManagement: React.FC = () => {
 
   // 분석 완료된 뉴스 자동 뉴스 관리로 전송
   const handleAutoSendCompleted = useCallback(async () => {
-    const completedNews = newsItems.filter(news => 
+    const completedNews = newsItems.filter(news =>
       news.status === 'REVIEW_PENDING' && news.analysisProgress === 100
     );
-    
+
     if (completedNews.length === 0) {
       return;
     }
 
     try {
       console.log(`${completedNews.length}개의 완료된 뉴스를 자동으로 뉴스 관리로 전송 중...`);
-      
+
       // 각 완료된 뉴스를 REVIEW_PENDING 상태로 변경
       const updatePromises = completedNews.map(async (news) => {
         const response = await fetch(`${getBackendApiBase()}/news/${news.id}/status?status=REVIEW_PENDING`, {
@@ -832,20 +846,20 @@ const AIManagement: React.FC = () => {
 
       const results = await Promise.all(updatePromises);
       const successCount = results.filter(result => result !== null).length;
-      
+
       if (successCount > 0) {
         // 전송 성공한 뉴스들을 AI 관리에서 제거
         const successNewsIds = completedNews.slice(0, successCount).map(news => news.id);
         setNewsItems(prev => prev.filter(news => !successNewsIds.includes(news.id)));
-        
+
         console.log(`✅ ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
-        
+
         // 사용자에게 알림 (선택적)
         if (successCount >= 3) { // 3개 이상일 때만 알림
           alert(`🤖 AI 분석이 완료된 ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
         }
       }
-      
+
     } catch (error) {
       console.error('자동 전송 중 오류:', error);
     }
@@ -863,7 +877,14 @@ const AIManagement: React.FC = () => {
   // 시간 포맷팅
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('ko-KR');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   // 상태별 라벨
@@ -895,7 +916,7 @@ const AIManagement: React.FC = () => {
     return (
       <div className="admin-fade-in">
         <h1 className="admin-text-2xl admin-font-bold admin-text-gray-800 admin-mb-6">AI 뉴스분석 (Gemini AI로 실제 분석합니다)</h1>
-        <div className="admin-flex-center" style={{ height: '200px' }}>
+        <div className="admin-flex-center admin-loading-container">
           <p className="admin-text-gray-500">데이터를 로드하는 중...</p>
         </div>
       </div>
@@ -911,58 +932,63 @@ const AIManagement: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentNewsItems = filteredNewsItems.slice(0, itemsPerPage); // 현재 로드된 데이터에서 표시
-  
+
   // 페이지 변경 핸들러
   const handlePageChange = async (page: number) => {
-    setCurrentPage(page);
-    setLoading(true);
+    console.log(`AIManagement handlePageChange called with page: ${page}`);
     
-    try {
-      // 새 페이지 데이터 로드
-      const newsData = await loadNewsData(page - 1, itemsPerPage);
-      setNewsItems(newsData);
+    // 즉시 페이지 상태 업데이트 (UI 반응성을 위해)
+    setCurrentPage(page);
+    
+    // 체크박스 상태 초기화
+    setSelectedNewsIds([]);
+    setIsSelectAll(false);
+
+    // 약간의 지연 후 데이터 로드 (상태 업데이트가 UI에 반영되도록)
+    setTimeout(async () => {
+      setLoading(true);
       
-      // 페이지 변경 시 체크박스 상태 초기화
-      setSelectedNewsIds([]);
-      setIsSelectAll(false);
-    } catch (error) {
-      console.error('Page change data load failed:', error);
-    } finally {
-      setLoading(false);
-    }
+      try {
+        // 새 페이지 데이터 로드
+        const newsData = await loadNewsData(page - 1, itemsPerPage);
+        setNewsItems(newsData);
+      } catch (error) {
+        console.error('Page change data load failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, 0);
   };
 
   return (
     <div className="admin-fade-in">
       <div className="admin-flex-between admin-mb-6">
         <div>
-          <div className="admin-flex" style={{ alignItems: 'center', gap: '12px' }}>
+          <div className="admin-header-flex">
             <h1 className="admin-text-2xl admin-font-bold admin-text-gray-800">AI 뉴스분석</h1>
-            <div className="admin-flex" style={{ alignItems: 'center', gap: '8px' }}>
+            <div className="admin-status-flex">
               <span className="admin-text-sm">크롤링:</span>
-              <span 
-                className={`admin-text-xs admin-font-medium`}
+              <span
+                className={`admin-text-xs admin-font-medium admin-status-badge`}
                 style={{
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  backgroundColor: 
+                  backgroundColor:
                     (isManualCrawling || isScheduleCrawling) ? '#dbeafe' : '#d1fae5',
-                  color: 
+                  color:
                     (isManualCrawling || isScheduleCrawling) ? '#1d4ed8' : '#059669'
                 }}
               >
-                {(isManualCrawling || isScheduleCrawling) ? 
-                  `🔵 실행중(남은시간:${Math.floor((manualRemainingTime || scheduleRemainingTime) / 60).toString().padStart(2, '0')}:${((manualRemainingTime || scheduleRemainingTime) % 60).toString().padStart(2, '0')})` : 
+                {(isManualCrawling || isScheduleCrawling) ?
+                  `🔵 실행중(남은시간:${Math.floor((manualRemainingTime || scheduleRemainingTime) / 60).toString().padStart(2, '0')}:${((manualRemainingTime || scheduleRemainingTime) % 60).toString().padStart(2, '0')})` :
                   '🟢 대기중'
                 }
               </span>
             </div>
           </div>
         </div>
-        <div className="admin-flex" style={{ gap: '8px' }}>
+        <div className="admin-buttons-flex">
           {/* 메인 AI 분석 버튼 */}
-          <div className="admin-flex" style={{ alignItems: 'center', gap: '8px' }}>
-            <button 
+          <div className="admin-button-group">
+            <button
               className="admin-btn admin-btn-primary"
               onClick={() => {
                 console.log('🔥 AI 버튼 클릭됨!');
@@ -984,16 +1010,14 @@ const AIManagement: React.FC = () => {
               })()}
             </button>
           </div>
-          
+
           {/* 크롤링 버튼 */}
-          <button 
-            className="admin-btn admin-btn-info"
+          <button
+            className={`admin-btn admin-btn-info admin-crawling-btn`}
             onClick={handleCrawlNews}
             disabled={actionLoading || isManualCrawling || isScheduleCrawling}
             title={(isManualCrawling || isScheduleCrawling) ? "크롤링이 진행 중입니다. 완료 후 다시 시도해주세요." : "뉴스를 크롤링하여 새로운 데이터를 수집합니다"}
-            style={{ 
-              backgroundColor: (actionLoading || isManualCrawling || isScheduleCrawling) ? '#9ca3af' : '#06b6d4', 
-              borderColor: (actionLoading || isManualCrawling || isScheduleCrawling) ? '#9ca3af' : '#06b6d4', 
+            style={{
               color: 'white',
               cursor: (actionLoading || isManualCrawling || isScheduleCrawling) ? 'not-allowed' : 'pointer'
             }}
@@ -1001,19 +1025,17 @@ const AIManagement: React.FC = () => {
             <i className={`fas ${(actionLoading || isManualCrawling || isScheduleCrawling) ? 'fa-spinner fa-spin' : 'fa-download'} mr-2`}></i>
             {(isManualCrawling || isScheduleCrawling) ? '크롤링 중...' : '뉴스 크롤링'}
           </button>
-          
+
           {/* 뉴스삭제 버튼 */}
-          <button 
-            className="admin-btn admin-btn-warning"
+          <button
+            className={`admin-btn admin-btn-warning admin-delete-btn`}
             onClick={handleClearData}
             disabled={actionLoading || selectedNewsIds.length === 0}
-            title={selectedNewsIds.length === 0 ? 
-              "삭제할 뉴스를 먼저 선택해주세요" : 
+            title={selectedNewsIds.length === 0 ?
+              "삭제할 뉴스를 먼저 선택해주세요" :
               "선택된 AI 분석되지 않은 뉴스(분석 대기중)를 삭제합니다"
             }
-            style={{ 
-              backgroundColor: (actionLoading || selectedNewsIds.length === 0) ? '#9ca3af' : '#f59e0b', 
-              borderColor: (actionLoading || selectedNewsIds.length === 0) ? '#9ca3af' : '#f59e0b', 
+            style={{
               color: 'white',
               cursor: (actionLoading || selectedNewsIds.length === 0) ? 'not-allowed' : 'pointer'
             }}
@@ -1034,7 +1056,7 @@ const AIManagement: React.FC = () => {
       {/* 통계 카드 */}
       <div className="admin-grid admin-grid-cols-3 admin-gap-6 admin-mb-6">
         <div className="admin-stat-card">
-          <div className="admin-flex" style={{ alignItems: 'center', gap: '12px' }}>
+          <div className="admin-stat-flex">
             <div className="admin-stat-icon admin-bg-blue-100">
               <i className="fas fa-clock admin-text-blue-600"></i>
             </div>
@@ -1042,9 +1064,9 @@ const AIManagement: React.FC = () => {
             <div className="admin-stat-number">{pendingNews.length}</div>
           </div>
         </div>
-        
+
         <div className="admin-stat-card">
-          <div className="admin-flex" style={{ alignItems: 'center', gap: '12px' }}>
+          <div className="admin-stat-flex">
             <div className="admin-stat-icon admin-bg-yellow-100">
               <i className="fas fa-cogs admin-text-yellow-600"></i>
             </div>
@@ -1052,16 +1074,16 @@ const AIManagement: React.FC = () => {
             <div className="admin-stat-number">{processingNews.length}</div>
           </div>
         </div>
-        
+
         <div className="admin-stat-card">
-          <div className="admin-flex" style={{ alignItems: 'center', gap: '12px' }}>
+          <div className="admin-stat-flex">
             <div className={`admin-stat-icon ${isScheduleCrawling ? 'admin-bg-blue-100' : 'admin-bg-gray-100'}`}>
               <i className={`fas fa-newspaper ${isScheduleCrawling ? 'admin-text-blue-600' : 'admin-text-gray-600'}`}></i>
             </div>
-            <div className="admin-flex admin-flex-col" style={{ flex: 1 }}>
+            <div className="admin-stat-content">
               <div className="admin-stat-label">전체 뉴스</div>
               {isScheduleCrawling && (
-                <div className="admin-text-xs admin-text-blue-600" style={{ marginTop: '2px' }}>
+                <div className="admin-text-xs admin-text-blue-600 admin-progress-text">
                   <i className="fas fa-spinner fa-spin mr-1"></i>
                   {scheduleCrawlingProgress === 0 ? '스케줄 크롤링 중...' : `스케줄 크롤링 ${scheduleCrawlingProgress}%`}
                   {scheduleRemainingTime > 0 && ` (약 ${scheduleRemainingTime}분 남음)`}
@@ -1071,19 +1093,19 @@ const AIManagement: React.FC = () => {
             <div className="admin-stat-number">{newsItems.length}</div>
             {(isScheduleCrawling || isManualCrawling) && (
               <div className="admin-ml-2">
-                <div className="admin-progress-bar" style={{ 
-                  width: '60px', 
-                  height: '6px', 
-                  backgroundColor: '#e5e7eb', 
+                <div className="admin-progress-bar" style={{
+                  width: '60px',
+                  height: '6px',
+                  backgroundColor: '#e5e7eb',
                   borderRadius: '3px',
                   overflow: 'hidden'
                 }}>
-                  <div 
-                    className="admin-progress-fill" 
-                    style={{ 
-                      width: `${manualCrawlingProgress}%`, 
-                      height: '100%', 
-                      backgroundColor: '#06b6d4', 
+                  <div
+                    className="admin-progress-fill"
+                    style={{
+                      width: `${manualCrawlingProgress}%`,
+                      height: '100%',
+                      backgroundColor: '#06b6d4',
                       transition: 'width 0.5s ease'
                     }}
                   ></div>
@@ -1102,9 +1124,8 @@ const AIManagement: React.FC = () => {
               <button
                 key={category.key}
                 onClick={() => setSelectedCategory(category.key)}
-                className={`admin-category-tab ${
-                  selectedCategory === category.key ? 'active' : 'inactive'
-                }`}
+                className={`admin-category-tab ${selectedCategory === category.key ? 'active' : 'inactive'
+                  }`}
               >
                 {category.label}
               </button>
@@ -1117,7 +1138,7 @@ const AIManagement: React.FC = () => {
       <div className="admin-card">
         <div className="admin-card-header">
           <div className="admin-flex-between">
-            <div className="admin-flex" style={{ alignItems: 'center', gap: '12px' }}>
+            <div className="admin-stat-flex">
               <input
                 type="checkbox"
                 checked={isSelectAll}
@@ -1154,31 +1175,31 @@ const AIManagement: React.FC = () => {
                         checked={selectedNewsIds.includes(news.id)}
                         onChange={() => toggleSelectNews(news.id)}
                         disabled={actionLoading}
-                        style={{ 
-                          width: '16px', 
+                        style={{
+                          width: '16px',
                           height: '16px',
                           opacity: 1,
                           marginTop: '2px'
                         }}
                       />
-                      
+
                       {/* 썸네일 이미지 */}
                       {news.thumbnail && (
-                        <div style={{ 
-                          width: '80px', 
-                          height: '60px', 
+                        <div style={{
+                          width: '80px',
+                          height: '60px',
                           borderRadius: '6px',
                           overflow: 'hidden',
                           flexShrink: 0,
                           backgroundColor: '#f3f4f6'
                         }}>
-                          <img 
-                            src={news.thumbnail} 
+                          <img
+                            src={news.thumbnail}
                             alt="뉴스 썸네일"
-                            style={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              objectFit: 'cover' 
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
                             }}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
@@ -1186,30 +1207,30 @@ const AIManagement: React.FC = () => {
                           />
                         </div>
                       )}
-                      
+
                       <div style={{ flex: 1 }}>
-                        <h4 className="admin-text-md admin-font-medium admin-text-gray-900" 
-                            style={{ 
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              marginBottom: '4px'
-                            }}
-                            title={`[${news.id}] ${news.title}`}
+                        <h4 className="admin-text-md admin-font-medium admin-text-gray-900"
+                          style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            marginBottom: '4px'
+                          }}
+                          title={`[${news.id}] ${news.title}`}
                         >
                           [{news.id}] {news.title}
                         </h4>
                         <div className="admin-flex" style={{ alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <StatusBadge 
-                            status={getStatusBadgeType(news.status)} 
-                            text={getStatusLabel(news.status)} 
+                          <StatusBadge
+                            status={getStatusBadgeType(news.status)}
+                            text={getStatusLabel(news.status)}
                           />
                           {news.status === 'PROCESSING' && news.analysisProgress !== undefined && (
                             <div className="admin-flex" style={{ alignItems: 'center', gap: '8px' }}>
-                              <div style={{ 
-                                width: '100px', 
-                                height: '8px', 
-                                backgroundColor: '#e5e7eb', 
+                              <div style={{
+                                width: '100px',
+                                height: '8px',
+                                backgroundColor: '#e5e7eb',
                                 borderRadius: '4px',
                                 overflow: 'hidden'
                               }}>
@@ -1259,16 +1280,16 @@ const AIManagement: React.FC = () => {
                   )}
 
                   <div className="admin-flex admin-text-sm admin-text-gray-500" style={{ gap: '16px' }}>
-                    <span><i className="fas fa-building mr-1"></i>{news.source} / {news.publisher}</span>
-                    <span><i className="fas fa-folder mr-1"></i>{news.category}</span>
-                    <span><i className="fas fa-clock mr-1"></i>{formatDateTime(news.createdAt)}</span>
-                    <span><i className="fas fa-link mr-1"></i><a href={news.url} target="_blank" rel="noopener noreferrer" className="admin-text-blue-600 hover:admin-text-blue-800">원문 보기</a></span>
+                    <span><i className="fas fa-building mr-1"></i> {news.source} / {news.publisher}</span>
+                    <span><i className="fas fa-folder mr-1"></i> {news.category}</span>
+                    <span><i className="fas fa-clock mr-1"></i> {formatDateTime(news.createdAt)}</span>
+                    <span><i className="fas fa-link mr-1"></i><a href={news.url} target="_blank" rel="noopener noreferrer" className="admin-text-blue-600 hover:admin-text-blue-800"> 원문 보기</a></span>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          
+
           {/* 페이징 - 뉴스가 있을 때 항상 표시 */}
           {totalItems > 0 && (
             <Pagination

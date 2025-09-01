@@ -53,17 +53,17 @@ def health():
 @app.post("/crawl/news")
 async def crawl_news(background_tasks: BackgroundTasks, category: str = "politics"):
     """뉴스 수집 및 DB 저장"""
-    def crawl_task():
+    async def crawl_task():
         try:
-            result = crawler_manager.crawl_and_save_all_sources(category)
-            logger.info(f"Crawl result for {category}: {result}")
+            result = await crawler_manager.manual_crawl_all()
+            logger.info(f"Crawl result: {result}")
             return result
         except Exception as e:
             logger.error(f"Error crawling news: {e}")
             return {'saved': 0, 'duplicates': 0, 'errors': 1}
     
     background_tasks.add_task(crawl_task)
-    return {"message": f"News crawling started for category: {category}"}
+    return {"message": f"News crawling started"}
 
 @app.post("/crawl/all")
 async def crawl_all_news(background_tasks: BackgroundTasks):
@@ -79,6 +79,21 @@ async def crawl_all_news(background_tasks: BackgroundTasks):
     
     background_tasks.add_task(crawl_all_task)
     return {"message": "Full news crawling and saving started"}
+
+@app.post("/crawl/bills")
+async def crawl_bills(background_tasks: BackgroundTasks, days: int = 30):
+    """국회 법안 수집 및 DB 저장"""
+    async def crawl_task():
+        try:
+            result = await crawler_manager.crawl_bills(days=days)
+            logger.info(f"Crawl result: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error crawling bills: {e}")
+            return {'saved': 0, 'duplicates': 0, 'errors': 1}
+    
+    background_tasks.add_task(crawl_task)
+    return {"message": f"Bill crawling started for the last {days} days"}
 
 # AI 분석 엔드포인트 
 @app.post("/analyze/news/{news_id}")

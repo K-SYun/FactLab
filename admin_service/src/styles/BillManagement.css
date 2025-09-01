@@ -1,0 +1,600 @@
+/* 법안 관리 스타일 */
+.admin-bills-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.admin-bills-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-bills-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.admin-bills-subtitle {
+  font-size: 14px;
+  color: #718096;
+  margin: 4px 0 0 0;
+}
+
+/* 탭 네비게이션 */
+.admin-bills-tabs {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  padding: 6px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-bills-tab {
+  flex: 1;
+  padding: 12px 16px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  color: #718096;
+}
+
+.admin-bills-tab:hover {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.admin-bills-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 카테고리 필터 */
+.admin-bills-category-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.admin-bills-category-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-bills-category-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.admin-bills-category-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+}
+
+/* 액션 버튼 영역 */
+.admin-bills-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-bills-actions-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-bills-actions-right {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-bills-search-input {
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 300px;
+  transition: border-color 0.2s ease;
+}
+
+.admin-bills-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.admin-bills-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-bills-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.admin-bills-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.admin-bills-btn-success {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.admin-bills-btn-danger {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: white;
+}
+
+.admin-bills-btn-secondary {
+  background: #f7fafc;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.admin-bills-btn-secondary:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+/* 테이블 스타일 */
+.admin-bills-table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-bills-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-bills-table th {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-bills-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #4a5568;
+  vertical-align: top;
+}
+
+.admin-bills-table tr:hover {
+  background-color: #f7fafc;
+}
+
+.admin-bills-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 법안 제목 스타일 */
+.admin-bill-title {
+  font-weight: 600;
+  color: #2d3748;
+  max-width: 300px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.admin-bill-title:hover {
+  color: #667eea;
+}
+
+/* 법안 요약 */
+.admin-bill-summary {
+  max-width: 200px;
+  line-height: 1.4;
+  color: #718096;
+  font-size: 13px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* 발의자 정보 */
+.admin-bill-proposer {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.admin-bill-party {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 2px;
+}
+
+/* 카테고리 배지 */
+.admin-bill-category {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* 상태 배지 */
+.admin-bill-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 70px;
+}
+
+.admin-bill-status.pending {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.admin-bill-status.approved {
+  background: #c6f6d5;
+  color: #25543e;
+}
+
+.admin-bill-status.rejected {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.admin-bill-status.processing {
+  background: #fbb6ce;
+  color: #97266d;
+}
+
+/* 통과 가능성 배지 */
+.admin-bill-probability {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-bill-probability.HIGH {
+  background: #c6f6d5;
+  color: #25543e;
+}
+
+.admin-bill-probability.MEDIUM {
+  background: #fef5e7;
+  color: #c05621;
+}
+
+.admin-bill-probability.LOW {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+/* 긴급도 배지 */
+.admin-bill-urgency {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-bill-urgency.URGENT {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.admin-bill-urgency.HIGH {
+  background: #fef5e7;
+  color: #c05621;
+}
+
+.admin-bill-urgency.NORMAL {
+  background: #e6fffa;
+  color: #285e61;
+}
+
+.admin-bill-urgency.LOW {
+  background: #edf2f7;
+  color: #4a5568;
+}
+
+/* 점수 표시 */
+.admin-bill-score {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.admin-bill-score.high {
+  color: #38a169;
+}
+
+.admin-bill-score.medium {
+  color: #d69e2e;
+}
+
+.admin-bill-score.low {
+  color: #e53e3e;
+}
+
+/* 투표 수 */
+.admin-bill-votes {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.admin-bill-votes-for {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.admin-bill-votes-against {
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+/* 액션 버튼 */
+.admin-bill-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-bill-action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-bill-action-btn.approve {
+  background: #c6f6d5;
+  color: #25543e;
+}
+
+.admin-bill-action-btn.approve:hover {
+  background: #9ae6b4;
+}
+
+.admin-bill-action-btn.reject {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.admin-bill-action-btn.reject:hover {
+  background: #feb2b2;
+}
+
+.admin-bill-action-btn.feature {
+  background: #bee3f8;
+  color: #2a69ac;
+}
+
+.admin-bill-action-btn.feature:hover {
+  background: #90cdf4;
+}
+
+.admin-bill-action-btn.edit {
+  background: #fef5e7;
+  color: #c05621;
+}
+
+.admin-bill-action-btn.edit:hover {
+  background: #fbd38d;
+}
+
+.admin-bill-action-btn.delete {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.admin-bill-action-btn.delete:hover {
+  background: #feb2b2;
+}
+
+/* 체크박스 */
+.admin-bill-checkbox {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* 날짜 형식 */
+.admin-bill-date {
+  font-size: 12px;
+  color: #718096;
+  font-family: 'Courier New', monospace;
+}
+
+/* 로딩 상태 */
+.admin-bills-loading {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+}
+
+.admin-bills-loading i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 에러 상태 */
+.admin-bills-error {
+  text-align: center;
+  padding: 40px;
+  color: #e53e3e;
+  background: #fed7d7;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+/* 빈 상태 */
+.admin-bills-empty {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+  background: white;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.admin-bills-empty i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #cbd5e0;
+}
+
+/* 모달 스타일 */
+.admin-bill-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.admin-bill-modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 90%;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.admin-bill-modal-header {
+  padding: 24px;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-bill-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.admin-bill-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #718096;
+  cursor: pointer;
+}
+
+.admin-bill-modal-body {
+  padding: 24px;
+}
+
+.admin-bill-modal-footer {
+  padding: 24px;
+  border-top: 2px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .admin-bills-table th,
+  .admin-bills-table td {
+    padding: 12px 8px;
+  }
+  
+  .admin-bill-title {
+    max-width: 250px;
+  }
+  
+  .admin-bill-summary {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-bills-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .admin-bills-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .admin-bills-search-input {
+    width: 100%;
+  }
+  
+  .admin-bills-table-container {
+    overflow-x: auto;
+  }
+  
+  .admin-bills-table {
+    min-width: 800px;
+  }
+}

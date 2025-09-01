@@ -129,7 +129,7 @@ public class UserService {
             }
             
             User user = userOpt.get();
-            user.setStatus(User.UserStatus.INACTIVE);
+            user.setStatus(User.UserStatus.INACTIVE); // 상태를 INACTIVE(삭제)로 변경
             userRepository.save(user);
             
             return ApiResponse.success(null);
