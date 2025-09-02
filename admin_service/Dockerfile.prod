@@ -32,88 +32,6 @@ RUN apk add --no-cache \
 RUN addgroup -g 1001 -S nginx-user && \
     adduser -S -G nginx-user nginx-user
 
-# Nginx 설정 파일 생성 (관리자 전용 보안 강화)
-COPY --chown=nginx-user:nginx-user <<EOF /etc/nginx/nginx.conf
-user nginx-user;
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    # 관리자 전용 보안 헤더 강화
-    add_header X-Frame-Options "DENY" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" always;
-    
-    # 로그 형식 (관리자 접근 기록)
-    log_format admin '\$remote_addr - \$remote_user [\$time_local] "\$request" '
-                     '\$status \$body_bytes_sent "\$http_referer" '
-                     '"\$http_user_agent" "\$http_x_forwarded_for" '
-                     'admin_access=true';
-    
-    access_log /var/log/nginx/admin_access.log admin;
-    
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 30;  # 관리자는 짧은 keepalive
-    types_hash_max_size 2048;
-    server_tokens off;
-    
-    # 업로드 크기 제한
-    client_max_body_size 10M;
-    
-    gzip on;
-    gzip_vary on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
-    
-    server {
-        listen 3001;
-        server_name localhost;
-        root /usr/share/nginx/html;
-        index index.html;
-        
-        # Rate limiting (관리자 전용)
-        limit_req_zone \$binary_remote_addr zone=admin:10m rate=10r/m;
-        limit_req zone=admin burst=5 nodelay;
-        
-        # SPA 라우팅 지원
-        location / {
-            try_files \$uri \$uri/ /index.html;
-        }
-        
-        # 정적 파일 캐싱 (보안상 짧은 캐시)
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 1h;
-            add_header Cache-Control "private, no-cache";
-        }
-        
-        # 보안 파일 접근 차단
-        location ~ /\. {
-            deny all;
-            access_log off;
-            log_not_found off;
-        }
-        
-        # 의심스러운 파일 확장자 차단
-        location ~* \.(php|asp|jsp|cgi|py|sh)$ {
-            deny all;
-            access_log off;
-            log_not_found off;
-        }
-    }
-}
-EOF
-
 # 빌드된 파일 복사
 COPY --from=builder --chown=nginx-user:nginx-user /app/build /usr/share/nginx/html
 
@@ -128,7 +46,5 @@ EXPOSE 3001
 
 # 헬스체크
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3001 || exit 1
+    CMD curl -f http://localhost:3001 || exit 1
 
-# nginx 실행
-CMD ["nginx", "-g", "daemon off;"]
