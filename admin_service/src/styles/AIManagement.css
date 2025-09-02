@@ -70,6 +70,59 @@
   margin-bottom: 16px;
 }
 
+/* AI 분석 버튼 그룹 */
+.admin-button-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-button-group .admin-btn {
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-button-group .admin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-button-group .admin-btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.admin-button-group .admin-btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.admin-button-group .admin-btn-info {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+.admin-button-group .admin-btn-info:hover:not(:disabled) {
+  background-color: #0284c7;
+}
+
+.admin-button-group .admin-btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.admin-button-group .admin-btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
 /* AI 분석 통계 */
 .admin-ai-stats {
   display: grid;

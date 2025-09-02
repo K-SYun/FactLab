@@ -5,7 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### React App (User Service - Port 3000)
+### React App (User Service - 
+Port 3000)
 ```bash
 npm start                # Start development server
 npm run build           # Build for production

@@ -279,7 +279,7 @@ const FactlabReport = () => {
                   required
                 />
                 <div className="report-help-text">
-                  예: https://factlab.com/post/1234 또는 게시글 번호
+                  예: https://polradar.com/post/1234 또는 게시글 번호
                 </div>
               </div>
             )}

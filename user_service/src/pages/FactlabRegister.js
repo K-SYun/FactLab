@@ -515,7 +515,7 @@ const FactlabRegister = () => {
       <header className="header">
         <div className="header-content">
           <a href="/" className="logo">
-            <img src="/Logo.png" alt="FactLab" className="logo-img" />
+            <img src="/Logo.png" alt="PolRadar" className="logo-img" />
           </a>
           <div className="nav-menu">
             <a href="/">홈</a>

@@ -149,10 +149,14 @@ public class CommentController {
      */
     @PostMapping("/{commentId}/like")
     @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 추가합니다")
-    public ApiResponse<Void> likeComment(@PathVariable Long commentId) {
+    public ApiResponse<Void> likeComment(
+            @PathVariable Long commentId,
+            @RequestBody LikeRequest likeRequest) {
         try {
-            postCommentService.likeComment(commentId);
+            postCommentService.likeComment(commentId, likeRequest.getUserId());
             return ApiResponse.success(null, "댓글에 좋아요를 추가했습니다.");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error("좋아요 추가 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -190,5 +194,13 @@ public class CommentController {
         } catch (Exception e) {
             return ApiResponse.error("사용자 댓글 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    // 좋아요 요청 DTO
+    public static class LikeRequest {
+        private Long userId;
+
+        public Long getUserId() { return userId; }
+        public void setUserId(Long userId) { this.userId = userId; }
     }
 }

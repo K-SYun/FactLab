@@ -99,6 +99,22 @@
     border-color: #0066cc;
 }
 
+/* 권한 비활성화 스타일 */
+.board-view-vote-btn.disabled,
+.btn.disabled,
+a.disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.board-view-comment-actions a.disabled {
+    color: #999 !important;
+    text-decoration: none !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
 .board-search-btn:hover {
     background: #0052a3;
     border-color: #0052a3;

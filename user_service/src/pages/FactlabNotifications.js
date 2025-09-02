@@ -78,7 +78,7 @@ const FactlabNotifications = () => {
       id: 8,
       type: 'system',
       title: '공지사항',
-      content: '새로운 공지사항: "FactLab 서비스 이용약관 개정 안내"가 등록되었습니다.',
+      content: '새로운 공지사항: "PolRadar 서비스 이용약관 개정 안내"가 등록되었습니다.',
       time: '3일 전',
       isUnread: false,
       link: '/notice?id=1'
@@ -184,13 +184,13 @@ const FactlabNotifications = () => {
   // 페이지 제목 업데이트
   useEffect(() => {
     if (unreadCount > 0) {
-      document.title = `(${unreadCount}) 알림 - FactLab`;
+      document.title = `(${unreadCount}) 알림 - PolRadar`;
     } else {
-      document.title = '알림 - FactLab';
+      document.title = '알림 - PolRadar';
     }
 
     return () => {
-      document.title = 'FactLab';
+      document.title = 'PolRadar';
     };
   }, [unreadCount]);
 

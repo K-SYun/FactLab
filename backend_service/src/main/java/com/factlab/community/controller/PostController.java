@@ -196,10 +196,14 @@ public class PostController {
      */
     @PostMapping("/{postId}/like")
     @Operation(summary = "게시글 좋아요", description = "게시글에 좋아요를 추가합니다")
-    public ApiResponse<Void> likePost(@PathVariable Long postId) {
+    public ApiResponse<Void> likePost(
+            @PathVariable Long postId,
+            @Parameter(description = "사용자 ID") @RequestHeader("User-Id") Long userId) {
         try {
-            postService.likePost(postId);
+            postService.likePost(postId, userId);
             return ApiResponse.success(null, "게시글에 좋아요를 추가했습니다.");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error("좋아요 추가 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -337,7 +341,7 @@ public class PostController {
             @RequestBody VoteRequest voteRequest) {
         try {
             if ("up".equals(voteRequest.getVoteType())) {
-                postService.likePost(postId);
+                postService.likePost(postId, voteRequest.getUserId());
                 return ApiResponse.success(null, "게시글을 추천했습니다.");
             } else if ("down".equals(voteRequest.getVoteType())) {
                 // 비추천 기능이 필요하면 별도 메서드 추가
@@ -345,6 +349,8 @@ public class PostController {
             } else {
                 return ApiResponse.error("올바르지 않은 투표 타입입니다.");
             }
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error("투표 중 오류가 발생했습니다: " + e.getMessage());
         }

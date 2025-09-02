@@ -191,7 +191,15 @@ public class PostService {
     /**
      * 게시글 좋아요
      */
-    public void likePost(Long postId) {
+    public void likePost(Long postId, Long userId) {
+        Post post = postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        
+        // 본인 게시글 추천 방지
+        if (post.getUser() != null && post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("본인 게시글에는 추천할 수 없습니다.");
+        }
+        
         postRepository.incrementLikeCount(postId);
     }
     

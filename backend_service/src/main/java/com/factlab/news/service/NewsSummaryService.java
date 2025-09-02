@@ -40,31 +40,71 @@ public class NewsSummaryService {
                 .collect(Collectors.toList());
     }
 
+    // 분석 타입별 AI 요약 작업 조회
+    public List<NewsSummaryDto> getSummariesByAnalysisType(NewsSummary.AnalysisType analysisType, int page, int size) {
+        return newsSummaryRepository.findByAnalysisTypeOrderByCreatedAtDesc(analysisType, page * size, size)
+                .stream()
+                .map(this::convertToDtoWithNewsInfo)
+                .collect(Collectors.toList());
+    }
+
+    // 상태와 분석 타입으로 AI 요약 작업 조회
+    public List<NewsSummaryDto> getSummariesByStatusAndAnalysisType(NewsSummary.SummaryStatus status, NewsSummary.AnalysisType analysisType, int page, int size) {
+        return newsSummaryRepository.findByStatusAndAnalysisTypeOrderByCreatedAtDesc(status, analysisType, page * size, size)
+                .stream()
+                .map(this::convertToDtoWithNewsInfo)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 뉴스의 모든 분석 타입 조회
+    public List<NewsSummaryDto> getAllAnalysesByNewsId(Integer newsId) {
+        return newsSummaryRepository.findByNewsIdOrderByCreatedAtDesc(newsId)
+                .stream()
+                .map(this::convertToDtoWithNewsInfo)
+                .collect(Collectors.toList());
+    }
+
     // 특정 뉴스의 요약 조회
     public Optional<NewsSummaryDto> getSummaryByNewsId(Integer newsId) {
         return newsSummaryRepository.findSummaryByNewsId(newsId)
                 .map(this::convertToDtoWithNewsInfo);
     }
 
-    // AI 요약 작업 생성
+    // AI 요약 작업 생성 (기본: 종합분석)
     public NewsSummaryDto createSummary(Integer newsId) {
+        return createSummary(newsId, NewsSummary.AnalysisType.COMPREHENSIVE);
+    }
+
+    // AI 요약 작업 생성 (분석 타입 지정)
+    public NewsSummaryDto createSummary(Integer newsId, NewsSummary.AnalysisType analysisType) {
         // 뉴스 존재 확인
         Optional<News> newsOpt = newsRepository.findById(newsId);
         if (!newsOpt.isPresent()) {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
 
-        // 이미 요약이 존재하는지 확인
-        Optional<NewsSummary> existingSummary = newsSummaryRepository.findSummaryByNewsId(newsId);
+        // 같은 분석 타입이 이미 존재하는지 확인
+        Optional<NewsSummary> existingSummary = newsSummaryRepository.findByNewsIdAndAnalysisType(newsId, analysisType);
         if (existingSummary.isPresent()) {
-            throw new RuntimeException("이미 요약이 존재합니다: " + newsId);
+            throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 존재합니다: " + newsId);
         }
 
         NewsSummary summary = new NewsSummary(newsId);
+        summary.setAnalysisType(analysisType);
         summary.setStatus(NewsSummary.SummaryStatus.PENDING);
         summary = newsSummaryRepository.save(summary);
 
         return convertToDtoWithNewsInfo(summary);
+    }
+
+    // 분석 타입 이름 반환
+    private String getAnalysisTypeName(NewsSummary.AnalysisType analysisType) {
+        switch (analysisType) {
+            case COMPREHENSIVE: return "종합";
+            case FACT_ANALYSIS: return "사실";
+            case BIAS_ANALYSIS: return "편향성";
+            default: return "일반";
+        }
     }
 
     // AI 요약 결과 업데이트
@@ -241,6 +281,7 @@ public class NewsSummaryService {
                 summary.getAutoQuestion(),
                 summary.getReliabilityScore(),
                 summary.getAiConfidence(),
+                summary.getAnalysisType().toString().toLowerCase(),
                 summary.getStatus().toString().toLowerCase(),
                 summary.getAiModel(),
                 summary.getProcessingTime(),

@@ -34,6 +34,10 @@ public class NewsSummary {
     private Integer aiConfidence;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "analysis_type", nullable = false)
+    private AnalysisType analysisType = AnalysisType.COMPREHENSIVE;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SummaryStatus status = SummaryStatus.PENDING;
 
@@ -56,6 +60,12 @@ public class NewsSummary {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public enum AnalysisType {
+        COMPREHENSIVE,    // 종합 분석 (사실+편향성+전체 요약)
+        FACT_ANALYSIS,    // 사실 분석 전용
+        BIAS_ANALYSIS     // 편향성 분석 전용
+    }
 
     public enum SummaryStatus {
         PENDING, PROCESSING, COMPLETED, FAILED
@@ -130,6 +140,14 @@ public class NewsSummary {
 
     public void setAiConfidence(Integer aiConfidence) {
         this.aiConfidence = aiConfidence;
+    }
+
+    public AnalysisType getAnalysisType() {
+        return analysisType;
+    }
+
+    public void setAnalysisType(AnalysisType analysisType) {
+        this.analysisType = analysisType;
     }
 
     public SummaryStatus getStatus() {

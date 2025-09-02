@@ -416,8 +416,8 @@ const AIManagement: React.FC = () => {
     });
   };
 
-  // AI 분석 시작
-  const handleStartAnalysis = async () => {
+  // AI 분석 시작 (타입 지정)
+  const handleStartAnalysisWithType = async (analysisType: 'COMPREHENSIVE' | 'FACT_ANALYSIS' | 'BIAS_ANALYSIS') => {
 
     if (selectedNewsIds.length === 0) {
       alert('분석할 뉴스를 선택해주세요.');
@@ -441,7 +441,13 @@ const AIManagement: React.FC = () => {
       return;
     }
 
-    if (!window.confirm(`선택된 ${pendingSelectedIds.length}개의 뉴스를 AI 분석하시겠습니까?`)) {
+    const analysisTypeNames = {
+      'COMPREHENSIVE': '종합분석',
+      'FACT_ANALYSIS': '사실분석', 
+      'BIAS_ANALYSIS': '편향성분석'
+    };
+
+    if (!window.confirm(`선택된 ${pendingSelectedIds.length}개의 뉴스를 ${analysisTypeNames[analysisType]}하시겠습니까?`)) {
       return;
     }
 
@@ -462,13 +468,17 @@ const AIManagement: React.FC = () => {
         });
 
         try {
-          // 2. 실제 AI 분석 API 호출 (ai-service)
-          console.log(`🤖 AI 분석 시작: 뉴스 ID ${newsId}`);
-          const aiResponse = await fetch(`${getAIApiBase()}/api/analyze/news/${newsId}`, {
+          // 2. 실제 AI 분석 API 호출 (분석 타입 포함)
+          console.log(`🤖 ${analysisTypeNames[analysisType]} 시작: 뉴스 ID ${newsId}`);
+          const aiResponse = await fetch(`${getBackendApiBase()}/news-summary/admin/analyze`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({
+              newsId: newsId,
+              analysisType: analysisType
+            })
           });
 
           if (aiResponse.ok) {
@@ -545,7 +555,7 @@ const AIManagement: React.FC = () => {
       setSelectedNewsIds([]);
       setIsSelectAll(false);
 
-      alert(`🤖 ${pendingSelectedIds.length}개의 뉴스에 대한 실제 AI 분석(Gemini)이 시작되었습니다!\n\n분석이 완료되면 뉴스 관리 화면으로 자동 전송됩니다.\n뉴스 관리에서 승인하여 사용자 화면에 노출하세요.`);
+      alert(`🤖 ${pendingSelectedIds.length}개의 뉴스에 대한 ${analysisTypeNames[analysisType]}(Gemini)이 시작되었습니다!\n\n분석이 완료되면 뉴스 관리 화면으로 자동 전송됩니다.\n뉴스 관리에서 승인하여 사용자 화면에 노출하세요.`);
 
     } catch (error) {
       alert('백엔드 AI 분석 중 오류가 발생했습니다.\n\nbackend-service가 실행되고 있는지 확인해주세요.\n(포트 8080에서 실행되어야 합니다)');
@@ -553,6 +563,11 @@ const AIManagement: React.FC = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  // 레거시 지원용 (기본은 종합분석)
+  const handleStartAnalysis = async () => {
+    return handleStartAnalysisWithType('COMPREHENSIVE');
   };
 
   // AI 분석 중지
@@ -986,27 +1001,56 @@ const AIManagement: React.FC = () => {
           </div>
         </div>
         <div className="admin-buttons-flex">
-          {/* 메인 AI 분석 버튼 */}
+          {/* AI 분석 버튼 그룹 */}
           <div className="admin-button-group">
             <button
               className="admin-btn admin-btn-primary"
-              onClick={() => {
-                console.log('🔥 AI 버튼 클릭됨!');
-                console.log('선택된 뉴스:', selectedNewsIds);
-                console.log('뉴스 데이터:', newsItems);
-                handleStartAnalysis();
-              }}
-              disabled={false}
-              title="선택된 뉴스의 AI 분석을 시작합니다"
+              onClick={() => handleStartAnalysisWithType('COMPREHENSIVE')}
+              disabled={actionLoading}
+              title="종합분석: 사실성, 편향성, 전체 요약을 포함한 완전한 분석"
             >
-              <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-robot'} mr-2`}></i>
-              🤖 AI 분석 (Gemini)
+              <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-brain'} mr-2`}></i>
+              🧠 종합분석
               {(() => {
                 const pendingCount = selectedNewsIds.filter(id => {
                   const news = newsItems.find(item => item.id === id);
                   return news?.status === 'PENDING';
                 }).length;
-                return pendingCount > 0 ? ` (${pendingCount}개)` : '';
+                return pendingCount > 0 ? ` (${pendingCount})` : '';
+              })()}
+            </button>
+            
+            <button
+              className="admin-btn admin-btn-info"
+              onClick={() => handleStartAnalysisWithType('FACT_ANALYSIS')}
+              disabled={actionLoading}
+              title="사실분석: 팩트체크에 중점을 둔 분석"
+            >
+              <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-search'} mr-2`}></i>
+              🔍 사실분석
+              {(() => {
+                const pendingCount = selectedNewsIds.filter(id => {
+                  const news = newsItems.find(item => item.id === id);
+                  return news?.status === 'PENDING';
+                }).length;
+                return pendingCount > 0 ? ` (${pendingCount})` : '';
+              })()}
+            </button>
+            
+            <button
+              className="admin-btn admin-btn-secondary"
+              onClick={() => handleStartAnalysisWithType('BIAS_ANALYSIS')}
+              disabled={actionLoading}
+              title="편향성분석: 미디어 편향과 중립성 분석에 중점"
+            >
+              <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-balance-scale'} mr-2`}></i>
+              ⚖️ 편향성분석
+              {(() => {
+                const pendingCount = selectedNewsIds.filter(id => {
+                  const news = newsItems.find(item => item.id === id);
+                  return news?.status === 'PENDING';
+                }).length;
+                return pendingCount > 0 ? ` (${pendingCount})` : '';
               })()}
             </button>
           </div>

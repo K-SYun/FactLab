@@ -21,8 +21,8 @@ const FactlabAbout = () => {
   // FAQ 데이터
   const faqData = [
     {
-      question: 'Q. FactLab은 무료로 이용할 수 있나요?',
-      answer: '네, FactLab의 모든 기능은 무료로 이용 가능합니다. 회원가입만 하시면 모든 서비스를 자유롭게 사용하실 수 있습니다.'
+      question: 'Q. PolRadar은 무료로 이용할 수 있나요?',
+      answer: '네, PolRadar의 모든 기능은 무료로 이용 가능합니다. 회원가입만 하시면 모든 서비스를 자유롭게 사용하실 수 있습니다.'
     },
     {
       question: 'Q. AI가 수집하는 뉴스는 어떤 기준으로 선별되나요?',
@@ -90,7 +90,7 @@ const FactlabAbout = () => {
       <div className="news-container">
         {/* Page Header */}
         <div className="news-page-header">
-          <div className="news-page-header-title">🔍 FactLab</div>
+          <div className="news-page-header-title">🔍 PolRadar</div>
           <div className="news-page-header-subtitle">AI와 커뮤니티가 함께 만드는 팩트체크 플랫폼</div>
         </div>
         
@@ -111,9 +111,9 @@ const FactlabAbout = () => {
         {activeTab === 'about' && (
           <div className="news-about-tab-content active">
             <div className="news-about-content-section">
-              <div className="news-about-section-title">🎯 FactLab의 목표</div>
+              <div className="news-about-section-title">🎯 PolRadar의 목표</div>
               <div className="news-about-section-content">
-                <p><strong>FactLab</strong>은 AI 기술과 커뮤니티의 집단지성을 결합하여 뉴스의 신뢰성을 검증하는 플랫폼입니다.</p>
+                <p><strong>PolRadar</strong>은 AI 기술과 커뮤니티의 집단지성을 결합하여 뉴스의 신뢰성을 검증하는 플랫폼입니다.</p>
                 <p>우리의 목표는 다음과 같습니다:</p>
                 <ul>
                   <li>실시간 이슈 뉴스 수집 및 자동 요약</li>
@@ -226,7 +226,7 @@ const FactlabAbout = () => {
             <div className="news-about-content-section">
               <div className="news-about-section-title">🏆 레벨 시스템</div>
               <div className="news-about-section-content">
-                <p>FactLab에서는 사용자의 활동에 따라 레벨과 활동 점수가 부여됩니다. 높은 레벨일수록 더 많은 권한과 기능을 이용할 수 있습니다.</p>
+                <p>PolRadar에서는 사용자의 활동에 따라 레벨과 활동 점수가 부여됩니다. 높은 레벨일수록 더 많은 권한과 기능을 이용할 수 있습니다.</p>
                 
                 <table className="news-about-level-table">
                   <thead>
@@ -269,7 +269,7 @@ const FactlabAbout = () => {
             <div className="news-about-content-section">
               <div className="news-about-section-title">📋 커뮤니티 가이드라인</div>
               <div className="news-about-section-content">
-                <p>FactLab은 건전하고 생산적인 토론 문화를 위해 다음과 같은 가이드라인을 운영합니다:</p>
+                <p>PolRadar은 건전하고 생산적인 토론 문화를 위해 다음과 같은 가이드라인을 운영합니다:</p>
                 
                 <ul className="news-about-guidelines-list">
                   {guidelines.map((guideline, index) => (
@@ -302,10 +302,10 @@ const FactlabAbout = () => {
                     className="news-about-faq-question" 
                     onClick={() => toggleFAQ(index)}
                   >
-                    {faq.question}
+                    {faq.question.replace('FactLab', 'PolRadar')}
                   </div>
                   <div className={`news-about-faq-answer ${openFAQ === index ? 'active' : ''}`}>
-                    {faq.answer}
+                    {faq.answer.replace('FactLab', 'PolRadar')}
                   </div>
                 </div>
               ))}
@@ -319,12 +319,12 @@ const FactlabAbout = () => {
             <div className="news-about-content-section">
               <div className="news-about-section-title">📞 문의하기</div>
               <div className="news-about-section-content">
-                <p>FactLab 이용 중 궁금한 점이나 문제가 있으시면 언제든지 문의해주세요.</p>
+                <p>PolRadar 이용 중 궁금한 점이나 문제가 있으시면 언제든지 문의해주세요.</p>
                 
                 <div className="news-about-contact-info">
                   <div className="news-about-contact-item">
                     <div className="news-about-contact-label">이메일:</div>
-                    <div>support@factlab.com</div>
+                    <div>support@polradar.com</div>
                   </div>
                   
                   <div className="news-about-contact-item">
@@ -357,7 +357,7 @@ const FactlabAbout = () => {
                   </div>
                   
                   <div style={{textAlign: 'center', marginTop: '15px'}}>
-                    <a href="mailto:support@factlab.com" className="news-btn news-btn-primary">
+                    <a href="mailto:support@polradar.com" className="news-btn news-btn-primary">
                       이메일로 문의하기
                     </a>
                   </div>

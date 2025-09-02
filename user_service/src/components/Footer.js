@@ -6,8 +6,8 @@ const Footer = () => (
   <footer className="news-footer">
     <div className="news-footer-content">
       <div className="news-footer-logo">
-        <img src="/Logo.png" alt="FactLab Icon" className="news-logo-icon" />
-        <img src="/Logo2.png" alt="FactLab" className="news-logo-text" />
+        <img src="/Logo.png" alt="PolRadar Icon" className="news-logo-icon" />
+        <img src="/Logo2.png" alt="PolRadar" className="news-logo-text" />
       </div>
       <div className="news-footer-links">
         <a href="/about">회사소개</a>
@@ -20,9 +20,9 @@ const Footer = () => (
         <a href="/notice">공지사항</a>  
       </div>
       <div className="news-footer-info">
-        <div>FactLab | 대표: FactLab | 사업자등록번호: 123-45-67890</div>
-        <div>주소: 서울특별시 강남구 테헤란로 123, FactLab빌딩 | 이메일: contact@factlab.com</div>
-        <div>Copyright © 2024 FactLab. All rights reserved.</div>
+        <div>PolRadar | 대표: PolRadar | 사업자등록번호: 123-45-67890</div>
+        <div>주소: 서울특별시 강남구 테헤란로 123, PolRadar빌딩 | 이메일: contact@polradar.com</div>
+        <div>Copyright © 2024 PolRadar. All rights reserved.</div>
       </div>
     </div>
   </footer>

@@ -5,7 +5,7 @@
   width: 100%;
   max-width: 1200px;
   height: 90px;
-  margin: 0 auto 20px;
+  margin: 5px auto 0px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 4px;
@@ -23,19 +23,20 @@
   justify-content: center;
 }
 
-/* 사이드 광고 - 160px 너비 */
+/* 사이드 광고 - 200px 너비 (그리드와 일치) */
 .main-side-ad {
-  width: 160px;
+  width: 200px;
   min-height: 600px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 4px;
   position: sticky;
-  top: 20px;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  align-self: start;
 }
 
 .main-side-ad .ad-banner {
@@ -51,7 +52,7 @@
   width: 100%;
   max-width: 1200px;
   height: 200px;
-  margin: 20px auto;
+  margin: 0px auto;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 4px;

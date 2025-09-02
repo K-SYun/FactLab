@@ -13,9 +13,15 @@ import java.util.Optional;
 @Repository
 public interface NewsSummaryRepository extends JpaRepository<NewsSummary, Integer> {
 
-    // 뉴스 ID로 요약 조회
+    // 뉴스 ID로 요약 조회 (기본: 첫 번째 찾은 것)
     @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1")
     Optional<NewsSummary> findSummaryByNewsId(Integer newsId);
+
+    // 뉴스 ID와 분석 타입으로 요약 조회
+    Optional<NewsSummary> findByNewsIdAndAnalysisType(Integer newsId, NewsSummary.AnalysisType analysisType);
+
+    // 뉴스 ID로 모든 분석 타입 조회
+    List<NewsSummary> findByNewsIdOrderByCreatedAtDesc(Integer newsId);
 
     // 상태별 요약 조회
     List<NewsSummary> findByStatusOrderByCreatedAtDesc(NewsSummary.SummaryStatus status);
@@ -29,6 +35,19 @@ public interface NewsSummaryRepository extends JpaRepository<NewsSummary, Intege
     List<NewsSummary> findByStatusOrderByCreatedAtDesc(@Param("status") NewsSummary.SummaryStatus status, 
                                                        @Param("offset") int offset, 
                                                        @Param("limit") int limit);
+
+    // 분석 타입별 요약 조회 (페이징)
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.analysisType = :analysisType ORDER BY ns.createdAt DESC LIMIT :limit OFFSET :offset")
+    List<NewsSummary> findByAnalysisTypeOrderByCreatedAtDesc(@Param("analysisType") NewsSummary.AnalysisType analysisType, 
+                                                            @Param("offset") int offset, 
+                                                            @Param("limit") int limit);
+
+    // 상태와 분석 타입으로 요약 조회 (페이징)
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.status = :status AND ns.analysisType = :analysisType ORDER BY ns.createdAt DESC LIMIT :limit OFFSET :offset")
+    List<NewsSummary> findByStatusAndAnalysisTypeOrderByCreatedAtDesc(@Param("status") NewsSummary.SummaryStatus status,
+                                                                     @Param("analysisType") NewsSummary.AnalysisType analysisType,
+                                                                     @Param("offset") int offset, 
+                                                                     @Param("limit") int limit);
 
     // 특정 기간 내 요약 조회
     List<NewsSummary> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate);

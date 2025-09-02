@@ -50,7 +50,7 @@ const FactlabBoardView = () => {
                     ...response.data,
                     isAuthor: user?.id === response.data.userId,
                 });
-                document.title = `${response.data.title} - FactLab`;
+                document.title = `${response.data.title} - PolRadar`;
             } else {
                 console.error('게시글 로드 실패:', response);
             }
@@ -99,6 +99,11 @@ const FactlabBoardView = () => {
     const handleVote = async (type) => {
         if (!isLoggedIn) {
             setIsLoginModalOpen(true);
+            return;
+        }
+
+        if (post.isAuthor) {
+            alert('본인 게시글에는 투표할 수 없습니다.');
             return;
         }
 
@@ -167,6 +172,27 @@ const FactlabBoardView = () => {
 
     // 댓글 좋아요
     const handleLikeComment = async (commentId, isReply = false, parentId = null) => {
+        if (!isLoggedIn) {
+            setIsLoginModalOpen(true);
+            return;
+        }
+
+        // 본인 댓글인지 확인
+        let isOwnComment = false;
+        if (isReply) {
+            const parentComment = comments.find(c => c.id === parentId);
+            const reply = parentComment?.replies?.find(r => r.id === commentId);
+            isOwnComment = reply?.userId === user?.id;
+        } else {
+            const comment = comments.find(c => c.id === commentId);
+            isOwnComment = comment?.userId === user?.id;
+        }
+
+        if (isOwnComment) {
+            alert('본인 댓글에는 추천할 수 없습니다.');
+            return;
+        }
+
         try {
             // API 호출
             await boardCommentApi.likeComment(commentId, user?.id);
@@ -264,6 +290,21 @@ const FactlabBoardView = () => {
 
     // 신고 기능
     const handleReportComment = (commentId) => {
+        if (!isLoggedIn) {
+            setIsLoginModalOpen(true);
+            return;
+        }
+
+        // 본인 댓글인지 확인
+        const comment = comments.find(c => c.id === commentId);
+        const reply = comments.flatMap(c => c.replies || []).find(r => r.id === commentId);
+        const targetComment = comment || reply;
+        
+        if (targetComment?.userId === user?.id) {
+            alert('본인 댓글은 신고할 수 없습니다.');
+            return;
+        }
+
         if (window.confirm('이 댓글을 신고하시겠습니까?')) {
             alert('신고가 접수되었습니다.');
         }
@@ -283,6 +324,16 @@ const FactlabBoardView = () => {
     };
 
     const handleReportPost = () => {
+        if (!isLoggedIn) {
+            setIsLoginModalOpen(true);
+            return;
+        }
+
+        if (post.isAuthor) {
+            alert('본인 게시글은 신고할 수 없습니다.');
+            return;
+        }
+
         if (window.confirm('이 게시글을 신고하시겠습니까?')) {
             alert('신고가 접수되었습니다.');
         }
@@ -401,16 +452,18 @@ const FactlabBoardView = () => {
                                 </div>
                                 <div className="board-view-vote">
                                     <button
-                                        className={`board-view-vote-btn up ${voteStatus === 'up' ? 'voted' : ''}`}
+                                        className={`board-view-vote-btn up ${voteStatus === 'up' ? 'voted' : ''} ${post.isAuthor ? 'disabled' : ''}`}
                                         onClick={() => handleVote('up')}
-                                        disabled={voteStatus}
+                                        disabled={voteStatus || post.isAuthor}
+                                        title={post.isAuthor ? '본인 게시글에는 추천할 수 없습니다' : ''}
                                     >
                                         👍 추천 {votes.up}
                                     </button>
                                     <button
-                                        className={`board-view-vote-btn down ${voteStatus === 'down' ? 'voted' : ''}`}
+                                        className={`board-view-vote-btn down ${voteStatus === 'down' ? 'voted' : ''} ${post.isAuthor ? 'disabled' : ''}`}
                                         onClick={() => handleVote('down')}
-                                        disabled={voteStatus}
+                                        disabled={voteStatus || post.isAuthor}
+                                        title={post.isAuthor ? '본인 게시글에는 비추천할 수 없습니다' : ''}
                                     >
                                         👎 비추천 {votes.down}
                                     </button>
@@ -427,7 +480,14 @@ const FactlabBoardView = () => {
                         <div className="board-view-actions">
                             <div className="board-view-action-left">
                                 <button className="btn" onClick={handleSharePost}>공유</button>
-                                <button className="btn" onClick={handleReportPost}>신고</button>
+                                <button 
+                                    className={`btn ${post.isAuthor ? 'disabled' : ''}`} 
+                                    onClick={post.isAuthor ? null : handleReportPost}
+                                    disabled={post.isAuthor}
+                                    title={post.isAuthor ? '본인 게시글은 신고할 수 없습니다' : ''}
+                                >
+                                    신고
+                                </button>
                                 <button className="btn" onClick={handleBookmarkPost}>북마크</button>
                             </div>
                             <div className="board-view-action-right">
@@ -480,10 +540,16 @@ const FactlabBoardView = () => {
                                     </div>
                                     {!comment.isDeleted && (
                                         <div className="board-view-comment-actions">
-                                            <a href="#" onClick={(e) => {
-                                                e.preventDefault();
-                                                handleLikeComment(comment.id);
-                                            }}>
+                                            <a href="#" 
+                                               className={user?.id === comment.userId ? 'disabled' : ''}
+                                               onClick={(e) => {
+                                                   e.preventDefault();
+                                                   if (user?.id !== comment.userId) {
+                                                       handleLikeComment(comment.id);
+                                                   }
+                                               }}
+                                               title={user?.id === comment.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
+                                            >
                                                 👍 추천 {comment.likes || 0}
                                             </a>
                                             <a href="#" onClick={(e) => {
@@ -492,10 +558,16 @@ const FactlabBoardView = () => {
                                             }}>
                                                 답글
                                             </a>
-                                            <a href="#" onClick={(e) => {
-                                                e.preventDefault();
-                                                handleReportComment(comment.id);
-                                            }}>
+                                            <a href="#" 
+                                               className={user?.id === comment.userId ? 'disabled' : ''}
+                                               onClick={(e) => {
+                                                   e.preventDefault();
+                                                   if (user?.id !== comment.userId) {
+                                                       handleReportComment(comment.id);
+                                                   }
+                                               }}
+                                               title={user?.id === comment.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
+                                            >
                                                 신고
                                             </a>
                                             {isLoggedIn && user?.id === comment.userId && (
@@ -520,16 +592,28 @@ const FactlabBoardView = () => {
                                                 {reply.content}
                                             </div>
                                             <div className="board-view-comment-actions">
-                                                <a href="#" onClick={(e) => {
-                                                    e.preventDefault();
-                                                    handleLikeComment(reply.id, true, comment.id);
-                                                }}>
+                                                <a href="#" 
+                                                   className={user?.id === reply.userId ? 'disabled' : ''}
+                                                   onClick={(e) => {
+                                                       e.preventDefault();
+                                                       if (user?.id !== reply.userId) {
+                                                           handleLikeComment(reply.id, true, comment.id);
+                                                       }
+                                                   }}
+                                                   title={user?.id === reply.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
+                                                >
                                                     👍 추천 {reply.likes || 0}
                                                 </a>
-                                                <a href="#" onClick={(e) => {
-                                                    e.preventDefault();
-                                                    handleReportComment(reply.id);
-                                                }}>
+                                                <a href="#" 
+                                                   className={user?.id === reply.userId ? 'disabled' : ''}
+                                                   onClick={(e) => {
+                                                       e.preventDefault();
+                                                       if (user?.id !== reply.userId) {
+                                                           handleReportComment(reply.id);
+                                                       }
+                                                   }}
+                                                   title={user?.id === reply.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
+                                                >
                                                     신고
                                                 </a>
                                                 {isLoggedIn && user?.id === reply.userId && (

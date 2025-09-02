@@ -11,6 +11,7 @@ public class NewsSummaryDto {
     private String autoQuestion;
     private Integer reliabilityScore;
     private Integer aiConfidence;
+    private String analysisType;
     private String status;
     private String aiModel;
     private Integer processingTime;
@@ -27,8 +28,8 @@ public class NewsSummaryDto {
 
     public NewsSummaryDto(Integer id, Integer newsId, String summary, String claim, String keywords, 
                          String autoQuestion, Integer reliabilityScore, Integer aiConfidence, 
-                         String status, String aiModel, Integer processingTime, String errorMessage, 
-                         LocalDateTime createdAt, LocalDateTime updatedAt) {
+                         String analysisType, String status, String aiModel, Integer processingTime, 
+                         String errorMessage, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.newsId = newsId;
         this.summary = summary;
@@ -37,6 +38,7 @@ public class NewsSummaryDto {
         this.autoQuestion = autoQuestion;
         this.reliabilityScore = reliabilityScore;
         this.aiConfidence = aiConfidence;
+        this.analysisType = analysisType;
         this.status = status;
         this.aiModel = aiModel;
         this.processingTime = processingTime;
@@ -48,11 +50,11 @@ public class NewsSummaryDto {
     // 뉴스 정보 포함 생성자
     public NewsSummaryDto(Integer id, Integer newsId, String summary, String claim, String keywords, 
                          String autoQuestion, Integer reliabilityScore, Integer aiConfidence, 
-                         String status, String aiModel, Integer processingTime, String errorMessage, 
-                         LocalDateTime createdAt, LocalDateTime updatedAt,
+                         String analysisType, String status, String aiModel, Integer processingTime, 
+                         String errorMessage, LocalDateTime createdAt, LocalDateTime updatedAt,
                          String newsTitle, String newsCategory, String newsSource) {
         this(id, newsId, summary, claim, keywords, autoQuestion, reliabilityScore, aiConfidence, 
-             status, aiModel, processingTime, errorMessage, createdAt, updatedAt);
+             analysisType, status, aiModel, processingTime, errorMessage, createdAt, updatedAt);
         this.newsTitle = newsTitle;
         this.newsCategory = newsCategory;
         this.newsSource = newsSource;
@@ -121,6 +123,14 @@ public class NewsSummaryDto {
 
     public void setAiConfidence(Integer aiConfidence) {
         this.aiConfidence = aiConfidence;
+    }
+
+    public String getAnalysisType() {
+        return analysisType;
+    }
+
+    public void setAnalysisType(String analysisType) {
+        this.analysisType = analysisType;
     }
 
     public String getStatus() {

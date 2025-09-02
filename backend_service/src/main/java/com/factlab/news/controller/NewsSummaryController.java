@@ -127,6 +127,61 @@ public class NewsSummaryController {
         return ApiResponse.success(summaries);
     }
 
+    // ===== 관리자용 분석 타입별 API =====
+    
+    @PostMapping("/admin/analyze")
+    @Operation(summary = "관리자용 AI 분석 실행", description = "관리자가 특정 뉴스에 대해 분석 타입을 지정하여 AI 분석을 실행합니다.")
+    public ApiResponse<NewsSummaryDto> createAnalysis(@RequestBody AnalysisRequest request) {
+        try {
+            NewsSummary.AnalysisType analysisType = NewsSummary.AnalysisType.valueOf(request.analysisType.toUpperCase());
+            NewsSummaryDto summary = newsSummaryService.createSummary(request.newsId, analysisType);
+            return ApiResponse.success(summary, request.analysisType + " 분석 작업이 생성되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error("잘못된 분석 타입입니다: " + request.analysisType);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/admin/analyses/{newsId}")
+    @Operation(summary = "뉴스별 모든 분석 조회", description = "특정 뉴스의 모든 분석 타입 결과를 조회합니다.")
+    public ApiResponse<List<NewsSummaryDto>> getAnalysesByNewsId(@PathVariable Integer newsId) {
+        List<NewsSummaryDto> analyses = newsSummaryService.getAllAnalysesByNewsId(newsId);
+        return ApiResponse.success(analyses);
+    }
+
+    @GetMapping("/admin/by-type")
+    @Operation(summary = "분석 타입별 조회", description = "특정 분석 타입의 결과만 조회합니다.")
+    public ApiResponse<List<NewsSummaryDto>> getAnalysesByType(
+            @RequestParam String analysisType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            NewsSummary.AnalysisType type = NewsSummary.AnalysisType.valueOf(analysisType.toUpperCase());
+            List<NewsSummaryDto> analyses = newsSummaryService.getSummariesByAnalysisType(type, page, size);
+            return ApiResponse.success(analyses);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error("잘못된 분석 타입입니다: " + analysisType);
+        }
+    }
+
+    @GetMapping("/admin/by-status-and-type")
+    @Operation(summary = "상태와 분석 타입으로 조회", description = "상태와 분석 타입을 조합하여 조회합니다.")
+    public ApiResponse<List<NewsSummaryDto>> getAnalysesByStatusAndType(
+            @RequestParam String status,
+            @RequestParam String analysisType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            NewsSummary.SummaryStatus summaryStatus = NewsSummary.SummaryStatus.valueOf(status.toUpperCase());
+            NewsSummary.AnalysisType type = NewsSummary.AnalysisType.valueOf(analysisType.toUpperCase());
+            List<NewsSummaryDto> analyses = newsSummaryService.getSummariesByStatusAndAnalysisType(summaryStatus, type, page, size);
+            return ApiResponse.success(analyses);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error("잘못된 상태 또는 분석 타입입니다.");
+        }
+    }
+
     @GetMapping("/statistics")
     @Operation(summary = "AI 요약 통계 조회", description = "AI 요약 작업의 통계 정보를 조회합니다.")
     public ApiResponse<NewsSummaryService.SummaryStatistics> getSummaryStatistics() {
@@ -149,6 +204,11 @@ public class NewsSummaryController {
     }
 
     // Request DTOs
+    public static class AnalysisRequest {
+        public Integer newsId;
+        public String analysisType; // "COMPREHENSIVE", "FACT_ANALYSIS", "BIAS_ANALYSIS"
+    }
+
     public static class UpdateSummaryRequest {
         public String summary;
         public String claim;

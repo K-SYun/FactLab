@@ -1,0 +1,193 @@
+/* 관리자 AI 분석 컴포넌트 스타일 */
+.admin-news-analysis {
+  background: #ffffff;
+  border: 2px solid #e8f4f8;
+  border-radius: 8px;
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+}
+
+.analysis-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #0066cc;
+  padding-bottom: 12px;
+}
+
+.analysis-header h3 {
+  color: #0066cc;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+}
+
+.news-title {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  font-weight: normal;
+}
+
+.analysis-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.analysis-button-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analysis-btn {
+  flex: 1;
+  padding: 16px 20px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.analysis-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* 종합분석 버튼 */
+.analysis-btn.comprehensive {
+  background: linear-gradient(135deg, #0066cc, #0052a3);
+  color: white;
+  border-color: #0066cc;
+}
+
+.analysis-btn.comprehensive:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0052a3, #003d7a);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+/* 사실분석 버튼 */
+.analysis-btn.fact {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border-color: #28a745;
+}
+
+.analysis-btn.fact:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e7e34, #155724);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* 편향성분석 버튼 */
+.analysis-btn.bias {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  color: #333;
+  border-color: #ffc107;
+}
+
+.analysis-btn.bias:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e0a800, #c69500);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-description {
+  font-size: 12px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+.analysis-status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.analysis-status.completed {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* 스피너 애니메이션 */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 분석 결과 미리보기 */
+.analysis-results-preview {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.analysis-results-preview h4 {
+  color: #0066cc;
+  font-size: 16px;
+  margin: 0 0 12px 0;
+}
+
+.result-item {
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.result-item strong {
+  color: #333;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.result-item p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .admin-news-analysis {
+    padding: 16px;
+  }
+  
+  .analysis-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .btn-description {
+    font-size: 11px;
+  }
+}

@@ -80,8 +80,8 @@ const Header = () => {
       <header className="news-header">
         <div className="news-header-content">
           <Link to="/" className="news-logo">
-            <img src="/Logo.png" alt="FactLab Icon" className="news-logo-icon" />
-            <img src="/Logo2.png" alt="FactLab" className="news-logo-text" />
+            <img src="/Logo.png" alt="PolRadar Icon" className="news-logo-icon" />
+            <img src="/Logo2.png" alt="PolRadar" className="news-logo-text" />
           </Link>
           <div className="news-auth-buttons">
             {isLoggedIn ? (

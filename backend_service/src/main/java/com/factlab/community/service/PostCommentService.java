@@ -162,7 +162,15 @@ public class PostCommentService {
     /**
      * 댓글 좋아요
      */
-    public void likeComment(Long commentId) {
+    public void likeComment(Long commentId, Long userId) {
+        PostComment comment = postCommentRepository.findByIdAndStatus(commentId, CommentStatus.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
+        
+        // 본인 댓글 추천 방지
+        if (comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("본인 댓글에는 추천할 수 없습니다.");
+        }
+        
         postCommentRepository.incrementLikeCount(commentId);
     }
     
