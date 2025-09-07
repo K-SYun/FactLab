@@ -99,7 +99,7 @@ deploy_services() {
     log "운영 이미지 빌드 중..."
     
     # 캐시 없이 전체 이미지 재빌드
-    docker-compose -f docker-compose.prod.yml build --no-cache --parallel
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml build --no-cache --parallel
     
     log "서비스 시작 중..."
     

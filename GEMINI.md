@@ -938,3 +938,15 @@ SNS/공식 사이트 연결
   - 🔒 보안: 내부 네트워크, 최소 포트만 노출
   - ⚡ 성능: 최적화된 설정
   - 📊 모니터링: 로그 수집, 메트릭 수집
+
+
+    아래 3단계 명령어를 클라우드 서버에서 차례대로 실행하여 Docker를 초기화하고 공간을 확보하세요.
+
+   1. Docker 서비스 중지:
+   1     sudo systemctl stop docker
+
+   2. Docker 데이터 디렉토리 삭제 (1.6GB 확보):
+   1     sudo rm -rf /var/lib/docker
+
+   3. Docker 서비스 재시작:
+   1     sudo systemctl start docker
