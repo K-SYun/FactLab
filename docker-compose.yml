@@ -7,7 +7,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx-secure.conf:/etc/nginx/nginx.conf
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /tmp/ssl:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     depends_on:
       - user-service
@@ -30,6 +30,8 @@ services:
     build: 
       context: ./user_service
       dockerfile: Dockerfile.prod
+    ports:
+      - "3000:3000"
     expose:
       - "3000"
     environment:
@@ -48,6 +50,8 @@ services:
     build: 
       context: ./admin_service
       dockerfile: Dockerfile.prod
+    ports:
+      - "3001:3001"
     expose:
       - "3001"
     environment:
@@ -66,6 +70,9 @@ services:
     build: 
       context: ./backend_service
       dockerfile: Dockerfile.prod
+    ports:
+      - "8080:8080"
+      - "8081:8081"  # Actuator port
     expose:
       - "8080"
       - "8081"  # Actuator port

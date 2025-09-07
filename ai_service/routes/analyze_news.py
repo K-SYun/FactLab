@@ -1,6 +1,6 @@
 # Gemini AI 분석 라우터
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from analyzers.gemini_analyzer import GeminiNewsAnalyzer
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -30,11 +30,41 @@ def get_news_by_id(news_id: int):
         cursor.close()
         conn.close()
 
+def get_existing_analysis_type(news_id: int):
+    """기존 분석 타입 조회"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT analysis_type FROM news_summary WHERE news_id = %s", (news_id,))
+        result = cursor.fetchone()
+        return result['analysis_type'] if result else None
+    finally:
+        cursor.close()
+        conn.close()
+
 @router.post("/analyze/news/{news_id}")
-async def analyze_news(news_id: int):
+async def analyze_news(
+    news_id: int, 
+    analysis_type: str = Query(default=None, description="분석 타입: COMPREHENSIVE, FACT_ANALYSIS, BIAS_ANALYSIS")
+):
     """뉴스 Gemini AI 분석 실행"""
     try:
-        logger.info(f"뉴스 {news_id} AI 분석 요청")
+        # 기존 분석 타입 조회 (재분석인 경우)
+        existing_analysis_type = get_existing_analysis_type(news_id)
+        
+        # 분석 타입 결정: 기존 타입 > 요청 타입 > 기본값
+        final_analysis_type = existing_analysis_type or analysis_type or "COMPREHENSIVE"
+        
+        # 분석 타입 검증
+        valid_types = ["COMPREHENSIVE", "FACT_ANALYSIS", "BIAS_ANALYSIS"]
+        if final_analysis_type not in valid_types:
+            raise HTTPException(status_code=400, detail=f"유효하지 않은 분석 타입입니다. 허용되는 값: {valid_types}")
+        
+        # 재분석인지 신규 분석인지 로그로 표시
+        if existing_analysis_type:
+            logger.info(f"뉴스 {news_id} AI 재분석 요청 (기존 타입 유지: {final_analysis_type})")
+        else:
+            logger.info(f"뉴스 {news_id} AI 신규 분석 요청 (타입: {final_analysis_type})")
         
         # 뉴스 조회
         news = get_news_by_id(news_id)
@@ -44,11 +74,13 @@ async def analyze_news(news_id: int):
         # Gemini 분석기 초기화
         analyzer = GeminiNewsAnalyzer()
         
-        # 종합 분석 수행 (분석 + DB 저장 + 백엔드 알림)
+        # 분석 수행 (분석 + DB 저장 + 백엔드 알림)
         result = analyzer.analyze_news_complete(
             news_id=news_id,
             title=news.get('title', ''),
-            content=news.get('content', '')
+            content=news.get('content', ''),
+            source=news.get('source', '출처 불명'),
+            analysis_type=final_analysis_type
         )
         
         logger.info(f"뉴스 {news_id} AI 분석 완료")
@@ -57,6 +89,7 @@ async def analyze_news(news_id: int):
             "success": True,
             "news_id": news_id,
             "title": news.get('title', ''),
+            "analysis_type": final_analysis_type,
             "analysis_summary": result.get('analysis', {}).get('summary', ''),
             "db_saved": result.get('db_saved', False),
             "backend_notified": result.get('backend_notified', False),

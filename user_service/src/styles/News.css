@@ -1,6 +1,23 @@
 /* News.css */
 
 /* =============================================
+   AI 분석 타입 라벨 스타일
+   ============================================= */
+
+/* AI 분석 타입 라벨 */
+.analysis-type-label {
+  background-color: #059669;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+/* =============================================
    게시판 관련 스타일
    ============================================= */
 
@@ -1255,7 +1272,7 @@
 
 /* 추가 인라인 CSS 대체 클래스들 */
 .news-thumbnail-container {
-    margin: 20px 0;
+    margin: 10px 0;
     text-align: center;
 }
 

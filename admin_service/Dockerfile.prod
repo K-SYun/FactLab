@@ -1,50 +1,30 @@
-# Multi-stage build for React Admin production
-FROM node:18-alpine as builder
+# Production React Server
+FROM node:18-alpine
 
-# 보안: non-root 사용자 생성
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
-
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# 패키지 파일 복사 및 의존성 설치
+# Copy package files
 COPY package*.json ./
-RUN npm ci --only=production --silent
 
-# 소스 코드 복사
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
 COPY . .
 
-# 사용자 전환
-USER nextjs
-
-# 프로덕션 빌드
+# Build the app
 RUN npm run build
 
-# Production 이미지 - nginx 사용
-FROM nginx:alpine
+# Install serve to serve static files
+RUN npm install -g serve
 
-# 보안 패키지 설치
-RUN apk add --no-cache \
-    curl \
-    ca-certificates
+# ESLint 캐시 비활성화 환경변수
+ENV ESLINT_NO_DEV_ERRORS=true
+ENV GENERATE_SOURCEMAP=false
+ENV NODE_ENV=production
 
-# non-root 사용자로 nginx 실행 설정
-RUN addgroup -g 1001 -S nginx-user && \
-    adduser -S -G nginx-user nginx-user
-
-# 빌드된 파일 복사
-COPY --from=builder --chown=nginx-user:nginx-user /app/build /usr/share/nginx/html
-
-# 권한 설정
-RUN chown -R nginx-user:nginx-user /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /etc/nginx/nginx.conf /var/run/nginx.pid
-
-# 사용자 전환
-USER nginx-user
-
-# 포트 노출
+# Expose port
 EXPOSE 3001
 
-# 헬스체크
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:3001 || exit 1
-
+# Start production server
+CMD ["serve", "-s", "build", "-l", "3001"]

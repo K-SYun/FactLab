@@ -9,6 +9,7 @@ from psycopg2.extras import RealDictCursor
 from typing import Optional, Dict
 from datetime import datetime
 from dotenv import load_dotenv
+from config.prompt_loader import get_prompt_loader
 
 # 환경변수 로드
 load_dotenv()
@@ -39,37 +40,20 @@ class GeminiNewsAnalyzer:
         """데이터베이스 연결"""
         return psycopg2.connect(self.db_url, cursor_factory=RealDictCursor)
     
-    def analyze_news_content(self, title: str, content: str) -> Dict:
+    def analyze_news_content(self, title: str, content: str, source: str = "출처 불명", analysis_type: str = "COMPREHENSIVE") -> Dict:
         """뉴스 내용 종합 분석"""
         if not self.enabled:
             return self.generate_fallback_analysis(title, content)
         
         try:
-            logger.info(f"Gemini AI 분석 시작 - 제목: {title[:50]}...")
+            logger.info(f"Gemini AI 분석 시작 - 제목: {title[:50]}..., 타입: {analysis_type}")
             
-            # 한국어 프롬프트 구성
-            prompt = f"""
-다음 뉴스 기사를 분석하고 JSON 형식으로 결과를 제공해 주세요.
-
-제목: {title}
-내용: {content[:2000]}
-
-다음 항목을 분석해 주세요:
-1. summary: 3-4문장으로 핵심 내용 요약
-2. claim: 주요 주장이나 논점
-3. keywords: 핵심 키워드 5개 (쉼표로 구분)
-4. reliability_score: 신뢰도 점수 (0-100)
-5. suspicious_points: 의심스러운 부분이나 검증이 필요한 내용
-
-JSON 형식으로만 응답해 주세요:
-{{
-  "summary": "요약 내용",
-  "claim": "주요 주장",
-  "keywords": "키워드1,키워드2,키워드3,키워드4,키워드5",
-  "reliability_score": 85,
-  "suspicious_points": "검증이 필요한 부분"
-}}
-"""
+            # YAML 파일에서 프롬프트 로드
+            prompt_loader = get_prompt_loader()
+            
+            # source 매개변수를 직접 사용
+            
+            prompt = prompt_loader.build_prompt(analysis_type, title, content, source)
             
             headers = {"Content-Type": "application/json"}
             payload = {
@@ -189,7 +173,7 @@ JSON 형식으로만 응답해 주세요:
             "suspicious_points": "구체적인 근거 자료와 출처 확인이 필요하며, 관련 전문가의 의견을 추가로 확인하는 것이 좋습니다."
         }
     
-    def save_analysis_to_db(self, news_id: int, analysis: Dict) -> bool:
+    def save_analysis_to_db(self, news_id: int, analysis: Dict, analysis_type: str = "COMPREHENSIVE") -> bool:
         """AI 분석 결과를 DB에 저장"""
         try:
             conn = self.get_db_connection()
@@ -205,7 +189,7 @@ JSON 형식으로만 응답해 주세요:
                     UPDATE news_summary 
                     SET summary = %s, claim = %s, keywords = %s, 
                         reliability_score = %s, ai_confidence = %s, 
-                        updated_at = %s, status = 'COMPLETED'
+                        updated_at = %s, status = 'COMPLETED', analysis_type = %s
                     WHERE news_id = %s
                 """, (
                     analysis.get('summary', ''),
@@ -214,6 +198,7 @@ JSON 형식으로만 응답해 주세요:
                     analysis.get('reliability_score', 75),
                     min(analysis.get('reliability_score', 75), 95),  # ai_confidence
                     datetime.now(),
+                    analysis_type,  # 동적 분석 타입
                     news_id
                 ))
             else:
@@ -221,8 +206,8 @@ JSON 형식으로만 응답해 주세요:
                 cursor.execute("""
                     INSERT INTO news_summary 
                     (news_id, summary, claim, keywords, reliability_score, ai_confidence, 
-                     status, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     status, analysis_type, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     news_id,
                     analysis.get('summary', ''),
@@ -231,6 +216,7 @@ JSON 형식으로만 응답해 주세요:
                     analysis.get('reliability_score', 75),
                     min(analysis.get('reliability_score', 75), 95),
                     'COMPLETED',
+                    analysis_type,  # 동적 분석 타입
                     datetime.now(),
                     datetime.now()
                 ))
@@ -264,16 +250,16 @@ JSON 형식으로만 응답해 주세요:
             logger.error(f"백엔드 알림 오류: {e}")
             return False
     
-    def analyze_news_complete(self, news_id: int, title: str, content: str) -> Dict:
+    def analyze_news_complete(self, news_id: int, title: str, content: str, source: str = "출처 불명", analysis_type: str = "COMPREHENSIVE") -> Dict:
         """뉴스 종합 분석 및 결과 저장"""
         try:
             logger.info(f"뉴스 {news_id} 종합 분석 시작")
             
             # AI 분석 수행
-            analysis = self.analyze_news_content(title, content)
+            analysis = self.analyze_news_content(title, content, source, analysis_type)
             
             # DB에 저장
-            db_saved = self.save_analysis_to_db(news_id, analysis)
+            db_saved = self.save_analysis_to_db(news_id, analysis, analysis_type)
             
             # 백엔드 알림
             backend_notified = self.notify_backend(news_id)

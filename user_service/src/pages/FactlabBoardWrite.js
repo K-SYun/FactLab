@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import boardService from '../services/boardService';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import '../styles/Board.css';
 
 const FactlabBoardWrite = () => {
@@ -22,6 +24,15 @@ const FactlabBoardWrite = () => {
   const [tagInput, setTagInput] = useState('');
   const [currentBoard, setCurrentBoard] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const editorConfiguration = {
+    toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'link', '|',
+        'bulletedList', 'numberedList', '|',
+        'undo', 'redo'
+    ]
+  };
 
   // 게시판 정보 로드
   const loadBoardInfo = async (boardId) => {
@@ -86,7 +97,7 @@ const FactlabBoardWrite = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, [formData.title, formData.content]);
 
   // Ctrl+Enter 저장
   useEffect(() => {
@@ -105,6 +116,14 @@ const FactlabBoardWrite = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleEditorChange = (event, editor) => {
+    const data = editor.getData();
+    setFormData(prev => ({
+        ...prev,
+        content: data
     }));
   };
 
@@ -159,67 +178,6 @@ const FactlabBoardWrite = () => {
     }
     
     return true;
-  };
-
-  const formatText = (command) => {
-    const textarea = document.querySelector('[name="content"]');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    
-    let formattedText = '';
-    switch(command) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText}*`;
-        break;
-      case 'underline':
-        formattedText = `__${selectedText}__`;
-        break;
-    }
-    
-    const newContent = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
-    setFormData(prev => ({ ...prev, content: newContent }));
-    
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
-    }, 0);
-  };
-
-  const insertLink = () => {
-    const url = prompt('링크 URL을 입력하세요:');
-    const text = prompt('링크 텍스트를 입력하세요:');
-    
-    if (url && text) {
-      const link = `[${text}](${url})`;
-      insertTextAtCursor(link);
-    }
-  };
-
-  const insertImage = () => {
-    fileInputRef.current?.click();
-  };
-
-  const insertList = () => {
-    const listText = '\\n- 항목 1\\n- 항목 2\\n- 항목 3\\n';
-    insertTextAtCursor(listText);
-  };
-
-  const insertTextAtCursor = (text) => {
-    const textarea = document.querySelector('[name="content"]');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
-    const newContent = textarea.value.substring(0, start) + text + textarea.value.substring(end);
-    setFormData(prev => ({ ...prev, content: newContent }));
-    
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + text.length, start + text.length);
-    }, 0);
   };
 
   const handleFileChange = (e) => {
@@ -337,7 +295,7 @@ const FactlabBoardWrite = () => {
               type="text" 
               className="form-input" 
               name="title" 
-              placeholder="제목을 입력하세요" 
+              placeholder="제목을 입력하세요"
               value={formData.title}
               onChange={handleInputChange}
               required 
@@ -361,36 +319,11 @@ const FactlabBoardWrite = () => {
           {/* 내용 에디터 */}
           <div className="form-group">
             <label className="form-label">내용 <span className="required">*</span></label>
-            
-            {/* 에디터 툴바 */}
-            <div className="editor-toolbar">
-              <button type="button" className="toolbar-btn" onClick={() => formatText('bold')} title="굵게">
-                <strong>B</strong>
-              </button>
-              <button type="button" className="toolbar-btn" onClick={() => formatText('italic')} title="기울임">
-                <em>I</em>
-              </button>
-              <button type="button" className="toolbar-btn" onClick={() => formatText('underline')} title="밑줄">
-                <u>U</u>
-              </button>
-              <button type="button" className="toolbar-btn" onClick={insertLink} title="링크">
-                🔗
-              </button>
-              <button type="button" className="toolbar-btn" onClick={insertImage} title="이미지">
-                🖼️
-              </button>
-              <button type="button" className="toolbar-btn" onClick={insertList} title="목록">
-                📝
-              </button>
-            </div>
-            
-            <textarea 
-              className="content-editor" 
-              name="content" 
-              placeholder="내용을 입력하세요..." 
-              value={formData.content}
-              onChange={handleInputChange}
-              required
+            <CKEditor
+                editor={ ClassicEditor }
+                config={ editorConfiguration }
+                data={formData.content}
+                onChange={ handleEditorChange }
             />
             <div className="help-text">Ctrl+Enter로 저장할 수 있습니다</div>
           </div>
@@ -423,7 +356,7 @@ const FactlabBoardWrite = () => {
                   <div key={index} className="file-item">
                     <span>{file.name} ({(file.size / 1024).toFixed(1)}KB)</span>
                     <span 
-                      className="file-remove" 
+                      className="file-remove"
                       onClick={() => removeFile(file.name)}
                     >
                       ×
@@ -442,7 +375,7 @@ const FactlabBoardWrite = () => {
                 <div key={index} className="tag-item">
                   {tag}
                   <span 
-                    className="tag-remove" 
+                    className="tag-remove"
                     onClick={() => removeTag(tag)}
                   >
                     ×
@@ -472,7 +405,7 @@ const FactlabBoardWrite = () => {
             <button type="button" className="btn" onClick={handleCancel}>취소</button>
             <button 
               type="submit" 
-              className="btn btn-primary" 
+              className="btn btn-primary"
               onClick={handleSubmit}
               disabled={loading}
             >

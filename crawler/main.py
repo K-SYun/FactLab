@@ -80,6 +80,21 @@ async def crawl_all_news(background_tasks: BackgroundTasks):
     background_tasks.add_task(crawl_all_task)
     return {"message": "Full news crawling and saving started"}
 
+@app.post("/crawl/daum")
+async def crawl_daum_only(background_tasks: BackgroundTasks):
+    """다음 뉴스만 수집 및 DB 저장 (테스트용)"""
+    async def crawl_task():
+        try:
+            result = await crawler_manager.crawl_daum_news()
+            logger.info(f"Daum crawl result: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error crawling Daum news: {e}")
+            return {'saved': 0, 'duplicates': 0, 'errors': 1}
+    
+    background_tasks.add_task(crawl_task)
+    return {"message": "Daum news crawling started"}
+
 @app.post("/crawl/bills")
 async def crawl_bills(background_tasks: BackgroundTasks, days: int = 30):
     """국회 법안 수집 및 DB 저장"""

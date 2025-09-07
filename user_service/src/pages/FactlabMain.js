@@ -32,29 +32,14 @@ const FactlabMain = () => {
         const response = await newsApi.getFeaturedNews();
         const newsData = response.data.data || [];
 
-        // 메인 실시간 이슈 뉴스가 없으면 최신 승인 뉴스 사용 (fallback)
-        if (newsData.length === 0) {
-          const fallbackResponse = await newsApi.getLatestNews(8);
-          const fallbackData = fallbackResponse.data.data || [];
-          setNews(fallbackData.slice(0, 8));
-        } else {
-          setNews(newsData); // 관리자가 지정한 뉴스 표시 (이미 표시 순서대로 정렬됨)
-        }
+        // 관리자가 지정한 뉴스만 표시 (fallback 제거)
+        setNews(newsData);
 
         setError(null);
       } catch (err) {
         console.error('메인 뉴스 로드 실패:', err);
-
-        // API 오류 시 fallback으로 최신 뉴스 시도
-        try {
-          const fallbackResponse = await newsApi.getLatestNews(8);
-          const fallbackData = fallbackResponse.data.data || [];
-          setNews(fallbackData.slice(0, 8));
-          setError(null);
-        } catch (fallbackErr) {
-          setError('뉴스를 가져오는데 실패했습니다.');
-          setNews([]); // 완전 실패 시 빈 배열
-        }
+        setError('뉴스를 가져오는데 실패했습니다.');
+        setNews([]); // 오류 시 빈 배열 (관리자가 지정한 뉴스가 없으면 표시하지 않음)
       } finally {
         setLoading(false);
       }
@@ -265,7 +250,7 @@ const FactlabMain = () => {
                       <p className="main-news-summary" onClick={() => goToNewsDetail(item.id)}>{item.content.substring(0, 120)}...</p>
                       <div className="main-news-meta">
                         <span>{item.source} | {getCategoryName(item.category)} | {formatDate(item.publishDate)} | 👀 {item.viewCount || 0}</span>
-                        <div className="main-vote-buttons">
+                        <div className="main-vote-buttons"> 사용자투표 진행상황 :
                           <span className="main-vote-btn agree">사실 ({item.factCount || 0})</span>
                           <span className="main-vote-btn disagree">의심 ({item.doubtCount || 0})</span>
                         </div>
@@ -380,7 +365,7 @@ const FactlabMain = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          <AdBanner adSlot="7878052952" />
+          <AdBanner adSlot="7878052952" adFormat="vertical" style={{ display: 'block', width: '160px', minHeight: '600px' }} />
         </div>
       </div>
 

@@ -17,10 +17,10 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     
     List<News> findByCategory(String category);
     
-    @Query("SELECT n FROM News n ORDER BY n.publishDate DESC")
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary ORDER BY n.publishDate DESC")
     List<News> findAllOrderByPublishDateDesc();
     
-    @Query("SELECT n FROM News n ORDER BY n.publishDate DESC LIMIT :size OFFSET :offset")
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary ORDER BY n.publishDate DESC LIMIT :size OFFSET :offset")
     List<News> findAllOrderByPublishDateDesc(@Param("offset") int offset, @Param("size") int size);
     
     @Query("SELECT n FROM News n WHERE n.category = :category ORDER BY n.publishDate DESC")
@@ -65,7 +65,7 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     List<News> findByStatusAndVisibilityAndApprovedAtAfterOrderByApprovedAtDesc(@Param("status") NewsStatus status, @Param("visibility") NewsVisibility visibility, @Param("fromDate") LocalDateTime fromDate);
     
     // 다중 상태값으로 뉴스 조회 (AI 분석 페이지용)
-    @Query("SELECT n FROM News n WHERE n.status IN :statusList ORDER BY n.publishDate DESC LIMIT :size OFFSET :offset")
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary WHERE n.status IN :statusList ORDER BY n.publishDate DESC LIMIT :size OFFSET :offset")
     List<News> findByStatusInOrderByPublishDateDesc(@Param("statusList") List<NewsStatus> statusList, @Param("offset") int offset, @Param("size") int size);
     
     // 메인 페이지 실시간 이슈 뉴스 조회 (관리자가 지정한 뉴스)

@@ -65,9 +65,9 @@ class GeminiNewsAnalyzer:
                 """, (status, error_msg, now, news_id))
             else:
                 cur.execute("""
-                    INSERT INTO news_summary (news_id, status, error_message, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (news_id, status, error_msg, now, now))
+                    INSERT INTO news_summary (news_id, status, error_message, created_at, updated_at, analysis_type)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (news_id, status, error_msg, now, now, 'COMPREHENSIVE'))
             conn.commit()
             cur.close()
             logger.debug(f"news_summary status updated: {news_id} -> {status}")
@@ -96,15 +96,15 @@ class GeminiNewsAnalyzer:
                 cur.execute("""
                     UPDATE news_summary
                     SET summary=%s, claim=%s, keywords=%s, reliability_score=%s,
-                        suspicious_points=%s, status=%s, updated_at=%s
+                        suspicious_points=%s, status=%s, updated_at=%s, analysis_type=%s
                     WHERE news_id=%s
-                """, (summary, claim, keywords, reliability, suspicious, 'COMPLETED', now, news_id))
+                """, (summary, claim, keywords, reliability, suspicious, 'COMPLETED', now, 'COMPREHENSIVE', news_id))
             else:
                 cur.execute("""
                     INSERT INTO news_summary
-                    (news_id, summary, claim, keywords, reliability_score, suspicious_points, status, created_at, updated_at)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                """, (news_id, summary, claim, keywords, reliability, suspicious, 'COMPLETED', now, now))
+                    (news_id, summary, claim, keywords, reliability_score, suspicious_points, status, created_at, updated_at, analysis_type)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (news_id, summary, claim, keywords, reliability, suspicious, 'COMPLETED', now, now, 'COMPREHENSIVE'))
             conn.commit()
             cur.close()
             logger.info(f"Saved analysis to DB for news {news_id}")

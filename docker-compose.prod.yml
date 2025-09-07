@@ -1,0 +1,204 @@
+# 운영 환경용 Docker Compose
+services:
+  nginx:
+    container_name: factlab-nginx-prod
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl  # SSL 인증서 볼륨
+    depends_on:
+      - user-service
+      - admin-service  
+      - backend-service
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  user-service:
+    container_name: factlab-user-service-prod
+    build: 
+      context: ./user_service
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://polradar.com/api
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  admin-service:
+    container_name: factlab-admin-service-prod
+    build: 
+      context: ./admin_service
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://polradar.com/api
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  backend-service:
+    container_name: factlab-backend-service-prod
+    build: 
+      context: ./backend_service
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      # 운영 전용 설정
+      - JAVA_OPTS=-Xms512m -Xmx2g -XX:+UseG1GC
+      - SPRING_JPA_SHOW_SQL=false
+      - LOGGING_LEVEL_ROOT=WARN
+      - LOGGING_LEVEL_COM_FACTLAB=INFO
+    networks:
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "7"
+
+  crawler-service:
+    container_name: factlab-crawler-service-prod
+    build: 
+      context: ./crawler
+      dockerfile: Dockerfile
+      target: production
+    depends_on:
+      - database
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=factlab
+      - DB_USER=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@database:5432/factlab
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # 운영 전용 설정
+      - LOG_LEVEL=INFO
+      - CRAWL_INTERVAL=7200  # 2시간 간격
+      - MAX_CONCURRENT_REQUESTS=5
+    networks:
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  ai-service:
+    container_name: factlab-ai-service-prod
+    build: 
+      context: ./ai_service
+      dockerfile: Dockerfile
+      target: production
+    depends_on:
+      - database
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=factlab
+      - DB_USER=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LOG_LEVEL=INFO
+    networks:
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  database:
+    container_name: factlab-database-prod
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=factlab
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      # 운영 DB 최적화 설정
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/backup:/backup  # 백업 디렉토리
+    networks:
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d factlab"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data_prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/postgresql/data
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: false  # 운영에서는 외부 API 접근 허용

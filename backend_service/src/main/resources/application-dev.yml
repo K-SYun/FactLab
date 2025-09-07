@@ -1,0 +1,110 @@
+# 개발 환경 설정
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/factlab}
+    username: ${SPRING_DATASOURCE_USERNAME:factlab_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:factlab123}
+    driver-class-name: org.postgresql.Driver
+    
+    # 개발용 커넥션 풀 설정
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # 개발에서는 update 모드
+    show-sql: true  # 개발에서는 SQL 로그 활성화
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        
+  # 개발용 세션 설정 (메모리 기반)
+  session:
+    store-type: none  # 개발환경에서는 Redis 사용하지 않음
+    timeout: 3600  # 1시간
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    session:
+      cookie:
+        secure: false  # 개발에서는 HTTP 허용
+        http-only: true
+        same-site: lax  # 개발에서는 lax
+        max-age: 3600
+
+# JWT 개발 설정
+jwt:
+  secret: ${JWT_SECRET:dev_jwt_secret_key_12345}
+  expiration: 3600000  # 1시간
+  refresh-expiration: 604800000  # 7일
+
+# OAuth 설정
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost/api/auth/google/callback}
+  naver:
+    client-id: ${NAVER_CLIENT_ID:}
+    client-secret: ${NAVER_CLIENT_SECRET:}
+    redirect-uri: ${NAVER_REDIRECT_URI:http://localhost/api/auth/naver/callback}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost/api/auth/kakao/callback}
+
+# 앱 설정
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  admin-url: ${ADMIN_URL:http://localhost:3001}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+
+# 로깅 설정 (개발용)
+logging:
+  level:
+    root: INFO
+    com.factlab: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Swagger 활성화 (개발용)
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+# Actuator 개발 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 개발에서는 모든 엔드포인트 노출
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 8081
+
+# 파일 업로드 제한
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 50MB
+  enabled: true

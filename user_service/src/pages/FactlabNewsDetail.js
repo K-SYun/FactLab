@@ -31,14 +31,14 @@ const FactlabNewsDetail = () => {
 
   // Auth context
   const { isLoggedIn, user } = useAuth();
-  
+
   // 조회수 증가 중복 호출 방지를 위한 ref
   const viewCountIncreasedRef = useRef(false);
 
   useEffect(() => {
     // 새로운 뉴스 ID일 때마다 ref 초기화
     viewCountIncreasedRef.current = false;
-    
+
     const fetchNewsDetail = async () => {
       if (!newsId || newsId === 'null' || newsId === null) {
         console.error('Invalid newsId:', newsId);
@@ -49,7 +49,7 @@ const FactlabNewsDetail = () => {
 
       try {
         setLoading(true);
-        
+
         // 조회수 증가 (한 번만 실행되도록 ref 사용)
         if (!viewCountIncreasedRef.current) {
           try {
@@ -59,7 +59,7 @@ const FactlabNewsDetail = () => {
             console.error('조회수 증가 실패:', viewError);
           }
         }
-        
+
         const response = await newsApi.getNewsById(newsId);
         setNewsData(response.data.data);
         setError(null);
@@ -178,6 +178,68 @@ const FactlabNewsDetail = () => {
     return categoryMap[category] || category;
   };
 
+  // Analysis type을 한글로 변환하는 함수
+  const getAnalysisTypeLabel = (analysisType) => {
+    const typeMap = {
+      'COMPREHENSIVE': '[AI분석:종합]',
+      'FACT_ANALYSIS': '[AI분석:사실]',
+      'BIAS_ANALYSIS': '[AI분석:편향]'
+    };
+    return typeMap[analysisType] || '';
+  };
+
+  // 분석 타입에 따른 질문 생성
+  const getQuestionByAnalysisType = (analysisType, title) => {
+    switch (analysisType) {
+      case 'FACT_ANALYSIS':
+        return `🤔 이 뉴스 사실일까요? ${title}`;
+      case 'BIAS_ANALYSIS':
+        return `🎯 이 뉴스의 편향성은 어떻게 생각하시나요? ${title}`;
+      case 'COMPREHENSIVE':
+        return `🔍 이 뉴스의 신뢰도는 어떻게 생각하시나요? ${title}`;
+      default:
+        return `🤔 이 뉴스 사실일까요? ${title}`;
+    }
+  };
+
+  // 분석 타입에 따른 투표 옵션 생성
+  const getVoteOptionsByAnalysisType = (analysisType) => {
+    switch (analysisType) {
+      case 'FACT_ANALYSIS':
+        return [
+          { key: 'completely_true', label: '완전 사실', sublabel: '제시된 내용 모두 사실', emoji: '✅' },
+          { key: 'partially_true', label: '부분적으로 사실', sublabel: '일부만 사실', emoji: '🔸' },
+          { key: 'slightly_doubtful', label: '조금 의심스럽다', sublabel: '일부 내용 의심', emoji: '🔹' },
+          { key: 'completely_doubtful', label: '완전 의심', sublabel: '대부분 거짓', emoji: '❌' },
+          { key: 'unknown', label: '모르겠다', sublabel: '판단하기 어려움', emoji: '❓' }
+        ];
+      case 'BIAS_ANALYSIS':
+        return [
+          { key: 'right_bias', label: '우편향(보수 우파)', sublabel: '보수적 관점 편향', emoji: '➡️' },
+          { key: 'slight_right', label: '일부 우편향', sublabel: '약간 보수적', emoji: '🔸' },
+          { key: 'slight_left', label: '일부 좌편향', sublabel: '약간 진보적', emoji: '🔹' },
+          { key: 'left_bias', label: '좌편향(진보 좌파)', sublabel: '진보적 관점 편향', emoji: '⬅️' },
+          { key: 'unknown', label: '잘 모르겠다', sublabel: '편향성 판단 어려움', emoji: '❓' }
+        ];
+      case 'COMPREHENSIVE':
+        return [
+          { key: 'reliable_neutral', label: '신뢰보도', sublabel: '사실적이고 중립적', emoji: '✅' },
+          { key: 'reliable_right', label: '신뢰+우편향', sublabel: '사실적이나 우편향', emoji: '🔸' },
+          { key: 'reliable_left', label: '신뢰+좌편향', sublabel: '사실적이나 좌편향', emoji: '🔹' },
+          { key: 'problematic', label: '문제있음', sublabel: '사실성이나 편향성 문제', emoji: '❌' },
+          { key: 'unknown', label: '모르겠음(판단유보)', sublabel: '종합적 판단 어려움', emoji: '❓' }
+        ];
+      default:
+        return [
+          { key: 'fact', label: '모두 사실', sublabel: '제시된 내용 사실', emoji: '✅' },
+          { key: 'partial_fact', label: '부분적으로 사실', sublabel: '일부만 사실', emoji: '🔸' },
+          { key: 'slight_doubt', label: '조금 의심스럽다', sublabel: '일부 내용 거짓', emoji: '🔹' },
+          { key: 'doubt', label: '모두 의심', sublabel: '내용이 거짓', emoji: '❌' },
+          { key: 'unknown', label: '모르겠다', sublabel: '정보부족', emoji: '❓' }
+        ];
+    }
+  };
+
 
   // AI 분석 내용을 문장 단위로 분리하는 함수
   const formatAIAnalysis = (content) => {
@@ -199,7 +261,7 @@ const FactlabNewsDetail = () => {
       alert('뉴스 정보가 올바르지 않습니다.');
       return;
     }
-    
+
     // 로그인 체크
     if (!isLoggedIn) {
       setIsLoginModalOpen(true);
@@ -261,7 +323,7 @@ const FactlabNewsDetail = () => {
       alert('뉴스 정보가 올바르지 않습니다.');
       return;
     }
-    
+
     // 로그인 체크
     if (!isLoggedIn) {
       setIsLoginModalOpen(true);
@@ -525,8 +587,9 @@ const FactlabNewsDetail = () => {
           <div className="news-main-content">
             {/* News Header */}
             <div className="news_header">
-              <div className="news_source">{newsData.source}</div>
-              <h1 className="news_title">{newsData.title}</h1>
+              <h1 className="news_title">
+                <span className="analysis-type-label">{getAnalysisTypeLabel(newsData.analysisType)}</span> {newsData.title}
+              </h1>
 
               {/* 썸네일 이미지 */}
               {newsData.thumbnail && (
@@ -634,49 +697,24 @@ const FactlabNewsDetail = () => {
             <div className="voting_section">
               <div className="voting_title">💭 여러분의 의견을 들려주세요</div>
 
-              {/* Fact Check Question */}
+              {/* Dynamic Question based on Analysis Type */}
               <div className="content_section">
                 <div className="fact_question">
-                  🤔 이 뉴스 사실일까요? {newsData.title}
+                  {getQuestionByAnalysisType(newsData.analysisType, newsData.title)}
                 </div>
               </div>
 
               <div className="vote_options">
-                <div
-                  className={`vote_option fact ${selectedVote === 'fact' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'fact') || voteLoading ? 'disabled' : ''}`}
-                  onClick={() => !voteLoading && vote('fact')}
-                >
-                  ✅ 사실이다<br />
-                  <small>제시된 내용 사실</small>
-                </div>
-                <div
-                  className={`vote_option partial_fact ${selectedVote === 'partial_fact' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'partial_fact') || voteLoading ? 'disabled' : ''}`}
-                  onClick={() => !voteLoading && vote('partial_fact')}
-                >
-                  🔸 부분적으로 사실<br />
-                  <small>일부만 사실</small>
-                </div>
-                <div
-                  className={`vote_option slight_doubt ${selectedVote === 'slight_doubt' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'slight_doubt') || voteLoading ? 'disabled' : ''}`}
-                  onClick={() => !voteLoading && vote('slight_doubt')}
-                >
-                  🔹 조금 의심스럽다<br />
-                  <small>일부 내용 거짓</small>
-                </div>
-                <div
-                  className={`vote_option doubt ${selectedVote === 'doubt' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'doubt') || voteLoading ? 'disabled' : ''}`}
-                  onClick={() => !voteLoading && vote('doubt')}
-                >
-                  ❌ 의심스럽다<br />
-                  <small>내용이 거짓</small>
-                </div>
-                <div
-                  className={`vote_option unknown ${selectedVote === 'unknown' ? 'selected' : ''} ${(hasVoted && selectedVote !== 'unknown') || voteLoading ? 'disabled' : ''}`}
-                  onClick={() => !voteLoading && vote('unknown')}
-                >
-                  ❓ 모르겠다<br />
-                  <small>정보부족</small>
-                </div>
+                {getVoteOptionsByAnalysisType(newsData.analysisType).map((option) => (
+                  <div
+                    key={option.key}
+                    className={`vote_option ${option.key} ${selectedVote === option.key ? 'selected' : ''} ${(hasVoted && selectedVote !== option.key) || voteLoading ? 'disabled' : ''}`}
+                    onClick={() => !voteLoading && vote(option.key)}
+                  >
+                    {option.emoji} {option.label}<br />
+                    <small>{option.sublabel}</small>
+                  </div>
+                ))}
               </div>
 
               {voteLoading && (
@@ -688,51 +726,23 @@ const FactlabNewsDetail = () => {
               <div className="vote_results">
                 {voteResults ? (
                   <>
-                    <div className="result_item">
-                      <span>✅ 사실이다</span>
-                      <div className="result_bar_container">
-                        <div className="result_bar result_fact" style={{
-                          width: voteResults.total > 0 ? `${Math.round((voteResults.fact || 0) / voteResults.total * 100)}%` : '0%'
-                        }}></div>
-                      </div>
-                      <span>{voteResults.fact || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.fact || 0) / voteResults.total * 100) : 0}%)</span>
-                    </div>
-                    <div className="result_item">
-                      <span>🔸 부분적으로 사실이다</span>
-                      <div className="result_bar_container">
-                        <div className="result_bar result_partial_fact" style={{
-                          width: voteResults.total > 0 ? `${Math.round((voteResults.partial_fact || 0) / voteResults.total * 100)}%` : '0%'
-                        }}></div>
-                      </div>
-                      <span>{voteResults.partial_fact || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.partial_fact || 0) / voteResults.total * 100) : 0}%)</span>
-                    </div>
-                    <div className="result_item">
-                      <span>🔹 조금 의심스럽다</span>
-                      <div className="result_bar_container">
-                        <div className="result_bar result_slight_doubt" style={{
-                          width: voteResults.total > 0 ? `${Math.round((voteResults.slight_doubt || 0) / voteResults.total * 100)}%` : '0%'
-                        }}></div>
-                      </div>
-                      <span>{voteResults.slight_doubt || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.slight_doubt || 0) / voteResults.total * 100) : 0}%)</span>
-                    </div>
-                    <div className="result_item">
-                      <span>❌ 의심스럽다</span>
-                      <div className="result_bar_container">
-                        <div className="result_bar result_doubt" style={{
-                          width: voteResults.total > 0 ? `${Math.round((voteResults.doubt || 0) / voteResults.total * 100)}%` : '0%'
-                        }}></div>
-                      </div>
-                      <span>{voteResults.doubt || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.doubt || 0) / voteResults.total * 100) : 0}%)</span>
-                    </div>
-                    <div className="result_item">
-                      <span>❓ 모르겠다</span>
-                      <div className="result_bar_container">
-                        <div className="result_bar result_unknown" style={{
-                          width: voteResults.total > 0 ? `${Math.round((voteResults.unknown || 0) / voteResults.total * 100)}%` : '0%'
-                        }}></div>
-                      </div>
-                      <span>{voteResults.unknown || 0}표 ({voteResults.total > 0 ? Math.round((voteResults.unknown || 0) / voteResults.total * 100) : 0}%)</span>
-                    </div>
+                    {getVoteOptionsByAnalysisType(newsData.analysisType).map((option) => {
+                      const count = voteResults[option.key] || 0;
+                      const percentage = voteResults.total > 0 ? Math.round(count / voteResults.total * 100) : 0;
+
+                      return (
+                        <div key={option.key} className="result_item">
+                          <span>{option.emoji} {option.label}</span>
+                          <div className="result_bar_container">
+                            <div
+                              className={`result_bar result_${option.key}`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                          <span>{count}표 ({percentage}%)</span>
+                        </div>
+                      );
+                    })}
                     <div className="news-vote-total-count">
                       총 {voteResults.total || 0}명 참여
                     </div>
@@ -803,15 +813,15 @@ const FactlabNewsDetail = () => {
                       ) : (
                         <a href="#" onClick={(e) => { e.preventDefault(); likeComment(comment.id); }}>👍 추천 {comment.likeCount || 0}</a>
                       )}
-                      
+
                       {isLoggedIn ? (
                         <a href="#" onClick={(e) => { e.preventDefault(); toggleReplyBox(comment.id); }}>답글</a>
                       ) : (
                         <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginModalOpen(true); }}>답글</a>
                       )}
-                      
+
                       <a href="#" onClick={(e) => { e.preventDefault(); reportComment(comment.id); }}>신고</a>
-                      
+
                       {(() => {
                         const showDelete = isLoggedIn && user?.id === comment.userId;
                         return showDelete && (
@@ -870,9 +880,9 @@ const FactlabNewsDetail = () => {
                         ) : (
                           <a href="#" onClick={(e) => { e.preventDefault(); likeComment(reply.id, true, comment.id); }}>👍 추천 {reply.likeCount || 0}</a>
                         )}
-                        
+
                         <a href="#" onClick={(e) => { e.preventDefault(); reportComment(reply.id); }}>신고</a>
-                        
+
                         {isLoggedIn && user?.id === reply.userId && (
                           <a href="#" onClick={(e) => { e.preventDefault(); deleteComment(reply.id); }} className="news-comment-delete">삭제</a>
                         )}

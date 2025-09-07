@@ -22,27 +22,85 @@ const FactlabNewsFeed = () => {
   const ITEMS_PER_PAGE = 10;
 
   const trendingKeywords = [
-    "경제정책", "K-팝", "빌보드", "AI 기술", "일자리", "탄소중립", 
+    "경제정책", "K-팝", "빌보드", "AI 기술", "일자리", "탄소중립",
     "기후변화", "부동산", "인플레이션", "재교육", "ESG", "친환경"
   ];
+
+  // AI 분석 타입 라벨 함수
+  const getAnalysisTypeLabel = (analysisType) => {
+    switch (analysisType) {
+      case 'COMPREHENSIVE':
+        return '[AI분석:종합]';
+      case 'FACT_ANALYSIS':
+        return '[AI분석:사실]';
+      case 'BIAS_ANALYSIS':
+        return '[AI분석:편향]';
+      default:
+        return '[AI분석:종합]';
+    }
+  };
+
+  // 분석 타입에 따른 질문 생성
+  const getQuestionByAnalysisType = (analysisType) => {
+    switch (analysisType) {
+      case 'FACT_ANALYSIS':
+        return '🤔 이 뉴스 내용이 사실일까요?';
+      case 'BIAS_ANALYSIS':
+        return '🎯 이 뉴스의 편향성은 어떻다고 생각하세요?';
+      case 'COMPREHENSIVE':
+      default:
+        return '🤔 이 뉴스를 종합적으로 어떻게 평가하시나요?';
+    }
+  };
+
+  // 분석 타입에 따른 투표 옵션 생성
+  const getVoteOptionsByAnalysisType = (analysisType, voteResult, newsId) => {
+    switch (analysisType) {
+      case 'FACT_ANALYSIS':
+        return [
+          { key: 'complete_fact', label: '✅ 완전 사실', emoji: '✅' },
+          { key: 'partial_fact', label: '🔸 부분적으로 사실', emoji: '🔸' },
+          { key: 'slight_doubt', label: '🔹 조금 의심스럽다', emoji: '🔹' },
+          { key: 'complete_doubt', label: '❌ 완전 의심', emoji: '❌' },
+          { key: 'unknown', label: '❓ 모르겠다', emoji: '❓' }
+        ];
+      case 'BIAS_ANALYSIS':
+        return [
+          { key: 'right_bias', label: '🔴 우편향(보수 우파)', emoji: '🔴' },
+          { key: 'partial_right', label: '🟠 일부 우편향', emoji: '🟠' },
+          { key: 'partial_left', label: '🟡 일부 좌편향', emoji: '🟡' },
+          { key: 'left_bias', label: '🔵 좌편향(진보 좌파)', emoji: '🔵' },
+          { key: 'unknown', label: '❓ 잘 모르겠다', emoji: '❓' }
+        ];
+      case 'COMPREHENSIVE':
+      default:
+        return [
+          { key: 'trust_neutral', label: '✅ 신뢰보도(완전사실+중립)', emoji: '✅' },
+          { key: 'trust_right', label: '🟠 신뢰+편향(신뢰+우편향)', emoji: '🟠' },
+          { key: 'trust_left', label: '🟡 신뢰+편향(신뢰+좌편향)', emoji: '🟡' },
+          { key: 'problematic', label: '❌ 신뢰/편향(문제있음)', emoji: '❌' },
+          { key: 'unknown', label: '❓ 모르겠음(판단유보)', emoji: '❓' }
+        ];
+    }
+  };
 
   useEffect(() => {
     const fetchNews = async (page = 1) => {
       try {
         setLoading(true);
-        
+
         // 페이지 기반으로 뉴스 가져오기
         const backendPage = page - 1; // 백엔드는 0부터 시작
         let response;
-        
+
         if (category === '전체') {
           response = await newsApi.getAllNews(backendPage, ITEMS_PER_PAGE);
         } else {
           response = await newsApi.getNewsByCategory(category, backendPage, ITEMS_PER_PAGE);
         }
-        
+
         const newsData = response.data.data || [];
-        
+
         // 전체 개수를 위한 별도 요청 (첫 번째 페이지에서만)
         if (page === 1) {
           try {
@@ -69,11 +127,11 @@ const FactlabNewsFeed = () => {
             }
           }
         }
-        
+
         setNews(newsData);
         setCurrentPage(page);
         setError(null);
-        
+
         // 각 뉴스의 투표 결과 가져오기
         const voteResultsData = {};
         for (const newsItem of newsData) {
@@ -137,27 +195,27 @@ const FactlabNewsFeed = () => {
   // 페이지 변경 함수
   const changePage = async (page) => {
     if (page < 1 || page > totalPages || page === currentPage || loading) return;
-    
+
     try {
       setLoading(true);
-      
+
       const backendPage = page - 1; // 백엔드는 0부터 시작
       let response;
-      
+
       if (category === '전체') {
         response = await newsApi.getAllNews(backendPage, ITEMS_PER_PAGE);
       } else {
         response = await newsApi.getNewsByCategory(category, backendPage, ITEMS_PER_PAGE);
       }
-      
+
       const newsData = response.data.data || [];
       setNews(newsData);
       setCurrentPage(page);
       setError(null);
-      
+
       // 페이지 변경 시 스크롤을 맨 위로 이동
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
       // 페이지 변경 시에도 투표 결과 가져오기
       const voteResultsData = {};
       for (const newsItem of newsData) {
@@ -187,7 +245,7 @@ const FactlabNewsFeed = () => {
           };
         }
       }
-      setVoteResults(prev => ({...prev, ...voteResultsData}));
+      setVoteResults(prev => ({ ...prev, ...voteResultsData }));
     } catch (err) {
       console.error('Error changing page:', err);
       setError('뉴스를 가져오는데 실패했습니다.');
@@ -210,7 +268,7 @@ const FactlabNewsFeed = () => {
       <div className="main-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
-          
+
         </div>
         {/* 메인 컨텐츠 */}
         <div className="main-content">
@@ -225,9 +283,9 @@ const FactlabNewsFeed = () => {
               <div className="news_trending_title">🔥 실시간 트렌드</div>
               <div className="news_keyword_list">
                 {trendingKeywords.map((keyword, index) => (
-                  <a 
-                    key={index} 
-                    href={`#search=${keyword}`} 
+                  <a
+                    key={index}
+                    href={`#search=${keyword}`}
                     className="news_keyword_tag"
                   >
                     {keyword}
@@ -249,8 +307,8 @@ const FactlabNewsFeed = () => {
                       {/* 뉴스 썸네일 */}
                       <div className="news_thumbnail" onClick={() => goToNewsDetail(newsItem.id)}>
                         {newsItem.thumbnail ? (
-                          <img 
-                            src={newsItem.thumbnail} 
+                          <img
+                            src={newsItem.thumbnail}
                             alt="뉴스 썸네일"
                             className="news-feed-thumbnail-image"
                             onError={(e) => {
@@ -259,11 +317,11 @@ const FactlabNewsFeed = () => {
                             }}
                           />
                         ) : null}
-                        <div 
+                        <div
                           className={`news_thumbnail_placeholder news-feed-thumbnail-placeholder ${newsItem.thumbnail ? 'news-feed-placeholder-hidden' : ''}`}
                         >
-                          <img 
-                            src="/Logo.png" 
+                          <img
+                            src="/Logo.png"
                             alt="FactLab Logo"
                             className="news-feed-placeholder-logo"
                           />
@@ -276,53 +334,41 @@ const FactlabNewsFeed = () => {
                       {/* 뉴스 콘텐츠 영역 */}
                       <div className="news_content_area">
                         {/* 뉴스 제목 */}
-                        <h3 className="news_title" onClick={() => goToNewsDetail(newsItem.id)}>{newsItem.title}</h3>
+                        <h3 className="news_title" onClick={() => goToNewsDetail(newsItem.id)}>
+                          <span className="analysis-type-label">{getAnalysisTypeLabel(newsItem.analysisType)}</span> {newsItem.title}
+                        </h3>
 
                         {/* 뉴스 요약 */}
                         <p className="news_summary">{newsItem.content.substring(0, 150)}...</p>
 
-                        {/* 팩트체크 질문 */}
+                        {/* 분석 타입별 질문 */}
                         <div className="news_fact_question">
-                          🤔 이 뉴스 내용이 사실일까요?
+                          {getQuestionByAnalysisType(newsItem.analysisType)}
                         </div>
 
-                        {/* 투표 영역 */}
+                        {/* 분석 타입별 투표 영역 */}
                         <div className="news_voting_area">
                           {(() => {
-                            const newsVoteResult = voteResults[newsItem.id] || { fact: 0, partial_fact: 0, slight_doubt: 0, doubt: 0, unknown: 0, total: 0 };
-                            
+                            const newsVoteResult = voteResults[newsItem.id] || { 
+                              complete_fact: 0, partial_fact: 0, slight_doubt: 0, complete_doubt: 0,
+                              right_bias: 0, partial_right: 0, partial_left: 0, left_bias: 0,
+                              trust_neutral: 0, trust_right: 0, trust_left: 0, problematic: 0,
+                              unknown: 0, total: 0 
+                            };
+
+                            const voteOptions = getVoteOptionsByAnalysisType(newsItem.analysisType, newsVoteResult, newsItem.id);
+
                             return (
                               <>
-                                <button
-                                  className="news_vote_option fact"
-                                  onClick={() => goToVote(newsItem.id)}
-                                >
-                                  ✅ 사실 ({newsVoteResult.total > 0 ? Math.round((newsVoteResult.fact || 0) / newsVoteResult.total * 100) : 0}%)
-                                </button>
-                                <button
-                                  className="news_vote_option partial_fact"
-                                  onClick={() => goToVote(newsItem.id)}
-                                >
-                                  🔸 부분사실 ({newsVoteResult.total > 0 ? Math.round((newsVoteResult.partial_fact || 0) / newsVoteResult.total * 100) : 0}%)
-                                </button>
-                                <button
-                                  className="news_vote_option slight_doubt"
-                                  onClick={() => goToVote(newsItem.id)}
-                                >
-                                  🔹 조금 의심 ({newsVoteResult.total > 0 ? Math.round((newsVoteResult.slight_doubt || 0) / newsVoteResult.total * 100) : 0}%)
-                                </button>
-                                <button
-                                  className="news_vote_option doubt"
-                                  onClick={() => goToVote(newsItem.id)}
-                                >
-                                  ❌ 의심 ({newsVoteResult.total > 0 ? Math.round((newsVoteResult.doubt || 0) / newsVoteResult.total * 100) : 0}%)
-                                </button>
-                                <button
-                                  className="news_vote_option unknown"
-                                  onClick={() => goToVote(newsItem.id)}
-                                >
-                                  ❓ 모르겠다 ({newsVoteResult.total > 0 ? Math.round((newsVoteResult.unknown || 0) / newsVoteResult.total * 100) : 0}%)
-                                </button>
+                                {voteOptions.map((option) => (
+                                  <button
+                                    key={option.key}
+                                    className={`news_vote_option ${option.key}`}
+                                    onClick={() => goToVote(newsItem.id)}
+                                  >
+                                    {option.label} ({newsVoteResult.total > 0 ? Math.round((newsVoteResult[option.key] || 0) / newsVoteResult.total * 100) : 0}%)
+                                  </button>
+                                ))}
                               </>
                             );
                           })()}
@@ -333,7 +379,7 @@ const FactlabNewsFeed = () => {
                           <div className="news_stats_left">
                             <span>{newsItem.source} | {newsItem.category} | {formatDate(newsItem.publishDate)} | 👀 {newsItem.viewCount || 0}</span>
                           </div>
-                          <button 
+                          <button
                             className="news_discussion_btn"
                             onClick={() => goToDiscussion(newsItem.id)}
                           >
@@ -342,7 +388,7 @@ const FactlabNewsFeed = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* 10번째 뉴스 다음에 배너 광고 삽입 */}
                     {(index + 1) % 10 === 0 && index < news.length - 1 && (
                       <div className="news_banner_ad">
@@ -358,29 +404,29 @@ const FactlabNewsFeed = () => {
             {totalPages > 1 && (
               <div className="news_pagination">
                 {/* 맨 처음 버튼 */}
-                <button 
+                <button
                   className="news_page_btn"
                   onClick={() => changePage(1)}
                   disabled={currentPage === 1 || loading}
                 >
                   맨 처음
                 </button>
-                
+
                 {/* 이전 버튼 */}
-                <button 
+                <button
                   className="news_page_btn"
                   onClick={() => changePage(currentPage - 1)}
                   disabled={currentPage === 1 || loading}
                 >
                   &lt;
                 </button>
-                
+
                 {/* 페이지 번호들 */}
                 {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
                   const startPage = Math.max(1, Math.min(currentPage - 5, totalPages - 9));
                   const pageNum = startPage + i;
                   if (pageNum > totalPages) return null;
-                  
+
                   return (
                     <button
                       key={pageNum}
@@ -392,18 +438,18 @@ const FactlabNewsFeed = () => {
                     </button>
                   );
                 })}
-                
+
                 {/* 다음 버튼 */}
-                <button 
+                <button
                   className="news_page_btn"
                   onClick={() => changePage(currentPage + 1)}
                   disabled={currentPage === totalPages || loading}
                 >
                   &gt;
                 </button>
-                
+
                 {/* 맨 끝 버튼 */}
-                <button 
+                <button
                   className="news_page_btn"
                   onClick={() => changePage(totalPages)}
                   disabled={currentPage === totalPages || loading}
@@ -416,7 +462,7 @@ const FactlabNewsFeed = () => {
         </div>
         {/* 우측 광고 */}
         <div className="main-side-ad">
-          
+
         </div>
       </div>
       <Footer />

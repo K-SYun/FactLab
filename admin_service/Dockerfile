@@ -1,31 +1,25 @@
-# Build stage
-FROM node:18-alpine as builder
+# Development stage
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --only=production
+
+# Install all dependencies for development
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# npm 최신 버전 설치
-RUN npm install -g npm@11.5.2
-
-# Build the app
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-
-# Copy built app
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# ESLint 캐시 비활성화 환경변수
+ENV ESLINT_NO_DEV_ERRORS=true
+ENV GENERATE_SOURCEMAP=false
+ENV ESLINT_NO_ESLINTRC=false
+ENV SKIP_PREFLIGHT_CHECK=true
 
 # Expose port
 EXPOSE 3001
 
-CMD ["nginx", "-g", "daemon off;"]
+# Start development server
+CMD ["npm", "start"]

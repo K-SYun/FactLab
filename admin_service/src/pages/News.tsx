@@ -21,6 +21,7 @@ interface NewsItem {
   aiKeywords: string[];
   reliabilityScore: number;
   confidenceScore: number;
+  analysisType?: 'COMPREHENSIVE' | 'FACT_ANALYSIS' | 'BIAS_ANALYSIS'; // AI 분석 타입
   aiAnalysisResult: {
     summary: string;
     keywords: string[];
@@ -39,6 +40,20 @@ interface NewsItem {
   featuredAt?: string; // 메인 노출 설정 시간
 }
 
+
+// 분석 타입을 한글로 변환하는 함수
+const getAnalysisTypeLabel = (analysisType?: string): string => {
+  switch (analysisType) {
+    case 'COMPREHENSIVE':
+      return '종합';
+    case 'FACT_ANALYSIS':
+      return '사실';
+    case 'BIAS_ANALYSIS':
+      return '편향';
+    default:
+      return '종합';
+  }
+};
 
 const News: React.FC = () => {
   const [mainTab, setMainTab] = useState<'news_management' | 'main_featured'>('news_management');
@@ -222,7 +237,8 @@ const News: React.FC = () => {
           createdAt: news.createdAt || news.publishDate || new Date().toISOString(),
           updatedAt: news.updatedAt || news.publishDate || new Date().toISOString(),
           rejectReason: news.rejectReason,
-          isVisible: news.isVisible !== undefined ? news.isVisible : true // 기본값: 노출
+          isVisible: news.isVisible !== undefined ? news.isVisible : true, // 기본값: 노출
+          analysisType: news.analysisType as NewsItem['analysisType'] // AI 분석 타입 추가
         }));
 
         setAllNewsData(convertedNews);
@@ -584,7 +600,8 @@ const News: React.FC = () => {
           ...news,
           mainFeatured: news.mainFeatured,
           mainDisplayOrder: news.mainDisplayOrder,
-          featuredAt: news.featuredAt
+          featuredAt: news.featuredAt,
+          analysisType: news.analysisType as NewsItem['analysisType'] // AI 분석 타입 추가
         }));
         setFeaturedNews(convertedFeatured);
       }
@@ -631,7 +648,8 @@ const News: React.FC = () => {
           isVisible: news.isVisible !== undefined ? news.isVisible : true,
           mainFeatured: news.mainFeatured || false,
           mainDisplayOrder: news.mainDisplayOrder,
-          featuredAt: news.featuredAt
+          featuredAt: news.featuredAt,
+          analysisType: news.analysisType as NewsItem['analysisType'] // AI 분석 타입 추가
         }));
         setApprovedNews(convertedApproved);
       }
@@ -1021,7 +1039,7 @@ const News: React.FC = () => {
 
                 return currentNewsItems.map(news => (
                   <React.Fragment key={news.id}>
-                    <div className="admin-card admin-p-6 admin-news-item">
+                    <div className="admin-border admin-rounded-lg admin-p-4">
                       <div className="admin-news-header">
                         <div className="admin-flex-1">
                           <div className="admin-flex admin-items-start admin-gap-3 admin-mb-2">
@@ -1064,6 +1082,9 @@ const News: React.FC = () => {
                               <div className="admin-flex admin-items-center admin-gap-2 admin-mb-2">
                                 <span className="admin-news-id-badge">
                                   ID: {news.id}
+                                </span>
+                                <span className="admin-analysis-type-badge">
+                                  [{getAnalysisTypeLabel(news.analysisType)}]
                                 </span>
                                 <h3 className="admin-text-lg admin-font-medium admin-text-gray-900">
                                   {news.title}
@@ -1166,121 +1187,109 @@ const News: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="admin-news-content">
-
-                        {/* 뉴스 원본 링크 */}
-                        <div className="admin-mb-3">
-                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                            <i className="fas fa-external-link-alt mr-2"></i>원본 기사
-                          </p>
-                          <a
-                            href={news.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="admin-news-link"
-                          >
-                            <i className="fas fa-newspaper mr-2"></i>
-                            {news.title}
-                            <i className="fas fa-external-link-alt ml-2"></i>
-                          </a>
-                        </div>
-
-                        {/* AI 분석 요약 */}
-                        <div className="admin-mb-3">
-                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                            <i className="fas fa-robot mr-2"></i>AI 분석 요약
-                          </p>
-                          <div className="admin-ai-summary">
-                            {news.aiSummary && news.aiSummary !== '요약 정보 없음' ?
-                              news.aiSummary :
-                              <span className="admin-ai-summary-placeholder">
-                                <i className="fas fa-info-circle mr-2"></i>
-                                AI 분석이 아직 완료되지 않았습니다.
-                              </span>
-                            }
-                          </div>
-                        </div>
-
-                        {/* AI 키워드 */}
-                        <div className="admin-mb-3">
-                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                            <i className="fas fa-tags mr-2"></i>AI 추출 키워드
-                          </p>
-                          <div className="admin-keyword-container">
-                            {news.aiKeywords && Array.isArray(news.aiKeywords) && news.aiKeywords.length > 0 ? (
-                              news.aiKeywords.map((keyword, index) => (
-                                <span key={index} className="admin-keyword-tag">
-                                  <i className="fas fa-tag mr-1"></i>
-                                  {keyword}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="admin-keyword-placeholder">
-                                키워드가 추출되지 않았습니다.
-                              </span>
+                      {/* AI 분석 결과 표시 (간소화된 형태) */}
+                      {news.aiSummary && (
+                        <div className="admin-mb-3" style={{ backgroundColor: '#f0f9ff', padding: '12px', borderRadius: '6px', border: '1px solid #e0f2fe' }}>
+                          <div className="admin-text-sm admin-text-gray-700" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div><strong>AI 분석 요약:</strong> {news.aiSummary}</div>
+                            {news.aiKeywords && Array.isArray(news.aiKeywords) && news.aiKeywords.length > 0 && (
+                              <div><strong>추출 키워드:</strong> {news.aiKeywords.join(', ')}</div>
                             )}
                           </div>
                         </div>
+                      )}
 
-                        {/* AI 분석 결과 */}
-                        <div className="admin-mb-3">
-                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                            <i className="fas fa-chart-bar mr-2"></i>AI 분석 결과
-                          </p>
-                          <div className="admin-grid admin-grid-cols-2 admin-gap-3">
-                            <div className="admin-analysis-card">
-                              <span className="admin-analysis-label">
-                                <i className="fas fa-heart mr-1"></i>감정 분석
-                              </span>
-                              <p className="admin-analysis-value">
-                                {news.aiAnalysisResult?.sentiment || '중립'}
-                              </p>
-                            </div>
-                            <div className="admin-analysis-card">
-                              <span className="admin-analysis-label">
-                                <i className="fas fa-check-circle mr-1"></i>팩트 체크
-                              </span>
-                              <p className="admin-analysis-value">
-                                {news.aiAnalysisResult?.factCheck || '검증 필요'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* AI 신뢰도 정보 */}
-                        <div className="admin-mb-3">
-                          <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                            <i className="fas fa-chart-line mr-2"></i>신뢰도 정보
-                          </p>
-                          <div className="admin-flex admin-gap-4">
-                            <span className={`admin-reliability-badge ${getReliabilityClass(news.reliabilityScore || 0)}`}>
-                              <i className="fas fa-shield-alt mr-1"></i>
-                              콘텐츠 신뢰도: {news.reliabilityScore || 0}%
-                              {(news.reliabilityScore || 0) === 0 && (
-                                <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
-                              )}
-                            </span>
-                            <span className={`admin-reliability-badge ${getReliabilityClass(news.confidenceScore ? news.confidenceScore * 100 : 0)}`}>
-                              <i className="fas fa-brain mr-1"></i>
-                              AI 신뢰도: {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%
-                              {(news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0) === 0 && (
-                                <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-
-
-
-                        <div className="admin-flex admin-text-sm admin-text-gray-600" style={{ gap: '16px' }}>
-                          <span><i className="fas fa-building mr-1"></i>{news.source} / {news.publisher}</span>
-                          <span><i className="fas fa-folder mr-1"></i>{(NEWS_CATEGORY_LABELS as any)[news.category] || news.category}</span>
+                      <div className="admin-flex admin-items-center admin-justify-between">
+                        <div className="admin-flex admin-text-sm admin-text-gray-500" style={{ gap: '16px' }}>
+                          <span><i className="fas fa-globe mr-1"></i>네이버 / {news.publisher}</span>
                           <span><i className="fas fa-comments mr-1"></i>{news.comments} 댓글</span>
                           <span><i className="fas fa-thumbs-up mr-1"></i>{news.votes.fact} 사실</span>
                           <span><i className="fas fa-thumbs-down mr-1"></i>{news.votes.doubt} 의심</span>
                           <span><i className="fas fa-clock mr-1"></i>{formatDateTime(news.createdAt)}</span>
                         </div>
+                        
+                        <button
+                          className="admin-btn admin-btn-sm admin-btn-outline"
+                          onClick={() => {
+                            setSelectedNews(selectedNews?.id === news.id ? null : news);
+                          }}
+                          style={{ minWidth: '80px' }}
+                        >
+                          <i className={`fas ${selectedNews?.id === news.id ? 'fa-chevron-up' : 'fa-chevron-down'} mr-1`}></i>
+                          {selectedNews?.id === news.id ? '간소히' : '상세보기'}
+                        </button>
                       </div>
+
+                      {/* 펼쳐진 상세 정보 */}
+                      {selectedNews?.id === news.id && (
+                        <div className="admin-news-content" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+
+                          {/* 뉴스 원본 링크 */}
+                          <div className="admin-mb-3">
+                            <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                              <i className="fas fa-external-link-alt mr-2"></i>원본 기사
+                            </p>
+                            <a
+                              href={news.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="admin-news-link"
+                            >
+                              <i className="fas fa-newspaper mr-2"></i>
+                              {news.title}
+                              <i className="fas fa-external-link-alt ml-2"></i>
+                            </a>
+                          </div>
+
+                          {/* AI 분석 결과 */}
+                          <div className="admin-mb-3">
+                            <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                              <i className="fas fa-chart-bar mr-2"></i>AI 분석 결과
+                            </p>
+                            <div className="admin-grid admin-grid-cols-2 admin-gap-3">
+                              <div className="admin-analysis-card">
+                                <span className="admin-analysis-label">
+                                  <i className="fas fa-heart mr-1"></i>감정 분석
+                                </span>
+                                <p className="admin-analysis-value">
+                                  {news.aiAnalysisResult?.sentiment || '중립'}
+                                </p>
+                              </div>
+                              <div className="admin-analysis-card">
+                                <span className="admin-analysis-label">
+                                  <i className="fas fa-check-circle mr-1"></i>팩트 체크
+                                </span>
+                                <p className="admin-analysis-value">
+                                  {news.aiAnalysisResult?.factCheck || '검증 필요'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* AI 신뢰도 정보 */}
+                          <div className="admin-mb-3">
+                            <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                              <i className="fas fa-chart-line mr-2"></i>신뢰도 정보
+                            </p>
+                            <div className="admin-flex admin-gap-4">
+                              <span className={`admin-reliability-badge ${getReliabilityClass(news.reliabilityScore || 0)}`}>
+                                <i className="fas fa-shield-alt mr-1"></i>
+                                콘텐츠 신뢰도: {news.reliabilityScore || 0}%
+                                {(news.reliabilityScore || 0) === 0 && (
+                                  <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
+                                )}
+                              </span>
+                              <span className={`admin-reliability-badge ${getReliabilityClass(news.confidenceScore ? news.confidenceScore * 100 : 0)}`}>
+                                <i className="fas fa-brain mr-1"></i>
+                                AI 신뢰도: {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%
+                                {(news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0) === 0 && (
+                                  <span className="admin-text-xs admin-text-gray-500 admin-italic admin-ml-2">(미분석)</span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* 거부 사유 */}
@@ -1390,9 +1399,14 @@ const News: React.FC = () => {
                                 />
                               )}
                               <div className="admin-flex-1">
-                                <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
-                                  {news.title}
-                                </h3>
+                                <div className="admin-flex admin-items-center admin-gap-2 admin-mb-1">
+                                  <span className="admin-analysis-type-badge">
+                                    [{getAnalysisTypeLabel(news.analysisType)}]
+                                  </span>
+                                  <h3 className="admin-text-base admin-font-medium admin-text-gray-900">
+                                    {news.title}
+                                  </h3>
+                                </div>
                                 <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
                                   <span><i className="fas fa-building mr-1"></i>{news.source}</span>
                                   <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.featuredAt || news.createdAt)}</span>
@@ -1519,9 +1533,14 @@ const News: React.FC = () => {
                                   />
                                 )}
                                 <div className="admin-flex-1">
-                                  <h3 className="admin-text-base admin-font-medium admin-text-gray-900 admin-mb-1">
-                                    {news.title}
-                                  </h3>
+                                  <div className="admin-flex admin-items-center admin-gap-2 admin-mb-1">
+                                    <span className="admin-analysis-type-badge">
+                                      [{getAnalysisTypeLabel(news.analysisType)}]
+                                    </span>
+                                    <h3 className="admin-text-base admin-font-medium admin-text-gray-900">
+                                      {news.title}
+                                    </h3>
+                                  </div>
                                   <div className="admin-flex admin-items-center admin-gap-2 admin-text-sm admin-text-gray-600">
                                     <span><i className="fas fa-building mr-1"></i>{news.source}</span>
                                     <span><i className="fas fa-calendar mr-1"></i>{formatDateTime(news.createdAt)}</span>

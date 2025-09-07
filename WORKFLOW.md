@@ -182,3 +182,20 @@ curl http://localhost/api/news/approved
 - **일괄 승인**: 관리자 판단에 따른 수동 실행
 
 이제 AI 분석이 완료되면 자동으로 관리자 검토 대기 상태(`REVIEW_PENDING`)로 전환되며, 관리자 화면에서 우선적으로 표시됩니다.
+
+
+ 향후 개발 프로세스:
+  1. 개발: docker-compose -f docker-compose.dev.yml
+  2. 테스트: 별도 테스트 환경 구성
+  3. 운영: docker-compose -f docker-compose.prod.yml
+
+개발 환경 (docker-compose.dev.yml)
+  - 🔥 핫 리로드: 코드 수정시 즉시 반영
+  - 🐛 디버깅: SQL 로그, 상세 로그 활성화
+  - 🌐 외부 접근: 모든 포트 외부 노출
+  - 📚 Swagger: API 문서 자동 생성
+
+운영 환경 (docker-compose.prod.yml)
+  - 🔒 보안: 내부 네트워크, 최소 포트만 노출
+  - ⚡ 성능: 최적화된 설정
+  - 📊 모니터링: 로그 수집, 메트릭 수집

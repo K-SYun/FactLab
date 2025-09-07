@@ -1,7 +1,5 @@
 # Production 환경 보안 설정
 spring:
-  profiles:
-    active: prod
     
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -20,7 +18,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # Production에서는 validate만
+      ddl-auto: update  # 임시로 update 모드 사용
     show-sql: false  # SQL 로그 비활성화
     properties:
       hibernate:

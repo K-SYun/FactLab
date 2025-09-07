@@ -22,6 +22,7 @@ public class NewsDto {
     private Integer confidenceScore;
     private String aiKeywords;
     private String suspiciousPoints;
+    private String analysisType;  // AI 분석 타입 추가
     private String thumbnail;
     
     // 투표 통계 관련 필드들
@@ -192,6 +193,14 @@ public class NewsDto {
 
     public void setSuspiciousPoints(String suspiciousPoints) {
         this.suspiciousPoints = suspiciousPoints;
+    }
+
+    public String getAnalysisType() {
+        return analysisType;
+    }
+
+    public void setAnalysisType(String analysisType) {
+        this.analysisType = analysisType;
     }
 
     // 투표 통계 관련 Getters and Setters

@@ -9,3 +9,4 @@ beautifulsoup4
 apscheduler
 pytz
 google-generativeai
+pyyaml

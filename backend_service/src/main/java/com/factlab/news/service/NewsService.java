@@ -363,6 +363,7 @@ public class NewsService {
                 dto.setConfidenceScore(summary.getAiConfidence());
                 dto.setAiKeywords(summary.getKeywords());
                 dto.setSuspiciousPoints(summary.getSuspiciousPoints());
+                dto.setAnalysisType(summary.getAnalysisType() != null ? summary.getAnalysisType().toString() : null);
                 
                 System.out.println("DEBUG: DTO after setting AI data - aiSummary: " + dto.getAiSummary());
             } else {
@@ -440,6 +441,11 @@ public class NewsService {
             dto.setUnknownCount(0);
             dto.setTotalVotes(0);
         }
+        
+        // 최종 DTO 반환 직전 디버그 로그
+        System.out.println("DEBUG: FINAL DTO for news ID " + news.getId() + " - aiSummary: " + (dto.getAiSummary() != null ? dto.getAiSummary().substring(0, Math.min(50, dto.getAiSummary().length())) + "..." : "null"));
+        System.out.println("DEBUG: FINAL DTO for news ID " + news.getId() + " - aiAnalysisResult: " + (dto.getAiAnalysisResult() != null ? dto.getAiAnalysisResult().substring(0, Math.min(50, dto.getAiAnalysisResult().length())) + "..." : "null"));
+        System.out.println("DEBUG: FINAL DTO for news ID " + news.getId() + " - reliabilityScore: " + dto.getReliabilityScore());
         
         return dto;
     }

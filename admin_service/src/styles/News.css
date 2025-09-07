@@ -12,6 +12,18 @@
   flex-shrink: 0;
 }
 
+/* AI 분석 타입 뱃지 */
+.admin-analysis-type-badge {
+  background-color: #059669;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* 뉴스 링크 스타일 */
 .admin-news-link {
   padding: 8px 12px;
@@ -376,6 +388,19 @@
   outline: none;
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 아웃라인 버튼 스타일 */
+.admin-btn-outline {
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.admin-btn-outline:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
 }
 
 /* 반응형 조정 */

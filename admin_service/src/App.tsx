@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -23,24 +23,24 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-  }, [navigate]);
-
-  const checkAuth = async () => {
-    try {
-      const isValid = await verifyToken();
-      if (!isValid) {
+    const checkAuth = async () => {
+      try {
+        const isValid = await verifyToken();
+        if (!isValid) {
+          navigate('/login');
+          return;
+        }
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Authentication check failed:', error);
         navigate('/login');
-        return;
+      } finally {
+        setIsLoading(false);
       }
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Authentication check failed:', error);
-      navigate('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    
+    checkAuth();
+  }, []); // navigate 의존성 제거
 
   if (isLoading) {
     return (
