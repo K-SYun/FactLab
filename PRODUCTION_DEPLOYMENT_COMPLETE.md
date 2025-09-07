@@ -70,10 +70,10 @@ sudo chown -R $USER:$USER .
 ### 2.2 환경 변수 설정
 ```bash
 # 운영 환경 변수 파일 생성
-cp .env.prod.example .env
+cp .env.example .env.prod
 
 # 환경 변수 편집 (실제 값으로 수정 필요)
-vim .env
+vim .env.prod
 ```
 
 `.env` 파일 내용 예시:
