@@ -1,88 +1,94 @@
-# 개발 환경용 Docker Compose
+# Development Docker Compose
 services:
   nginx:
-    container_name: factlab-nginx-dev
     build: ./nginx
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf
     depends_on:
       - user-service
-      - admin-service  
+      - admin-service
       - backend-service
+    restart: unless-stopped
     networks:
       - frontend
       - backend
 
   user-service:
-    container_name: factlab-user-service-dev
     build: 
       context: ./user_service
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    volumes:
+      - ./user_service:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost/api
-    volumes:
-      - ./user_service/src:/app/src  # 개발용 핫 리로드
+      - REACT_APP_API_URL=http://localhost:8080/api
+      - CHOKIDAR_USEPOLLING=true
+      - FAST_REFRESH=true
+    restart: unless-stopped
     networks:
       - frontend
-      - backend  # backend-service와 통신하기 위해 추가
 
   admin-service:
-    container_name: factlab-admin-service-dev
     build: 
       context: ./admin_service
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
+    volumes:
+      - ./admin_service:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost/api
-    volumes:
-      - ./admin_service/src:/app/src  # 개발용 핫 리로드
+      - REACT_APP_API_URL=http://localhost:8080/api
+      - CHOKIDAR_USEPOLLING=true
+      - FAST_REFRESH=true
+    restart: unless-stopped
     networks:
       - frontend
-      - backend  # backend-service와 통신하기 위해 추가
 
   backend-service:
-    container_name: factlab-backend-service-dev
     build: 
       context: ./backend_service
-      dockerfile: Dockerfile  # 개발용 Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-      - "8081:8081"
-    depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev  # 개발 프로파일
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
-      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-factlab_user}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
-      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
-      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
-      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - "5005:5005"  # Debug port
     volumes:
-      - ./backend_service/target:/app/target  # 개발용 볼륨
+      - ./backend_service:/app
+    depends_on:
+      - database
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
+      - SPRING_DATASOURCE_USERNAME=factlab
+      - SPRING_DATASOURCE_PASSWORD=password123
+      - JWT_SECRET=your-dev-jwt-secret-key
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID:-}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET:-}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID:-}
+      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - LOGGING_LEVEL_SQL=DEBUG
+      - SPRING_JPA_SHOW_SQL=true
+    restart: unless-stopped
     networks:
       - backend
 
   crawler-service:
-    container_name: factlab-crawler-service-dev
     build: 
       context: ./crawler
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"  # 개발 시 외부 접근 허용
+      - "3002:3002"
+    volumes:
+      - ./crawler:/app
     depends_on:
       - database
     environment:
@@ -90,22 +96,22 @@ services:
       - DB_HOST=database
       - DB_PORT=5432
       - DB_NAME=factlab
-      - DB_USER=${DB_USERNAME:-factlab_user}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DATABASE_URL=postgresql://${DB_USERNAME:-factlab_user}:${DB_PASSWORD}@database:5432/factlab
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    volumes:
-      - ./crawler:/app  # 개발용 핫 리로드
+      - DB_USER=factlab
+      - DB_PASSWORD=password123
+      - DATABASE_URL=postgresql://factlab:password123@database:5432/factlab
+      - LOG_LEVEL=DEBUG
+    restart: unless-stopped
     networks:
       - backend
 
   ai-service:
-    container_name: factlab-ai-service-dev
     build: 
       context: ./ai_service
       dockerfile: Dockerfile
     ports:
-      - "8001:8001"  # 개발 시 외부 접근 허용
+      - "8001:8001"
+    volumes:
+      - ./ai_service:/app
     depends_on:
       - database
     environment:
@@ -113,37 +119,49 @@ services:
       - DB_HOST=database
       - DB_PORT=5432
       - DB_NAME=factlab
-      - DB_USER=${DB_USERNAME:-factlab_user}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    volumes:
-      - ./ai_service:/app  # 개발용 핫 리로드
+      - DB_USER=factlab
+      - DB_PASSWORD=password123
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LOG_LEVEL=DEBUG
+    restart: unless-stopped
     networks:
       - backend
-
 
   database:
-    container_name: factlab-database-dev
     image: postgres:15-alpine
     ports:
-      - "5433:5432"  # Backend 설정에 맞춰 5433으로 매핑
+      - "5432:5432"  # 개발 환경에서는 외부 접근 허용
     environment:
       - POSTGRES_DB=factlab
-      - POSTGRES_USER=${DB_USERNAME:-factlab_user}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=factlab
+      - POSTGRES_PASSWORD=password123
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/init-dev-data.sql:/docker-entrypoint-initdb.d/init-dev-data.sql:ro
+    restart: unless-stopped
     networks:
       - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-factlab_user} -d factlab"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+
+  # Database management tool for development
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@factlab.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - database
+    networks:
+      - backend
 
 volumes:
-  postgres_data_dev:
+  postgres_dev_data:
+    driver: local
+  pgadmin_data:
     driver: local
 
 networks:
