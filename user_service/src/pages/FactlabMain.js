@@ -8,7 +8,7 @@ import '../styles/Main.css';
 import '../styles/Common.css';
 import '../styles/AdStyle.css';
 import { newsApi } from '../services/api';
-import AdBanner from '../components/AdBanner';
+import { AdBanner } from '../components/ads';
 
 const FactlabMain = () => {
   const navigate = useNavigate();

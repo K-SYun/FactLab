@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { AdLayout } from '../components/ads';
 import '../styles/News.css';
 import '../styles/Main.css';
 import { newsApi } from '../services/api';
@@ -262,17 +263,8 @@ const FactlabNewsFeed = () => {
   return (
     <>
       <Header />
-      <div className="main-top-banner-ad">
-        🎯 상단 배너 광고 영역 (1200px x 90px)
-      </div>
-      <div className="main-container">
-        {/* 좌측 광고 */}
-        <div className="main-side-ad">
-
-        </div>
-        {/* 메인 컨텐츠 */}
-        <div className="main-content">
-          <div className="news_feed_container">
+      <AdLayout>
+        <div className="news_feed_container">
             {/* 카테고리 헤더 */}
             <div className="news_category_header">
               <h1 className="news_category_title">📰 {category} 뉴스 <span className="news_category_stats">(총 {totalCount}개)</span></h1>
@@ -458,13 +450,8 @@ const FactlabNewsFeed = () => {
                 </button>
               </div>
             )}
-          </div>
         </div>
-        {/* 우측 광고 */}
-        <div className="main-side-ad">
-
-        </div>
-      </div>
+      </AdLayout>
       <Footer />
     </>
   );

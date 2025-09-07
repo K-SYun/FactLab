@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
+import { AdLayout } from '../components/ads';
 import '../styles/News.css';
 import '../styles/Main.css';
 import { newsApi } from '../services/api';
@@ -575,12 +576,7 @@ const FactlabNewsDetail = () => {
   return (
     <>
       <Header />
-      <div className="main-top-banner-ad">
-        🎯 상단 배너 광고 영역 (1200px x 90px)
-      </div>
-      <div className="main-container">
-        {/* 좌측 광고 */}
-        <div className="main-side-ad"></div>
+      <AdLayout>
         {/* 메인 컨텐츠 - 좌우 분할 레이아웃 */}
         <div className="news-detail-container">
           {/* 좌측: 메인 콘텐츠 */}
@@ -899,9 +895,7 @@ const FactlabNewsDetail = () => {
 
           </div>
         </div>
-        {/* 우측 광고 */}
-        <div className="main-side-ad"></div>
-      </div>
+      </AdLayout>
       <Footer />
 
       {/* 로그인 모달 */}
