@@ -68,19 +68,69 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
     }
   };
 
-  const handleKakaoLogin = () => {
-    console.log('카카오 로그인');
-    // 카카오 로그인 로직
+  const handleKakaoLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // 카카오 OAuth URL 직접 생성
+      const kakaoClientId = process.env.REACT_APP_KAKAO_CLIENT_ID || '1305175';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/kakao/callback`);
+      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${kakaoClientId}&redirect_uri=${redirectUri}&state=login`;
+      
+      console.log('카카오 로그인 URL:', kakaoAuthUrl);
+      
+      // 카카오 OAuth 페이지로 리디렉션
+      window.location.href = kakaoAuthUrl;
+      
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error);
+      alert('카카오 로그인 중 오류가 발생했습니다.');
+      setIsSubmitting(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('구글 로그인');
-    // 구글 로그인 로직
+  const handleGoogleLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // 구글 OAuth URL 직접 생성
+      const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '659317981186-pshhp9ho77oknpr9lv4ppr3ucshmff4g.apps.googleusercontent.com';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/google/callback`);
+      const scope = encodeURIComponent('openid email profile');
+      const googleAuthUrl = `https://accounts.google.com/oauth/authorize?response_type=code&client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&state=login`;
+      
+      console.log('구글 로그인 URL:', googleAuthUrl);
+      
+      // 구글 OAuth 페이지로 리디렉션
+      window.location.href = googleAuthUrl;
+      
+    } catch (error) {
+      console.error('구글 로그인 오류:', error);
+      alert('구글 로그인 중 오류가 발생했습니다.');
+      setIsSubmitting(false);
+    }
   };
 
-  const handleNaverLogin = () => {
-    console.log('네이버 로그인');
-    // 네이버 로그인 로직
+  const handleNaverLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // 네이버 OAuth URL 직접 생성
+      const naverClientId = process.env.REACT_APP_NAVER_CLIENT_ID || 'iSuHncyfn142oOIe99NO';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/naver/callback`);
+      const state = Math.random().toString(36).substring(2, 15) + '_login'; // 로그인 구분을 위해 _login 추가
+      const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naverClientId}&redirect_uri=${redirectUri}&state=${state}`;
+      
+      console.log('네이버 로그인 URL:', naverAuthUrl);
+      
+      // 네이버 OAuth 페이지로 리디렉션
+      window.location.href = naverAuthUrl;
+      
+    } catch (error) {
+      console.error('네이버 로그인 오류:', error);
+      alert('네이버 로그인 중 오류가 발생했습니다.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleRegisterClick = () => {
@@ -203,31 +253,43 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
           </div>
           
           <div className="social-login">
-            <button className="btn btn-social btn-kakao" onClick={handleKakaoLogin}>
+            <button 
+              className="btn btn-social btn-kakao" 
+              onClick={handleKakaoLogin}
+              disabled={isSubmitting}
+            >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M10 0C4.48 0 0 3.58 0 8C0 10.84 1.64 13.34 4.16 14.9L3.2 18.4C3.04 19.02 3.76 19.52 4.3 19.18L8.54 16.72C9.02 16.78 9.5 16.8 10 16.8C15.52 16.8 20 13.22 20 8C20 3.58 15.52 0 10 0Z" fill="#3C1E1E"/>
               </svg>
-              카카오로 로그인
+              {isSubmitting ? '연결 중...' : '카카오로 로그인'}
             </button>
             
-            <button className="btn btn-social btn-google" onClick={handleGoogleLogin}>
+            <button 
+              className="btn btn-social btn-google" 
+              onClick={handleGoogleLogin}
+              disabled={isSubmitting}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              구글로 로그인
+              {isSubmitting ? '연결 중...' : '구글로 로그인'}
             </button>
             
-            <button className="btn btn-social btn-naver" onClick={handleNaverLogin}>
+            <button 
+              className="btn btn-social btn-naver" 
+              onClick={handleNaverLogin}
+              disabled={isSubmitting}
+            >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <rect width="20" height="20" rx="3" fill="#03C75A"/>
                 <path d="M13 6.5L11.5 9.25V6.5H9.5V13.5H11L12.5 10.75V13.5H14.5V6.5H13Z" fill="white"/>
                 <path d="M6.5 6.5V10.25L8 7.5H6.5Z" fill="white"/>
                 <path d="M6.5 10.75V13.5H8.5V9.5L6.5 10.75Z" fill="white"/>
               </svg>
-              네이버로 로그인
+              {isSubmitting ? '연결 중...' : '네이버로 로그인'}
             </button>
           </div>
           

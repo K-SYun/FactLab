@@ -7,6 +7,7 @@ import '../styles/Common.css';
 
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [boards, setBoards] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoadingBoards, setIsLoadingBoards] = useState(true);
@@ -23,7 +24,17 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
+    setIsMobileMenuOpen(false);
     navigate('/');
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMypageClick = () => {
+    setIsMobileMenuOpen(false);
+    navigate('/mypage');
   };
 
   // 카테고리와 게시판 목록 로드
@@ -83,7 +94,8 @@ const Header = () => {
             <img src="/Logo.png" alt="PolRadar Icon" className="news-logo-icon" />
             <img src="/Logo2.png" alt="PolRadar" className="news-logo-text" />
           </Link>
-          <div className="news-auth-buttons">
+          {/* Desktop Auth Buttons */}
+          <div className="news-auth-buttons desktop-auth">
             {isLoggedIn ? (
               <>
                 <div className="welcome-message">
@@ -109,10 +121,117 @@ const Header = () => {
               </>
             )}
           </div>
+
+          {/* Mobile Auth Button */}
+          <div className="mobile-auth">
+            {isLoggedIn ? (
+              <button
+                onClick={toggleMobileMenu}
+                className="mobile-menu-btn"
+                aria-label="메뉴 열기"
+              >
+                <div className="hamburger-icon">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={handleLoginClick}
+                className="mobile-login-btn"
+                aria-label="로그인"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
 
       </header>
+
+      {/* Mobile Menu Dropdown */}
+      {isLoggedIn && isMobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="mobile-menu-dropdown" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-menu-header">
+              <div className="mobile-welcome-message">
+                <span className="mobile-welcome-text">{getWelcomeMessage()}</span>
+              </div>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="mobile-menu-close"
+                aria-label="메뉴 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mobile-menu-content">
+              <button
+                onClick={handleMypageClick}
+                className="mobile-menu-item"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="menu-icon">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                마이페이지
+              </button>
+              <div className="mobile-menu-divider"></div>
+              <div className="mobile-mypage-submenu">
+                <Link 
+                  to="/mypage" 
+                  className="mobile-submenu-item"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  프로필 관리
+                </Link>
+                <Link 
+                  to="/mypage?tab=posts" 
+                  className="mobile-submenu-item"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  작성한 글
+                </Link>
+                <Link 
+                  to="/mypage?tab=comments" 
+                  className="mobile-submenu-item"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  작성한 댓글
+                </Link>
+                <Link 
+                  to="/mypage?tab=bookmarks" 
+                  className="mobile-submenu-item"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  즐겨찾기
+                </Link>
+                <Link 
+                  to="/mypage?tab=settings" 
+                  className="mobile-submenu-item"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  설정
+                </Link>
+              </div>
+              <div className="mobile-menu-divider"></div>
+              <button
+                onClick={handleLogout}
+                className="mobile-menu-item logout-item"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="menu-icon">
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={closeLoginModal}

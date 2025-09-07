@@ -379,7 +379,6 @@ const FactlabMain = () => {
       </div>
 
       <Footer />
-      <button className="floating-write" onClick={() => window.location.href = '/board/write'}>✏️</button>
 
       {/* 회원가입 완료 후 로그인 모달 */}
       <LoginModal

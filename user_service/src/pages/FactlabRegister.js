@@ -14,7 +14,7 @@ const FactlabRegister = () => {
     agreeTerms: false,
     agreePrivacy: false
   });
-  
+
   const [validationState, setValidationState] = useState({
     email: { isValid: null, message: '', isChecking: false },
     nickname: { isValid: null, message: '', isChecking: false },
@@ -35,7 +35,7 @@ const FactlabRegister = () => {
     password: false,
     confirmPassword: false
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -51,12 +51,12 @@ const FactlabRegister = () => {
     const hasLetter = /[A-Za-z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
+
     if (!minLength) return { isValid: false, message: '비밀번호는 8자 이상이어야 합니다.' };
     if (!hasLetter) return { isValid: false, message: '영문자를 포함해야 합니다.' };
     if (!hasNumber) return { isValid: false, message: '숫자를 포함해야 합니다.' };
     if (!hasSpecial) return { isValid: false, message: '특수문자를 포함하는 것이 좋습니다.' };
-    
+
     return { isValid: true, message: '안전한 비밀번호입니다.' };
   };
 
@@ -69,7 +69,7 @@ const FactlabRegister = () => {
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
-    
+
     // 전체 동의 체크박스 처리
     if (name === 'agreeAll') {
       setFormData(prev => ({
@@ -78,7 +78,7 @@ const FactlabRegister = () => {
         agreeTerms: checked,
         agreePrivacy: checked
       }));
-    } 
+    }
     // 개별 약관 체크박스 처리
     else if (name === 'agreeTerms' || name === 'agreePrivacy') {
       setFormData(prev => {
@@ -86,19 +86,19 @@ const FactlabRegister = () => {
           ...prev,
           [name]: checked
         };
-        
+
         // 개별 약관이 모두 체크되면 전체 동의도 체크
         if (name === 'agreeTerms') {
           newFormData.agreeAll = checked && prev.agreePrivacy;
         } else if (name === 'agreePrivacy') {
           newFormData.agreeAll = checked && prev.agreeTerms;
         }
-        
+
         // 개별 약관이 하나라도 해제되면 전체 동의 해제
         if (!checked) {
           newFormData.agreeAll = false;
         }
-        
+
         return newFormData;
       });
     }
@@ -123,13 +123,13 @@ const FactlabRegister = () => {
       const isValidFormat = validateEmail(value);
       setValidationState(prev => ({
         ...prev,
-        email: { 
-          ...prev.email, 
+        email: {
+          ...prev.email,
           isValid: isValidFormat ? null : false, // 형식이 맞으면 null, 틀리면 false
           message: isValidFormat ? '' : '올바른 이메일 형식이 아닙니다.'
         }
       }));
-      
+
       // 이메일이 변경되면 인증 상태 초기화
       setEmailVerification(prev => ({
         ...prev,
@@ -144,8 +144,8 @@ const FactlabRegister = () => {
     if (name === 'nickname' && value) {
       setValidationState(prev => ({
         ...prev,
-        nickname: { 
-          ...prev.nickname, 
+        nickname: {
+          ...prev.nickname,
           isValid: validateNickname(value) ? null : false,
           message: validateNickname(value) ? '' : '한글, 영문, 숫자 2-10자까지 가능합니다.'
         }
@@ -180,16 +180,16 @@ const FactlabRegister = () => {
     try {
       const response = await axios.get(`/api/auth/check-email?email=${formData.email}`);
       const isAvailable = response.data.success && response.data.data.available;
-      
+
       setValidationState(prev => ({
         ...prev,
-        email: { 
-          isValid: isAvailable, 
+        email: {
+          isValid: isAvailable,
           message: isAvailable ? '사용 가능한 이메일입니다.' : '이미 사용 중인 이메일입니다.',
-          isChecking: false 
+          isChecking: false
         }
       }));
-      
+
       // 이메일이 사용 가능하면 인증 단계로 진행
       if (isAvailable) {
         setEmailVerification(prev => ({
@@ -197,9 +197,9 @@ const FactlabRegister = () => {
           step: 'sendCode'
         }));
       }
-      
-      showToast(isAvailable ? '이메일 인증을 진행해주세요.' : '이미 사용 중인 이메일입니다.', 
-               isAvailable ? 'info' : 'error');
+
+      showToast(isAvailable ? '이메일 인증을 진행해주세요.' : '이미 사용 중인 이메일입니다.',
+        isAvailable ? 'info' : 'error');
     } catch (error) {
       console.error('이메일 중복 확인 실패:', error);
       setValidationState(prev => ({
@@ -232,7 +232,7 @@ const FactlabRegister = () => {
           timer: 300, // 5분
           isSending: false
         }));
-        
+
         // 5분 타이머 시작
         const interval = setInterval(() => {
           setEmailVerification(prev => {
@@ -267,7 +267,7 @@ const FactlabRegister = () => {
         email: formData.email,
         code: emailVerification.code
       });
-      
+
       // 테스트용 엔드포인트 사용
       const response = await axios.post('http://localhost:8080/api/auth/test-verify-email', {
         email: formData.email,
@@ -332,18 +332,18 @@ const FactlabRegister = () => {
     try {
       const response = await axios.get(`/api/auth/check-nickname?nickname=${formData.nickname}`);
       const isAvailable = response.data.success && response.data.data.available;
-      
+
       setValidationState(prev => ({
         ...prev,
-        nickname: { 
-          isValid: isAvailable, 
+        nickname: {
+          isValid: isAvailable,
           message: isAvailable ? '사용 가능한 닉네임입니다.' : '이미 사용 중인 닉네임입니다.',
-          isChecking: false 
+          isChecking: false
         }
       }));
-      
-      showToast(isAvailable ? '사용 가능한 닉네임입니다.' : '이미 사용 중인 닉네임입니다.', 
-               isAvailable ? 'success' : 'error');
+
+      showToast(isAvailable ? '사용 가능한 닉네임입니다.' : '이미 사용 중인 닉네임입니다.',
+        isAvailable ? 'success' : 'error');
     } catch (error) {
       console.error('닉네임 중복 확인 실패:', error);
       setValidationState(prev => ({
@@ -374,9 +374,9 @@ const FactlabRegister = () => {
       ${type === 'error' ? 'background-color: #dc3545;' : ''}
       ${type === 'info' ? 'background-color: #007bff;' : ''}
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => {
@@ -388,57 +388,65 @@ const FactlabRegister = () => {
   };
 
   // 소셜 회원가입 핸들러
-  const handleGoogleSignup = async () => {
+  const handleGoogleSignup = () => {
     try {
-      const response = await fetch('/api/auth/google/login-url');
-      const result = await response.json();
+      // 구글 OAuth URL 직접 생성
+      const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '659317981186-pshhp9ho77oknpr9lv4ppr3ucshmff4g.apps.googleusercontent.com';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/google/callback`);
+      const scope = encodeURIComponent('openid email profile');
+      const googleAuthUrl = `https://accounts.google.com/oauth/authorize?response_type=code&client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&state=signup`;
       
-      if (result.success) {
-        window.location.href = result.data;
-      } else {
-        showToast('구글 로그인 URL을 가져올 수 없습니다.', 'error');
-      }
+      console.log('구글 회원가입 URL:', googleAuthUrl);
+      
+      // 구글 OAuth 페이지로 리디렉션
+      window.location.href = googleAuthUrl;
+      
     } catch (error) {
-      console.error('구글 로그인 오류:', error);
-      showToast('구글 로그인 중 오류가 발생했습니다.', 'error');
+      console.error('구글 회원가입 오류:', error);
+      showToast('구글 회원가입 중 오류가 발생했습니다.', 'error');
     }
   };
 
-  const handleNaverSignup = async () => {
+  const handleNaverSignup = () => {
     try {
-      const response = await fetch('/api/auth/naver/login-url');
-      const result = await response.json();
+      // 네이버 OAuth URL 직접 생성
+      const naverClientId = process.env.REACT_APP_NAVER_CLIENT_ID || 'iSuHncyfn142oOIe99NO';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/naver/callback`);
+      const state = Math.random().toString(36).substring(2, 15) + '_signup'; // 회원가입 구분을 위해 _signup 추가
+      const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naverClientId}&redirect_uri=${redirectUri}&state=${state}`;
       
-      if (result.success) {
-        window.location.href = result.data;
-      } else {
-        showToast('네이버 로그인 URL을 가져올 수 없습니다.', 'error');
-      }
+      console.log('네이버 회원가입 URL:', naverAuthUrl);
+      
+      // 네이버 OAuth 페이지로 리디렉션
+      window.location.href = naverAuthUrl;
+      
     } catch (error) {
-      console.error('네이버 로그인 오류:', error);
-      showToast('네이버 로그인 중 오류가 발생했습니다.', 'error');
+      console.error('네이버 회원가입 오류:', error);
+      showToast('네이버 회원가입 중 오류가 발생했습니다.', 'error');
     }
   };
 
-  const handleKakaoSignup = async () => {
+  const handleKakaoSignup = () => {
     try {
-      const response = await fetch('/api/auth/kakao/login-url');
-      const result = await response.json();
+      // 카카오 OAuth URL 직접 생성
+      const kakaoClientId = process.env.REACT_APP_KAKAO_CLIENT_ID || '1305175';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/kakao/callback`);
+      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${kakaoClientId}&redirect_uri=${redirectUri}&state=signup`;
       
-      if (result.success) {
-        window.location.href = result.data;
-      } else {
-        showToast('카카오 로그인 URL을 가져올 수 없습니다.', 'error');
-      }
+      console.log('카카오 회원가입 URL:', kakaoAuthUrl);
+      
+      // 카카오 OAuth 페이지로 리디렉션
+      window.location.href = kakaoAuthUrl;
+      
     } catch (error) {
-      console.error('카카오 로그인 오류:', error);
-      showToast('카카오 로그인 중 오류가 발생했습니다.', 'error');
+      console.error('카카오 회원가입 오류:', error);
+      showToast('카카오 회원가입 중 오류가 발생했습니다.', 'error');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // 기본 유효성 검사
     if (!formData.email || !formData.password || !formData.nickname) {
       showToast('모든 필수 항목을 입력해주세요.', 'error');
@@ -490,12 +498,12 @@ const FactlabRegister = () => {
       if (response.data.success) {
         showToast('회원가입이 완료되었습니다! 메인화면으로 이동합니다.', 'success');
         setTimeout(() => {
-          navigate('/', { 
-            state: { 
+          navigate('/', {
+            state: {
               showLoginModal: true,
-              message: '회원가입이 완료되었습니다. 로그인해주세요.', 
-              email: formData.email 
-            } 
+
+              email: formData.email
+            }
           });
         }, 1500);
       } else {
@@ -527,61 +535,61 @@ const FactlabRegister = () => {
 
       <div className="container register-container">
         <div className="page-title">회원가입</div>
-        
-          <div className="terms-section">
-            <h3>약관 동의</h3>
-            
-            {/* 전체 동의 체크박스 */}
-            <div className="checkbox-group checkbox-group-all">
-              <label className="checkbox-label checkbox-label-all">
-                <input 
-                  type="checkbox" 
-                  name="agreeAll" 
-                  checked={formData.agreeAll}
-                  onChange={handleInputChange}
-                />
-                <span className="terms-text-all">전체 이용약관 동의</span>
-              </label>
-            </div>
-            
-            {/* 구분선 */}
-            <div className="terms-divider"></div>
-            
-            {/* 개별 약관 동의 */}
-            <div className="checkbox-group">
-              <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  name="agreeTerms" 
-                  checked={formData.agreeTerms}
-                  onChange={handleInputChange}
-                />
-                <span className="required">[필수]</span> 
-                <span className="terms-text">이용약관</span>
-                <a href="#" className="terms-link-inline">보기</a>
-              </label>
-            </div>
-            <div className="checkbox-group">
-              <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  name="agreePrivacy" 
-                  checked={formData.agreePrivacy}
-                  onChange={handleInputChange}
-                />
-                <span className="required">[필수]</span> 
-                <span className="terms-text">개인정보처리방침</span>
-                <a href="#" className="terms-link-inline">보기</a>
-              </label>
-            </div>
+
+        <div className="terms-section">
+          <h3>약관 동의</h3>
+
+          {/* 전체 동의 체크박스 */}
+          <div className="checkbox-group checkbox-group-all">
+            <label className="checkbox-label checkbox-label-all">
+              <input
+                type="checkbox"
+                name="agreeAll"
+                checked={formData.agreeAll}
+                onChange={handleInputChange}
+              />
+              <span className="terms-text-all">전체 이용약관 동의</span>
+            </label>
           </div>
+
+          {/* 구분선 */}
+          <div className="terms-divider"></div>
+
+          {/* 개별 약관 동의 */}
+          <div className="checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="agreeTerms"
+                checked={formData.agreeTerms}
+                onChange={handleInputChange}
+              />
+              <span className="required">[필수]</span>
+              <span className="terms-text">이용약관</span>
+              <a href="#" className="terms-link-inline">보기</a>
+            </label>
+          </div>
+          <div className="checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="agreePrivacy"
+                checked={formData.agreePrivacy}
+                onChange={handleInputChange}
+              />
+              <span className="required">[필수]</span>
+              <span className="terms-text">개인정보처리방침</span>
+              <a href="#" className="terms-link-inline">보기</a>
+            </label>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">이메일 <span className="required">*</span></label>
             <div className="input-group">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 name="email"
                 className={`form-input ${validationState.email.isValid === true ? 'valid' : validationState.email.isValid === false ? 'invalid' : ''}`}
                 value={formData.email}
@@ -589,10 +597,10 @@ const FactlabRegister = () => {
                 placeholder="이메일을 입력하세요"
                 autoComplete="email"
                 disabled={emailVerification.isVerified}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-small"
                 onClick={checkEmailDuplicate}
                 disabled={emailVerification.isVerified || validationState.email.isChecking || !formData.email || !validateEmail(formData.email)}
@@ -610,8 +618,8 @@ const FactlabRegister = () => {
             {validationState.email.isValid === true && (
               <div className="verification-section">
                 {emailVerification.step === 'sendCode' && (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-secondary btn-small verification-btn"
                     onClick={sendVerificationCode}
                     disabled={emailVerification.isSending}
@@ -619,7 +627,7 @@ const FactlabRegister = () => {
                     {emailVerification.isSending ? '발송중...' : '인증 코드 발송'}
                   </button>
                 )}
-                
+
                 {emailVerification.step === 'code' && (
                   <div className="verification-input-group">
                     <div className="verification-info">
@@ -627,16 +635,16 @@ const FactlabRegister = () => {
                       <span className="verification-timer">{formatTime(emailVerification.timer)}</span>
                     </div>
                     <div className="input-group">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         className="form-input verification-code-input"
                         value={emailVerification.code}
                         onChange={handleVerificationCodeChange}
                         placeholder="6자리 숫자 입력"
                         maxLength={6}
                       />
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="btn btn-small"
                         onClick={verifyEmailCode}
                         disabled={emailVerification.code.length !== 6}
@@ -644,8 +652,8 @@ const FactlabRegister = () => {
                         인증확인
                       </button>
                     </div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="btn btn-text btn-small"
                       onClick={sendVerificationCode}
                       disabled={emailVerification.timer > 240} // 1분 후 재발송 가능
@@ -654,7 +662,7 @@ const FactlabRegister = () => {
                     </button>
                   </div>
                 )}
-                
+
                 {emailVerification.step === 'verified' && (
                   <div className="verification-success">
                     <span className="verification-success-text">✓ 이메일 인증 완료</span>
@@ -663,19 +671,19 @@ const FactlabRegister = () => {
               </div>
             )}
           </div>
-            {/* 이메일 인증 안내 메시지 */}
-            {!emailVerification.isVerified && (
-              <div className="verification-notice">
-                <span className="verification-notice-text">
-                  ⚠️ 이메일 인증을 완료해야 나머지 정보를 입력할 수 있습니다.
-                </span>
-              </div>
-            )}
+          {/* 이메일 인증 안내 메시지 */}
+          {!emailVerification.isVerified && (
+            <div className="verification-notice">
+              <span className="verification-notice-text">
+                ⚠️ 이메일 인증을 완료해야 나머지 정보를 입력할 수 있습니다.
+              </span>
+            </div>
+          )}
           <div className="form-group">
             <label className="form-label">비밀번호 <span className="required">*</span></label>
             <div className="password-input-group">
-              <input 
-                type={showPassword.password ? "text" : "password"} 
+              <input
+                type={showPassword.password ? "text" : "password"}
                 name="password"
                 className={`form-input ${validationState.password.isValid === true ? 'valid' : validationState.password.isValid === false ? 'invalid' : ''}`}
                 value={formData.password}
@@ -683,7 +691,7 @@ const FactlabRegister = () => {
                 placeholder="8자 이상 영문, 숫자, 특수문자 포함"
                 autoComplete="new-password"
                 disabled={!emailVerification.isVerified}
-                required 
+                required
               />
               <button
                 type="button"
@@ -696,12 +704,12 @@ const FactlabRegister = () => {
                   {showPassword.password ? (
                     // 눈 뜬 상태 (보이기)
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                     </svg>
                   ) : (
                     // 눈 감은 상태 (숨기기)
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
                     </svg>
                   )}
                 </span>
@@ -713,12 +721,12 @@ const FactlabRegister = () => {
               </div>
             )}
           </div>
-          
+
           <div className="form-group">
             <label className="form-label">비밀번호 확인 <span className="required">*</span></label>
             <div className="password-input-group">
-              <input 
-                type={showPassword.confirmPassword ? "text" : "password"} 
+              <input
+                type={showPassword.confirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 className={`form-input ${formData.confirmPassword && formData.password === formData.confirmPassword ? 'valid' : formData.confirmPassword ? 'invalid' : ''}`}
                 value={formData.confirmPassword}
@@ -726,7 +734,7 @@ const FactlabRegister = () => {
                 placeholder="비밀번호를 다시 입력하세요"
                 autoComplete="new-password"
                 disabled={!emailVerification.isVerified}
-                required 
+                required
               />
               <button
                 type="button"
@@ -739,12 +747,12 @@ const FactlabRegister = () => {
                   {showPassword.confirmPassword ? (
                     // 눈 뜬 상태 (보이기)
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                     </svg>
                   ) : (
                     // 눈 감은 상태 (숨기기)
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
                     </svg>
                   )}
                 </span>
@@ -756,22 +764,22 @@ const FactlabRegister = () => {
               </div>
             )}
           </div>
-          
+
           <div className="form-group">
             <label className="form-label">닉네임 <span className="required">*</span></label>
             <div className="input-group">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="nickname"
                 className={`form-input ${validationState.nickname.isValid === true ? 'valid' : validationState.nickname.isValid === false ? 'invalid' : ''}`}
                 value={formData.nickname}
                 onChange={handleInputChange}
                 placeholder="닉네임을 입력하세요"
                 disabled={!emailVerification.isVerified}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-small"
                 onClick={checkNicknameDuplicate}
                 disabled={!emailVerification.isVerified || validationState.nickname.isChecking || !formData.nickname || !validateNickname(formData.nickname)}
@@ -785,10 +793,10 @@ const FactlabRegister = () => {
               </div>
             )}
           </div>
-          
+
           <div className="form-group">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary btn-full"
               disabled={isSubmitting || !emailVerification.isVerified}
             >
@@ -796,42 +804,42 @@ const FactlabRegister = () => {
             </button>
           </div>
         </form>
-        
+
         <div className="divider">
           <span>또는</span>
         </div>
-        
+
         <div className="social-signup">
           <div className="social-signup-title">소셜 계정으로 회원가입</div>
-          
+
           <button className="btn btn-social btn-google" onClick={handleGoogleSignup}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             구글로 회원가입
           </button>
-          
+
           <button className="btn btn-social btn-naver" onClick={handleNaverSignup}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect width="20" height="20" rx="3" fill="#03C75A"/>
-              <path d="M13 6.5L11.5 9.25V6.5H9.5V13.5H11L12.5 10.75V13.5H14.5V6.5H13Z" fill="white"/>
-              <path d="M6.5 6.5V10.25L8 7.5H6.5Z" fill="white"/>
-              <path d="M6.5 10.75V13.5H8.5V9.5L6.5 10.75Z" fill="white"/>
+              <rect width="20" height="20" rx="3" fill="#03C75A" />
+              <path d="M13 6.5L11.5 9.25V6.5H9.5V13.5H11L12.5 10.75V13.5H14.5V6.5H13Z" fill="white" />
+              <path d="M6.5 6.5V10.25L8 7.5H6.5Z" fill="white" />
+              <path d="M6.5 10.75V13.5H8.5V9.5L6.5 10.75Z" fill="white" />
             </svg>
             네이버로 회원가입
           </button>
-          
+
           <button className="btn btn-social btn-kakao" onClick={handleKakaoSignup}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 0C4.48 0 0 3.58 0 8C0 10.84 1.64 13.34 4.16 14.9L3.2 18.4C3.04 19.02 3.76 19.52 4.3 19.18L8.54 16.72C9.02 16.78 9.5 16.8 10 16.8C15.52 16.8 20 13.22 20 8C20 3.58 15.52 0 10 0Z" fill="#FEE500"/>
+              <path d="M10 0C4.48 0 0 3.58 0 8C0 10.84 1.64 13.34 4.16 14.9L3.2 18.4C3.04 19.02 3.76 19.52 4.3 19.18L8.54 16.72C9.02 16.78 9.5 16.8 10 16.8C15.52 16.8 20 13.22 20 8C20 3.58 15.52 0 10 0Z" fill="#FEE500" />
             </svg>
             카카오로 회원가입
           </button>
         </div>
-        
+
         <div className="auth-links">
           <span>이미 계정이 있으신가요?</span>
           <a href="/login" className="auth-link">로그인</a>

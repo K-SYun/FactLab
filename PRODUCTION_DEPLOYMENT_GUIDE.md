@@ -27,7 +27,7 @@
 ```bash
 # 1. 서버 접속 및 프로젝트 클론
 ssh user@polradar.com
-git clone https://github.com/your-repo/FactLab.git
+git clone https://github.com/K-SYun/FactLab.git
 cd FactLab
 
 # 2. 환경 설정

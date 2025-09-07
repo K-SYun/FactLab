@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithApi = async (email, password) => {
     console.log('loginWithApi 호출됨:', { email, password });
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,6 +160,7 @@ export const AuthProvider = ({ children }) => {
         id: result.data.id,
         email: result.data.email,
         nickname: result.data.nickname,
+        provider: result.data.provider || 'email',
       };
 
       console.log('로그인 처리할 사용자 데이터:', userData);
@@ -174,6 +175,24 @@ export const AuthProvider = ({ children }) => {
         error: error.message || '로그인 중 오류가 발생했습니다.' 
       };
     }
+  };
+
+  // 소셜 로그인 토큰으로 로그인 처리
+  const loginWithSocialToken = async (userData) => {
+    console.log('소셜 로그인 처리:', userData);
+    
+    // 소셜 로그인으로 받은 데이터로 내부 로그인 처리
+    const processedUserData = {
+      id: userData.id,
+      email: userData.email,
+      nickname: userData.nickname || userData.name,
+      provider: userData.provider,
+      socialId: userData.socialId,
+      profileImage: userData.profileImage,
+    };
+
+    login(processedUserData);
+    return { success: true, data: processedUserData };
   };
 
   // 로그아웃 함수
@@ -219,6 +238,7 @@ export const AuthProvider = ({ children }) => {
     loginDate,
     login,
     loginWithApi,
+    loginWithSocialToken,
     logout,
     formatLoginDate,
     getWelcomeMessage

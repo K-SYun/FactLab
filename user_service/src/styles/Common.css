@@ -257,6 +257,179 @@ body {
     margin: 0;
 }
 
+/* Mobile/Desktop Toggle */
+.desktop-auth {
+    display: flex;
+}
+
+.mobile-auth {
+    display: none;
+}
+
+/* Mobile Auth Button Styles */
+.mobile-login-btn,
+.mobile-menu-btn {
+    background: none;
+    border: none;
+    color: #0066cc;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-login-btn:hover,
+.mobile-menu-btn:hover {
+    background-color: #f0f7ff;
+}
+
+/* Hamburger Icon */
+.hamburger-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.hamburger-icon span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: #0066cc;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding-top: 60px;
+}
+
+/* Mobile Menu Dropdown */
+.mobile-menu-dropdown {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 280px;
+    margin-right: 20px;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-welcome-message .mobile-welcome-text {
+    font-size: 14px;
+    color: #0066cc;
+    font-weight: 500;
+}
+
+.mobile-menu-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.mobile-menu-close:hover {
+    background-color: #f5f5f5;
+}
+
+.mobile-menu-content {
+    padding: 16px 0;
+}
+
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-menu-item:hover {
+    background-color: #f8f8f8;
+}
+
+.mobile-menu-item.logout-item {
+    color: #dc3545;
+}
+
+.mobile-menu-item.logout-item:hover {
+    background-color: #fff5f5;
+}
+
+.menu-icon {
+    flex-shrink: 0;
+}
+
+.mobile-menu-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 8px 20px;
+}
+
+.mobile-mypage-submenu {
+    padding-left: 20px;
+}
+
+.mobile-submenu-item {
+    display: block;
+    padding: 10px 20px;
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.mobile-submenu-item:hover {
+    background-color: #f8f8f8;
+    border-left-color: #0066cc;
+    color: #0066cc;
+}
+
 /* 반응형 조정 (공통 요소) */
 @media (max-width: 768px) {
     body {
@@ -265,18 +438,23 @@ body {
 
     .news-header-content {
         padding: 0 10px;
-        flex-direction: column; /* 로고와 인증 버튼 스택 */
-        align-items: flex-start;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .news-logo {
         font-size: 1.5rem; /* 모바일에서 더 작은 로고 */
     }
 
-    .news-auth-buttons {
-        width: 100%; /* 버튼 전체 너비 */
-        justify-content: center;
-        margin-top: 10px;
+    /* Desktop auth buttons 숨기기 */
+    .desktop-auth {
+        display: none;
+    }
+
+    /* Mobile auth button 보이기 */
+    .mobile-auth {
+        display: flex;
     }
 
     .news-nav-content {
@@ -288,9 +466,9 @@ body {
     .news-nav-item {
         padding: 8px 12px;
         font-size: 12px;
-        border-right: none; /* 줄바꿈 시 수직 테두리 제거 */
-        border-bottom: 1px solid #ddd; /* 수평 테두리 추가 */
-        flex-grow: 1; /* 항목이 공간을 채우도록 확장 */
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        flex-grow: 1;
         text-align: center;
     }
     .news-nav-item:last-child {
