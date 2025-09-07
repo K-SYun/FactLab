@@ -7,7 +7,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx-secure.conf:/etc/nginx/nginx.conf
-      - /tmp/ssl:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     depends_on:
       - user-service

@@ -62,18 +62,10 @@ services:
       - ./backend_service:/app
     depends_on:
       - database
+    env_file:
+      - .env.dev
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
-      - SPRING_DATASOURCE_USERNAME=factlab
-      - SPRING_DATASOURCE_PASSWORD=password123
-      - JWT_SECRET=your-dev-jwt-secret-key
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
-      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID:-}
-      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET:-}
-      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID:-}
       - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - LOGGING_LEVEL_SQL=DEBUG
       - SPRING_JPA_SHOW_SQL=true
@@ -91,14 +83,10 @@ services:
       - ./crawler:/app
     depends_on:
       - database
+    env_file:
+      - .env.dev
     environment:
       - ENVIRONMENT=development
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_NAME=factlab
-      - DB_USER=factlab
-      - DB_PASSWORD=password123
-      - DATABASE_URL=postgresql://factlab:password123@database:5432/factlab
       - LOG_LEVEL=DEBUG
     restart: unless-stopped
     networks:
@@ -114,14 +102,10 @@ services:
       - ./ai_service:/app
     depends_on:
       - database
+    env_file:
+      - .env.dev
     environment:
       - ENVIRONMENT=development
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_NAME=factlab
-      - DB_USER=factlab
-      - DB_PASSWORD=password123
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - LOG_LEVEL=DEBUG
     restart: unless-stopped
     networks:
@@ -131,10 +115,8 @@ services:
     image: postgres:15-alpine
     ports:
       - "5432:5432"  # 개발 환경에서는 외부 접근 허용
-    environment:
-      - POSTGRES_DB=factlab
-      - POSTGRES_USER=factlab
-      - POSTGRES_PASSWORD=password123
+    env_file:
+      - .env.dev
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
