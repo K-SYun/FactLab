@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 # Copy nginx configuration
-COPY nginx-prod.conf /etc/nginx/nginx.conf
+COPY nginx-secure.conf /etc/nginx/nginx.conf
 
 # Copy error pages
 COPY 404.html /usr/share/nginx/html/404.html
