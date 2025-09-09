@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 class PromptLoader:
     def __init__(self, config_path: str = None):
         if config_path is None:
-            config_path = os.path.join(os.path.dirname(__file__), "prompts.yml")
+            # 먼저 simple_prompts.yml을 시도하고, 없으면 기존 prompts.yml 사용
+            simple_path = os.path.join(os.path.dirname(__file__), "simple_prompts.yml")
+            original_path = os.path.join(os.path.dirname(__file__), "prompts.yml")
+            
+            config_path = simple_path if os.path.exists(simple_path) else original_path
         
         self.config_path = config_path
         self.prompts = {}

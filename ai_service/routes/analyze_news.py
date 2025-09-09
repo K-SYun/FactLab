@@ -55,7 +55,12 @@ async def analyze_news(
         # 분석 타입 결정: 기존 타입 > 요청 타입 > 기본값
         final_analysis_type = existing_analysis_type or analysis_type or "COMPREHENSIVE"
         
-        # 분석 타입 검증
+        # 분석 타입 검증 및 매핑 
+        type_mapping = {
+            "COMPREHENSIVE": "NEWS_COMPREHENSIVE",
+            "FACT_ANALYSIS": "NEWS_FACT_ANALYSIS", 
+            "BIAS_ANALYSIS": "NEWS_BIAS_ANALYSIS"
+        }
         valid_types = ["COMPREHENSIVE", "FACT_ANALYSIS", "BIAS_ANALYSIS"]
         if final_analysis_type not in valid_types:
             raise HTTPException(status_code=400, detail=f"유효하지 않은 분석 타입입니다. 허용되는 값: {valid_types}")
@@ -75,12 +80,14 @@ async def analyze_news(
         analyzer = GeminiNewsAnalyzer()
         
         # 분석 수행 (분석 + DB 저장 + 백엔드 알림)
+        prompt_type = type_mapping[final_analysis_type]
         result = analyzer.analyze_news_complete(
             news_id=news_id,
             title=news.get('title', ''),
             content=news.get('content', ''),
             source=news.get('source', '출처 불명'),
-            analysis_type=final_analysis_type
+            analysis_type=final_analysis_type,
+            prompt_type=prompt_type
         )
         
         logger.info(f"뉴스 {news_id} AI 분석 완료")

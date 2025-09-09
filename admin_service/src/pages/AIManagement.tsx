@@ -288,7 +288,7 @@ const AIManagement: React.FC = () => {
   const loadNewsData = async (page = 0, size = 100) => {
     try {
       // 백엔드에서 PENDING/PROCESSING 상태만 필터링해서 가져오기
-      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing`);
+      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing,review_pending`);
       if (response.ok) {
         const result = await response.json();
         const apiNews = result.data || [];

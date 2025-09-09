@@ -145,8 +145,8 @@ cd ..
 ### 4.2 Docker 이미지 빌드
 ```bash
 # 운영용 Docker Compose로 이미지 빌드 (캐시 없이)
-docker-compose -f docker-compose.prod.yml build --no-cache --parallel
-
+#docker-compose -f docker-compose.prod.yml build --no-cache --parallel
+docker-compose --env-file .env.prod -f docker-compose.prod.yml build
 # 빌드 상태 확인
 docker images
 ```
