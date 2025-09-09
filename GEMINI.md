@@ -943,10 +943,13 @@ SNS/공식 사이트 연결
     아래 3단계 명령어를 클라우드 서버에서 차례대로 실행하여 Docker를 초기화하고 공간을 확보하세요.
 
    1. Docker 서비스 중지:
-   1     sudo systemctl stop docker
+   sudo systemctl stop docker
 
    2. Docker 데이터 디렉토리 삭제 
-   1     sudo rm -rf /var/lib/docker
+   sudo rm -rf /var/lib/docker
 
    3. Docker 서비스 재시작:
-   1     sudo systemctl start docker
+   sudo systemctl start docker
+
+   4. 모든 Docker 데이터, 특히 빌드 캐시를 완전히 삭제
+   docker system prune -af
