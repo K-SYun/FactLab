@@ -945,7 +945,7 @@ SNS/공식 사이트 연결
    1. Docker 서비스 중지:
    1     sudo systemctl stop docker
 
-   2. Docker 데이터 디렉토리 삭제 (1.6GB 확보):
+   2. Docker 데이터 디렉토리 삭제 
    1     sudo rm -rf /var/lib/docker
 
    3. Docker 서비스 재시작:

@@ -177,33 +177,56 @@ const News: React.FC = () => {
     setSelectedNewsIds(pendingNewsIds);
   };
 
-  // 데이터 새로고침 함수 (페이징으로 100개씩 가져오기)
+  // 데이터 새로고침 함수 - AI 분석 완료된 뉴스만 가져오기
   const refreshNewsData = async () => {
     try {
-      // AI 분석 완료된 뉴스만 가져오기 (REVIEW_PENDING, APPROVED, REJECTED 상태)
-      // 최대 1000개까지만 로드 (10번의 100개씩 요청)
+      // AI 분석이 실제로 완료된 뉴스만 가져오기 (news_summary가 completed 상태인 뉴스)
       let allNews: any[] = [];
+      
       for (let page = 0; page < 10; page++) {
         const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=100`);
         const result = await response.json();
         if (result.success && result.data) {
           const pageNews = Array.isArray(result.data) ? result.data : (result.data as any)?.content || [];
-          if (pageNews.length === 0) break; // 더 이상 데이터가 없으면 중단
-          allNews = [...allNews, ...pageNews];
-          if (pageNews.length < 100) break; // 마지막 페이지면 중단
+          if (pageNews.length === 0) break;
+          
+          // 각 뉴스에 대해 AI 분석 완료 여부 확인
+          const newsWithAnalysisCheck = await Promise.all(
+            pageNews.map(async (news: any) => {
+              try {
+                const summaryResponse = await fetch(`${getBackendApiBase()}/news-summary/news/${news.id}`);
+                const summaryResult = await summaryResponse.json();
+                
+                // AI 분석이 실제로 완료된 뉴스만 포함 (news_summary.status === 'completed')
+                if (summaryResult.success && summaryResult.data && summaryResult.data.status === 'completed') {
+                  return {
+                    ...news,
+                    aiSummary: summaryResult.data.summary || '요약 정보 없음',
+                    aiKeywords: summaryResult.data.keywords ? summaryResult.data.keywords.split(',') : [],
+                    reliabilityScore: summaryResult.data.reliabilityScore || 0,
+                    analysisType: summaryResult.data.analysisType || 'COMPREHENSIVE'
+                  };
+                }
+                return null; // AI 분석이 완료되지 않은 뉴스는 제외
+              } catch (err) {
+                console.warn(`뉴스 ${news.id} 분석 상태 확인 실패:`, err);
+                return null;
+              }
+            })
+          );
+          
+          // null이 아닌 뉴스만 추가 (AI 분석 완료된 뉴스만)
+          const validNews = newsWithAnalysisCheck.filter(news => news !== null);
+          allNews = [...allNews, ...validNews];
+          
+          if (pageNews.length < 100) break;
         } else {
-          break; // API 실패시 중단
+          break;
         }
       }
 
       if (allNews.length > 0) {
-        // AI 분석 완료된 뉴스만 필터링 (review_pending, approved, rejected)
-        const filteredNews = allNews.filter((news: any) => {
-          const status = news.status?.toLowerCase();
-          return status === 'review_pending' || status === 'approved' || status === 'rejected';
-        });
-
-        const convertedNews: NewsItem[] = filteredNews.map((news: any) => ({
+        const convertedNews: NewsItem[] = allNews.map((news: any) => ({
           id: news.id,
           title: news.title || '제목 없음',
           content: news.content || '',
