@@ -43,7 +43,7 @@ check_environment() {
     
     # 필수 환경 변수 확인
     source .env.prod
-    if [ -z "$DB_PASSWORD" ] || [ "$DB_PASSWORD" = "PRODUCTION_PASSWORD_HERE" ]; then
+    if [ -z "$POSTGRES_PASSWORD" ] || [ "$POSTGRES_PASSWORD" = "PRODUCTION_PASSWORD_HERE" ]; then
         error "운영 DB 비밀번호가 설정되지 않았습니다."
     fi
     
