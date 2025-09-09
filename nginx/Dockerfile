@@ -1,9 +1,13 @@
 FROM nginx:alpine
 
 # Copy nginx configuration
-COPY nginx-secure.conf /etc/nginx/nginx.conf
+COPY nginx-prod.conf /etc/nginx/nginx.conf
 
-# Expose port 80
-EXPOSE 80
+# Copy error pages
+COPY 404.html /usr/share/nginx/html/404.html
+COPY 503.html /usr/share/nginx/html/503.html
+
+# Expose ports
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]

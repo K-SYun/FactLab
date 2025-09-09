@@ -953,3 +953,9 @@ SNS/공식 사이트 연결
 
    4. 모든 Docker 데이터, 특히 빌드 캐시를 완전히 삭제
    docker system prune -af
+
+   5. 시스템 임시 파일 삭제.
+   sudo rm -rf /tmp/* /var/tmp/*
+
+   6. 재 배포
+   ./deploy-prod.sh

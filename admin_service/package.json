@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@ckeditor/ckeditor5-build-classic": "^44.3.0",
+    "@ckeditor/ckeditor5-build-classic": "^43.0.0",
     "@ckeditor/ckeditor5-react": "^11.0.0",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "@testing-library/dom": "^10.4.0",
