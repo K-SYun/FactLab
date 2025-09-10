@@ -940,7 +940,51 @@ SNS/공식 사이트 연결
   - 📊 모니터링: 로그 수집, 메트릭 수집
 
 
-    아래 3단계 명령어를 클라우드 서버에서 차례대로 실행하여 Docker를 초기화하고 공간을 확보하세요.
+  기본 Docker Compose 명령어
+
+  # 모든 서비스 시작 (백그라운드)
+  docker-compose up -d
+
+  # 개발 환경용 Docker Compose 파일 사용
+  docker-compose -f docker-compose.dev.yml up -d
+
+  # 특정 서비스만 시작
+  docker-compose up -d [서비스명]
+
+  # 로그 확인하며 시작 (포그라운드)
+  docker-compose up
+
+  # 이미지 재빌드하면서 시작
+  docker-compose up -d --build
+
+  현재 프로젝트용 명령어
+
+  # 개발환경 전체 시작
+  docker-compose -f docker-compose.dev.yml up -d
+
+  # 캐시 없이 완전 재빌드 후 시작
+  docker-compose -f docker-compose.dev.yml build --no-cache && docker-compose -f
+  docker-compose.dev.yml up -d
+
+  # 운영환경 시작 (있는 경우)
+  docker-compose -f docker-compose.prod.yml up -d
+
+  유용한 추가 명령어
+
+  # 서비스 중지
+  docker-compose down
+
+  # 서비스 중지 + 볼륨 삭제
+  docker-compose down -v
+
+  # 실시간 로그 확인
+  docker-compose logs -f
+
+  # 특정 서비스 로그만 확인
+  docker-compose logs -f [서비스명]
+
+  # 서비스 상태 확인
+  docker-compose ps
 
    1. Docker 서비스 중지:
    sudo systemctl stop docker
