@@ -75,8 +75,9 @@ const AIManagement: React.FC = () => {
 
   // 환경에 따라 AI API 경로 설정하는 공통 함수
   const getAIApiBase = () => {
-    // 크롤러 서비스의 AI 분석 API 사용 (이전 성공 방식)
-    return '/ai';
+    // 개발환경에서 포트 3001 직접 접근 시 nginx 프록시를 통해 AI 서비스 접근
+    // 운영환경에서는 nginx 프록시를 통해 접근
+    return window.location.port === '3001' ? 'http://localhost/ai' : '/ai';
   };
 
   // 크롤러 API 경로 설정 함수
@@ -288,7 +289,7 @@ const AIManagement: React.FC = () => {
   const loadNewsData = async (page = 0, size = 100) => {
     try {
       // 백엔드에서 PENDING/PROCESSING 상태만 필터링해서 가져오기
-      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing`);
+      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing,review_pending`);
       if (response.ok) {
         const result = await response.json();
         const apiNews = result.data || [];
@@ -468,9 +469,9 @@ const AIManagement: React.FC = () => {
         });
 
         try {
-          // 2. 실제 AI 분석 API 호출 (분석 타입 포함)
-          console.log(`🤖 ${analysisTypeNames[analysisType]} 시작: 뉴스 ID ${newsId}`);
-          const aiResponse = await fetch(`${getBackendApiBase()}/news-summary/admin/analyze`, {
+          // 2. 백엔드에 분석 작업 생성 요청
+          console.log(`🤖 ${analysisTypeNames[analysisType]} 작업 생성: 뉴스 ID ${newsId}`);
+          const backendResponse = await fetch(`${getBackendApiBase()}/news-summary/admin/analyze`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -481,46 +482,49 @@ const AIManagement: React.FC = () => {
             })
           });
 
-          if (aiResponse.ok) {
-            const aiResult = await aiResponse.json();
-            console.log(`✅ AI 분석 완료: 뉴스 ID ${newsId}`, aiResult);
-
-            // 3. 분석 성공 시 REVIEW_PENDING으로 상태 변경
-            await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REVIEW_PENDING`, {
-              method: 'PUT',
+          if (backendResponse.ok) {
+            console.log(`✅ 분석 작업 생성 완료: 뉴스 ID ${newsId}`);
+            
+            // 3. 실제 AI 분석 실행 (AI 서비스로 직접 호출)
+            console.log(`🤖 실제 AI 분석 실행: 뉴스 ID ${newsId}`);
+            const aiResponse = await fetch(`${getAIApiBase()}/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}`, {
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               }
             });
 
-            // 4. 뉴스 관리로 자동 전송 (분석 완료된 뉴스는 AI 관리에서 제거)
+            if (aiResponse.ok) {
+              const aiResult = await aiResponse.json();
+              console.log(`✅ AI 분석 완료: 뉴스 ID ${newsId}`, aiResult);
+
+              // 4. 분석 성공 시 REVIEW_PENDING으로 상태 변경
+              await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REVIEW_PENDING`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
+
+            // 5. 분석 완료 메시지 표시
+            const newsTitle = newsItems.find(news => news.id === newsId)?.title || '뉴스';
+            alert(`✅ AI 분석 완료!\n\n제목: ${newsTitle}\n\n뉴스 관리 화면에서 승인/거부를 처리할 수 있습니다.`);
+
+            // 6. 뉴스 관리로 자동 전송 (분석 완료된 뉴스는 AI 관리에서 제거)
             setNewsItems(prev => {
               const filteredItems = prev.filter(news => news.id !== newsId);
-
-              // 분석 완료 알림 (마지막 뉴스 완료시) - 미사용 변수 제거
-
-              // AI 분석 완료 후 자동으로 뉴스 관리로 전송됨 (alert 제거)
-
+              console.log(`📤 뉴스 ${newsId} AI 관리에서 제거 완료 (뉴스 관리로 이동)`);
               return filteredItems;
             });
 
           } else {
             console.error(`❌ AI 분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
+            throw new Error('AI 분석 API 호출 실패');
+          }
 
-            // 분석 실패 시 PENDING으로 되돌리기
-            await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            });
-
-            // UI 상태 업데이트
-            setNewsItems(prev => prev.map(news =>
-              news.id === newsId
-                ? { ...news, status: 'PENDING' as const, errorMessage: 'AI 분석 실패' }
-                : news
-            ));
+          } else {
+            console.error(`❌ 백엔드 분석 작업 생성 실패: 뉴스 ID ${newsId}`, backendResponse.status);
+            throw new Error('백엔드 분석 작업 생성 실패');
           }
 
         } catch (aiError) {

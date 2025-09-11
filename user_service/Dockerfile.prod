@@ -6,6 +6,10 @@ WORKDIR /app
 
 # 3. 의존성 파일 복사 및 설치
 COPY package*.json ./
+# 디버깅: package.json 내용 확인
+RUN echo "--- Start of package.json ---"
+RUN cat package.json
+RUN echo "--- End of package.json ---"
 RUN npm install
 
 # 4. 소스 코드 복사
