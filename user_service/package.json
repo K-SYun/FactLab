@@ -5,7 +5,7 @@
   "dependencies": {
     "axios": "^1.11.0",
     "http-proxy-middleware": "^2.0.6",
-    "@ckeditor/ckeditor5-build-classic": "^39.0.2",
+    "@ckeditor/ckeditor5-build-classic": "^44.3.0",
     "@ckeditor/ckeditor5-react": "^11.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
