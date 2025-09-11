@@ -259,7 +259,7 @@ CREATE INDEX idx_system_settings_category ON system_settings(category);
 
 -- 기본 관리자 사용자 생성
 INSERT INTO admin_users (username, email, password, role) VALUES
-('admin', 'admin@factlab.com', 'admin123', 'SUPER_ADMIN');
+('admin', 'admin@factlab.com', '$2a$10$4H.70./gJ4j8t8L3i30V/uVzVLsoi8UI2S.7M5S.YgO2x/s.b0n.C', 'SUPER_ADMIN');
 
 -- 기본 게시판 카테고리 생성
 INSERT INTO board_categories (name, description, display_order) VALUES
