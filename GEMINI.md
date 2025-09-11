@@ -502,13 +502,13 @@ Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
   docker-compose down
 
   # 2. 캐시 없이 전체 이미지 재빌드
-  docker-compose build --no-cache
+  docker-compose -f docker-compose.dev.yml build --no-cache
 
   # 3. 서비스 재시작
-  docker-compose up -d
+  docker-compose -f docker-compose.dev.yml up -d
 
   # 또는 한번에:
-  docker-compose down && docker-compose build --no-cache && docker-compose up -d
+  docker-compose down && docker-compose -f docker-compose.dev.yml build --no-cache && docker-compose up -d
 
   더 강력한 정리가 필요하면:
 
@@ -519,8 +519,17 @@ Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
   docker system prune -f
 
   # 3. 전체 재빌드 및 실행
-  docker-compose build --no-cache
+  docker-compose -f docker-compose.dev.yml build --no-cache
   docker-compose up -d
+  
+  # 모든 Docker 리소스 완전 삭제 (이미지, 볼륨, 캐시)
+  docker system prune -a -f --volumes
+
+  # 또는 한 번에 실행:
+  docker-compose -f docker-compose.dev.yml down --remove-orphans && \
+  docker system prune -a -f --volumes && \
+  docker-compose -f docker-compose.dev.yml build --no-cache && \
+  docker-compose -f docker-compose.dev.yml up -d
 
 # 메인 실시간 이슈 뉴스 수정.
   1. 분석 완료된건 각 분류(정치, 경제 등) 에 최신순으로 출력
