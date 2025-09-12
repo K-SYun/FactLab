@@ -41,6 +41,7 @@ class NewsItem:
     original_publish_date: datetime = None  # 실제 뉴스 발행 시간
     thumbnail: str = None
     url_hash: str = None
+    main_featured: bool = False
     
     def __post_init__(self):
         if self.url_hash is None:
@@ -983,47 +984,16 @@ class NaverMobileCrawler:
     async def save_news_to_db(self, news_item: NewsItem) -> bool:
         """뉴스 1건을 DB에 저장"""
         try:
-            # NewsItem을 DB 저장용 객체로 변환 (DatabaseManager가 기대하는 형태)
-            class DBNewsItem:
-                def __init__(self, title, content, source_url, source, published_at, category, 
-                           thumbnail=None, original_publish_date=None):
-                    self.title = title
-                    self.content = content
-                    self.source_url = source_url
-                    self.source = source
-                    self.published_at = published_at
-                    self.category = category
-                    self.thumbnail = thumbnail
-                    # 실제 발행 시간 필드 추가
-                    self.publish_date = published_at  # 크롤링 시간
-                    self.original_publish_date = original_publish_date  # 실제 발행 시간
-            
-            logger.info(f"🔍 save_news_to_db - NewsItem 필드 확인:")
-            logger.info(f"   - publish_date: {news_item.publish_date} (크롤링 시간)")
-            logger.info(f"   - original_publish_date: {news_item.original_publish_date} (실제 발행 시간)")
-            
-            db_news_item = DBNewsItem(
-                title=news_item.title,
-                content=news_item.content,
-                source_url=news_item.url,
-                source=news_item.source,
-                published_at=news_item.publish_date,
-                category=news_item.category,
-                thumbnail=news_item.thumbnail,
-                original_publish_date=news_item.original_publish_date
-            )
-            
-            logger.info(f"🔍 DB 저장 전 DBNewsItem 확인:")
-            logger.info(f"   - publish_date: {db_news_item.publish_date}")
-            logger.info(f"   - original_publish_date: {db_news_item.original_publish_date}")
-            logger.info(f"   - 두 시간이 같은가? {db_news_item.publish_date == db_news_item.original_publish_date}")
-            
-            news_id = self.db_manager.save_news_item(db_news_item)
+            # NewsItem에 source_url이 없으면 url 값으로 설정
+            if not hasattr(news_item, 'source_url'):
+                setattr(news_item, 'source_url', news_item.url)
+
+            news_id = self.db_manager.save_news_item(news_item)
             if news_id:
-                logger.info(f"✅ DB 저장 성공 (ID: {news_id}): {news_item.title[:50]}...")
+                # logger.info(f"✅ DB 저장 성공 (ID: {news_id}): {news_item.title[:50]}...")
                 return True
             else:
-                logger.info(f"🔄 중복 뉴스 스킵: {news_item.title[:50]}...")
+                # logger.info(f"🔄 중복 뉴스 스킵: {news_item.title[:50]}...")
                 return False
             
         except Exception as e:

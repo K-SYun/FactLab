@@ -107,7 +107,7 @@ class DatabaseManager:
                             WHERE source = %s 
                             AND DATE(publish_date) = DATE(%s)
                             AND LOWER(REGEXP_REPLACE(REGEXP_REPLACE(title, '[^\\w\\s가-힣]', '', 'g'), '\\s+', ' ', 'g')) = %s
-                        """, (news_item.source, news_item.published_at, normalized_title))
+                        """, (news_item.source, news_item.publish_date, normalized_title))
                         
                         title_duplicate = cursor.fetchone()
                         if title_duplicate:
@@ -116,8 +116,8 @@ class DatabaseManager:
                     
                     # 새 뉴스 저장 (정규화된 URL로 저장)
                     insert_query = """
-                        INSERT INTO news (title, content, url, source, publish_date, original_publish_date, category, status, created_at, thumbnail)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO news (title, content, url, source, publish_date, original_publish_date, category, status, created_at, updated_at, thumbnail, main_featured, view_count, visibility)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         RETURNING id
                     """
                     
@@ -169,7 +169,11 @@ class DatabaseManager:
                         news_item.category,
                         'PENDING',  # 기본 상태
                         datetime.now(),
-                        getattr(news_item, 'thumbnail', None)  # 썸네일이 없는 경우 None
+                        datetime.now(),
+                        getattr(news_item, 'thumbnail', None),  # 썸네일이 없는 경우 None
+                        getattr(news_item, 'main_featured', False),
+                        0, # view_count 기본값
+                        'PUBLIC' # visibility 기본값
                     ))
                     
                     news_id = cursor.fetchone()[0]

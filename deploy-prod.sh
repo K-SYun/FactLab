@@ -104,23 +104,23 @@ deploy_services() {
     log "서비스 시작 중..."
     
     # 데이터베이스부터 시작
-    docker-compose -f docker-compose.prod.yml up -d database
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d database
     sleep 30  # DB 초기화 대기
     
     # 백엔드 서비스 시작
-    docker-compose -f docker-compose.prod.yml up -d backend-service
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d backend-service
     sleep 20  # 백엔드 초기화 대기
     
     # AI 및 크롤러 서비스 시작
-    docker-compose -f docker-compose.prod.yml up -d ai-service crawler-service
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d ai-service crawler-service
     sleep 15
     
     # 프론트엔드 서비스 시작
-    docker-compose -f docker-compose.prod.yml up -d user-service admin-service
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d user-service admin-service
     sleep 15
     
     # 마지막에 nginx 시작 (트래픽 복구)
-    docker-compose -f docker-compose.prod.yml up -d nginx
+    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d nginx
     
     success "서비스 배포 완료"
 }
