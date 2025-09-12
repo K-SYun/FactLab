@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 의존성 설치 (도커 내부에서)
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # ESLint 캐시 디렉토리 생성 및 권한 설정
 RUN mkdir -p node_modules/.cache && chmod 777 node_modules/.cache

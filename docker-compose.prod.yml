@@ -60,6 +60,7 @@ services:
     restart: unless-stopped
     networks:
       - frontend
+      - backend
     read_only: true
     tmpfs:
       - /tmp

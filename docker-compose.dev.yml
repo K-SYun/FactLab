@@ -18,7 +18,7 @@ services:
   user-service:
     build: 
       context: ./user_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
@@ -36,7 +36,7 @@ services:
   admin-service:
     build: 
       context: ./admin_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3001:3001"
     volumes:
@@ -50,6 +50,7 @@ services:
     restart: unless-stopped
     networks:
       - frontend
+      - backend
 
   backend-service:
     build: 
