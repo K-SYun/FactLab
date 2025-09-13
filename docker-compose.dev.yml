@@ -16,7 +16,7 @@ services:
       - backend
 
   user-service:
-    build: 
+    build:
       context: ./user_service
       dockerfile: Dockerfile.dev
     ports:
@@ -26,7 +26,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:8080/api
+      - REACT_APP_API_URL=http://localhost/api
       - CHOKIDAR_USEPOLLING=true
       - FAST_REFRESH=true
     restart: unless-stopped
@@ -34,7 +34,7 @@ services:
       - frontend
 
   admin-service:
-    build: 
+    build:
       context: ./admin_service
       dockerfile: Dockerfile.dev
     ports:
@@ -44,7 +44,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:8080/api
+      - REACT_APP_API_URL=http://localhost/api
       - CHOKIDAR_USEPOLLING=true
       - FAST_REFRESH=true
     restart: unless-stopped
@@ -94,7 +94,7 @@ services:
       - backend
 
   ai-service:
-    build: 
+    build:
       context: ./ai_service
       dockerfile: Dockerfile
     ports:
