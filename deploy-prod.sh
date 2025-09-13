@@ -33,8 +33,8 @@ success() {
 check_environment() {
     log "환경 변수 및 설정 파일 확인 중..."
     
-    if [ ! -f ".env.prod" ]; then
-        error ".env.prod 파일이 없습니다. 운영 환경 변수를 먼저 설정하세요."
+    if [ ! -f ".env" ]; then
+        error ".env 파일이 없습니다. 운영 환경 변수를 먼저 설정하세요."
     fi
     
     if [ ! -f "docker-compose.prod.yml" ]; then
@@ -42,7 +42,7 @@ check_environment() {
     fi
     
     # 필수 환경 변수 확인
-    source .env.prod
+    source .env
     if [ -z "$POSTGRES_PASSWORD" ] || [ "$POSTGRES_PASSWORD" = "PRODUCTION_PASSWORD_HERE" ]; then
         error "운영 DB 비밀번호가 설정되지 않았습니다."
     fi
@@ -70,7 +70,7 @@ create_backup() {
     
     # 설정 파일 백업
     cp -r nginx $BACKUP_DIR/ 2>/dev/null || true
-    cp .env.prod $BACKUP_DIR/ 2>/dev/null || true
+    cp .env $BACKUP_DIR/ 2>/dev/null || true
     
     success "백업 생성 완료: $BACKUP_DIR"
     echo "BACKUP_DIR=$BACKUP_DIR" > .last_backup
@@ -99,28 +99,28 @@ deploy_services() {
     log "운영 이미지 빌드 중..."
     
     # 캐시 없이 전체 이미지 재빌드
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml build --no-cache --parallel
+    docker-compose --env-file .env -f docker-compose.prod.yml build --no-cache --parallel
     
     log "서비스 시작 중..."
     
     # 데이터베이스부터 시작
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d database
+    docker-compose --env-file .env -f docker-compose.prod.yml up -d database
     sleep 30  # DB 초기화 대기
     
     # 백엔드 서비스 시작
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d backend-service
+    docker-compose --env-file .env -f docker-compose.prod.yml up -d backend-service
     sleep 20  # 백엔드 초기화 대기
     
     # AI 및 크롤러 서비스 시작
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d ai-service crawler-service
+    docker-compose --env-file .env -f docker-compose.prod.yml up -d ai-service crawler-service
     sleep 15
     
     # 프론트엔드 서비스 시작
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d user-service admin-service
+    docker-compose --env-file .env -f docker-compose.prod.yml up -d user-service admin-service
     sleep 15
     
     # 마지막에 nginx 시작 (트래픽 복구)
-    docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d nginx
+    docker-compose --env-file .env -f docker-compose.prod.yml up -d nginx
     
     success "서비스 배포 완료"
 }

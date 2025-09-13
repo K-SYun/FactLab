@@ -1012,3 +1012,21 @@ SNS/공식 사이트 연결
 
    6. 재 배포
    ./deploy-prod.sh
+
+git clone https://github.com/K-SYun/FactLab.git
+
+폴더 삭제 
+rm -rf FactLab
+cd FactLab
+
+
+   7. 용량확인 :  df -h
+
+   Filesystem      Size  Used Avail Use% Mounted on
+udev            2.0G     0  2.0G   0% /dev
+tmpfs           393M  664K  392M   1% /run
+/dev/sda1        30G  3.6G   25G  13% /
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+/dev/sda15      124M   12M  113M  10% /boot/efi
+tmpfs           393M     0  393M   0% /run/user/1000
