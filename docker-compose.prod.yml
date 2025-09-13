@@ -27,7 +27,7 @@ services:
     command: certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos --no-eff-email -d polradar.com -d www.polradar.com
 
   user-service:
-    build: 
+    build:
       context: ./user_service
       dockerfile: Dockerfile.prod
     ports:
@@ -47,7 +47,7 @@ services:
       - no-new-privileges:true
 
   admin-service:
-    build: 
+    build:
       context: ./admin_service
       dockerfile: Dockerfile.prod
     ports:
@@ -68,20 +68,20 @@ services:
       - no-new-privileges:true
 
   backend-service:
-    build: 
+    build:
       context: ./backend_service
       dockerfile: Dockerfile.prod
     ports:
       - "8080:8080"
-      - "8081:8081"  # Actuator port
+      - "8081:8081" # Actuator port
     expose:
       - "8080"
-      - "8081"  # Actuator port
+      - "8081" # Actuator port
     depends_on:
       - database
       - redis
     env_file:
-      - .env.prod
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
@@ -111,7 +111,7 @@ services:
         hard: 65536
 
   crawler-service:
-    build: 
+    build:
       context: ./crawler
       dockerfile: Dockerfile.prod
     expose:
@@ -120,7 +120,7 @@ services:
       - database
       - redis
     env_file:
-      - .env.prod
+      - .env
     environment:
       - ENVIRONMENT=production
       - DB_HOST=database
@@ -141,7 +141,7 @@ services:
       - no-new-privileges:true
 
   ai-service:
-    build: 
+    build:
       context: ./ai_service
       dockerfile: Dockerfile.prod
     expose:
@@ -150,7 +150,7 @@ services:
       - database
       - redis
     env_file:
-      - .env.prod
+      - .env
     environment:
       - ENVIRONMENT=production
       - DB_HOST=database
@@ -176,7 +176,7 @@ services:
     expose:
       - "6379"
     env_file:
-      - .env.prod
+      - .env
     command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -189,9 +189,9 @@ services:
   database:
     image: postgres:15-alpine
     expose:
-      - "5432"  # 외부 포트 노출 제거
+      - "5432" # 외부 포트 노출 제거
     env_file:
-      - .env.prod
+      - .env
     environment:
       - POSTGRES_DB=factlab
       - POSTGRES_USER=${DB_USERNAME:-factlab_user}
@@ -219,7 +219,7 @@ services:
     depends_on:
       - database
     env_file:
-      - .env.prod
+      - .env
     environment:
       - PGPASSWORD=${DB_PASSWORD}
     volumes:
@@ -272,7 +272,7 @@ networks:
     driver: bridge
   backend:
     driver: bridge
-    internal: true  # 외부 접근 차단
+    internal: true # 외부 접근 차단
   monitoring:
     driver: bridge
     internal: true
