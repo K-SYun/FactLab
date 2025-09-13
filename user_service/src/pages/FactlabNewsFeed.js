@@ -76,9 +76,9 @@ const FactlabNewsFeed = () => {
       case 'COMPREHENSIVE':
       default:
         return [
-          { key: 'trust_neutral', label: '✅ 신뢰보도(완전사실+중립)', emoji: '✅' },
-          { key: 'trust_right', label: '🟠 신뢰+편향(신뢰+우편향)', emoji: '🟠' },
-          { key: 'trust_left', label: '🟡 신뢰+편향(신뢰+좌편향)', emoji: '🟡' },
+          { key: 'trust_neutral', label: '✅ 신뢰(완전사실+중립)', emoji: '✅' },
+          { key: 'trust_right', label: '🟠 신뢰+편향(우편향)', emoji: '🟠' },
+          { key: 'trust_left', label: '🟡 신뢰+편향(좌편향)', emoji: '🟡' },
           { key: 'problematic', label: '❌ 신뢰/편향(문제있음)', emoji: '❌' },
           { key: 'unknown', label: '❓ 모르겠음(판단유보)', emoji: '❓' }
         ];
@@ -265,191 +265,191 @@ const FactlabNewsFeed = () => {
       <Header />
       <AdLayout>
         <div className="news_feed_container">
-            {/* 카테고리 헤더 */}
-            <div className="news_category_header">
-              <h1 className="news_category_title">📰 {category} 뉴스 <span className="news_category_stats">(총 {totalCount}개)</span></h1>
+          {/* 카테고리 헤더 */}
+          <div className="news_category_header">
+            <h1 className="news_category_title">📰 {category} 뉴스 <span className="news_category_stats">(총 {totalCount}개)</span></h1>
+          </div>
+
+          {/* 트렌딩 키워드 섹션 */}
+          <div className="news_trending_keywords">
+            <div className="news_trending_title">🔥 실시간 트렌드</div>
+            <div className="news_keyword_list">
+              {trendingKeywords.map((keyword, index) => (
+                <a
+                  key={index}
+                  href={`#search=${keyword}`}
+                  className="news_keyword_tag"
+                >
+                  {keyword}
+                </a>
+              ))}
             </div>
+          </div>
 
-            {/* 트렌딩 키워드 섹션 */}
-            <div className="news_trending_keywords">
-              <div className="news_trending_title">🔥 실시간 트렌드</div>
-              <div className="news_keyword_list">
-                {trendingKeywords.map((keyword, index) => (
-                  <a
-                    key={index}
-                    href={`#search=${keyword}`}
-                    className="news_keyword_tag"
-                  >
-                    {keyword}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="loading">뉴스를 불러오는 중...</div>
-            ) : error ? (
-              <div className="error">{error}</div>
-            ) : (
-              /* 뉴스 그리드 섹션 */
-              <div className="news_grid">
-                {news.map((newsItem, index) => (
-                  <React.Fragment key={newsItem.id}>
-                    <div className="news_card">
-                      {/* 뉴스 썸네일 */}
-                      <div className="news_thumbnail" onClick={() => goToNewsDetail(newsItem.id)}>
-                        {newsItem.thumbnail ? (
-                          <img
-                            src={newsItem.thumbnail}
-                            alt="뉴스 썸네일"
-                            className="news-feed-thumbnail-image"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div
-                          className={`news_thumbnail_placeholder news-feed-thumbnail-placeholder ${newsItem.thumbnail ? 'news-feed-placeholder-hidden' : ''}`}
-                        >
-                          <img
-                            src="/Logo.png"
-                            alt="FactLab Logo"
-                            className="news-feed-placeholder-logo"
-                          />
-                          <span className="news-feed-placeholder-text">
-                            No Image
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 뉴스 콘텐츠 영역 */}
-                      <div className="news_content_area">
-                        {/* 뉴스 제목 */}
-                        <h3 className="news_title" onClick={() => goToNewsDetail(newsItem.id)}>
-                          <span className="analysis-type-label">{getAnalysisTypeLabel(newsItem.analysisType)}</span> {newsItem.title}
-                        </h3>
-
-                        {/* 뉴스 요약 */}
-                        <p className="news_summary">{newsItem.content.substring(0, 150)}...</p>
-
-                        {/* 분석 타입별 질문 */}
-                        <div className="news_fact_question">
-                          {getQuestionByAnalysisType(newsItem.analysisType)}
-                        </div>
-
-                        {/* 분석 타입별 투표 영역 */}
-                        <div className="news_voting_area">
-                          {(() => {
-                            const newsVoteResult = voteResults[newsItem.id] || { 
-                              complete_fact: 0, partial_fact: 0, slight_doubt: 0, complete_doubt: 0,
-                              right_bias: 0, partial_right: 0, partial_left: 0, left_bias: 0,
-                              trust_neutral: 0, trust_right: 0, trust_left: 0, problematic: 0,
-                              unknown: 0, total: 0 
-                            };
-
-                            const voteOptions = getVoteOptionsByAnalysisType(newsItem.analysisType, newsVoteResult, newsItem.id);
-
-                            return (
-                              <>
-                                {voteOptions.map((option) => (
-                                  <button
-                                    key={option.key}
-                                    className={`news_vote_option ${option.key}`}
-                                    onClick={() => goToVote(newsItem.id)}
-                                  >
-                                    {option.label} ({newsVoteResult.total > 0 ? Math.round((newsVoteResult[option.key] || 0) / newsVoteResult.total * 100) : 0}%)
-                                  </button>
-                                ))}
-                              </>
-                            );
-                          })()}
-                        </div>
-
-                        {/* 뉴스 통계 및 액션 */}
-                        <div className="news_stats">
-                          <div className="news_stats_left">
-                            <span>{newsItem.source} | {newsItem.category} | {formatDate(newsItem.publishDate)} | 👀 {newsItem.viewCount || 0}</span>
-                          </div>
-                          <button
-                            className="news_discussion_btn"
-                            onClick={() => goToDiscussion(newsItem.id)}
-                          >
-                            토론 참여
-                          </button>
-                        </div>
+          {loading ? (
+            <div className="loading">뉴스를 불러오는 중...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            /* 뉴스 그리드 섹션 */
+            <div className="news_grid">
+              {news.map((newsItem, index) => (
+                <React.Fragment key={newsItem.id}>
+                  <div className="news_card">
+                    {/* 뉴스 썸네일 */}
+                    <div className="news_thumbnail" onClick={() => goToNewsDetail(newsItem.id)}>
+                      {newsItem.thumbnail ? (
+                        <img
+                          src={newsItem.thumbnail}
+                          alt="뉴스 썸네일"
+                          className="news-feed-thumbnail-image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`news_thumbnail_placeholder news-feed-thumbnail-placeholder ${newsItem.thumbnail ? 'news-feed-placeholder-hidden' : ''}`}
+                      >
+                        <img
+                          src="/Logo.png"
+                          alt="FactLab Logo"
+                          className="news-feed-placeholder-logo"
+                        />
+                        <span className="news-feed-placeholder-text">
+                          No Image
+                        </span>
                       </div>
                     </div>
 
-                    {/* 10번째 뉴스 다음에 배너 광고 삽입 */}
-                    {(index + 1) % 10 === 0 && index < news.length - 1 && (
-                      <div className="news_banner_ad">
-                        🎯 뉴스 중간 배너 광고 (1200px x 50px)
+                    {/* 뉴스 콘텐츠 영역 */}
+                    <div className="news_content_area">
+                      {/* 뉴스 제목 */}
+                      <h3 className="news_title" onClick={() => goToNewsDetail(newsItem.id)}>
+                        <span className="analysis-type-label">{getAnalysisTypeLabel(newsItem.analysisType)}</span> {newsItem.title}
+                      </h3>
+
+                      {/* 뉴스 요약 */}
+                      <p className="news_summary">{newsItem.content.substring(0, 150)}...</p>
+
+                      {/* 분석 타입별 질문 */}
+                      <div className="news_fact_question">
+                        {getQuestionByAnalysisType(newsItem.analysisType)}
                       </div>
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
 
-            {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div className="news_pagination">
-                {/* 맨 처음 버튼 */}
-                <button
-                  className="news_page_btn"
-                  onClick={() => changePage(1)}
-                  disabled={currentPage === 1 || loading}
-                >
-                  맨 처음
-                </button>
+                      {/* 분석 타입별 투표 영역 */}
+                      <div className="news_voting_area">
+                        {(() => {
+                          const newsVoteResult = voteResults[newsItem.id] || {
+                            complete_fact: 0, partial_fact: 0, slight_doubt: 0, complete_doubt: 0,
+                            right_bias: 0, partial_right: 0, partial_left: 0, left_bias: 0,
+                            trust_neutral: 0, trust_right: 0, trust_left: 0, problematic: 0,
+                            unknown: 0, total: 0
+                          };
 
-                {/* 이전 버튼 */}
-                <button
-                  className="news_page_btn"
-                  onClick={() => changePage(currentPage - 1)}
-                  disabled={currentPage === 1 || loading}
-                >
-                  &lt;
-                </button>
+                          const voteOptions = getVoteOptionsByAnalysisType(newsItem.analysisType, newsVoteResult, newsItem.id);
 
-                {/* 페이지 번호들 */}
-                {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
-                  const startPage = Math.max(1, Math.min(currentPage - 5, totalPages - 9));
-                  const pageNum = startPage + i;
-                  if (pageNum > totalPages) return null;
+                          return (
+                            <>
+                              {voteOptions.map((option) => (
+                                <button
+                                  key={option.key}
+                                  className={`news_vote_option ${option.key}`}
+                                  onClick={() => goToVote(newsItem.id)}
+                                >
+                                  {option.label} ({newsVoteResult.total > 0 ? Math.round((newsVoteResult[option.key] || 0) / newsVoteResult.total * 100) : 0}%)
+                                </button>
+                              ))}
+                            </>
+                          );
+                        })()}
+                      </div>
 
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`news_page_btn ${pageNum === currentPage ? 'active' : ''}`}
-                      onClick={() => changePage(pageNum)}
-                      disabled={loading}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                      {/* 뉴스 통계 및 액션 */}
+                      <div className="news_stats">
+                        <div className="news_stats_left">
+                          <span>{newsItem.source} | {newsItem.category} | {formatDate(newsItem.publishDate)} | 👀 {newsItem.viewCount || 0}</span>
+                        </div>
+                        <button
+                          className="news_discussion_btn"
+                          onClick={() => goToDiscussion(newsItem.id)}
+                        >
+                          토론 참여
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-                {/* 다음 버튼 */}
-                <button
-                  className="news_page_btn"
-                  onClick={() => changePage(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
-                >
-                  &gt;
-                </button>
+                  {/* 10번째 뉴스 다음에 배너 광고 삽입 */}
+                  {(index + 1) % 10 === 0 && index < news.length - 1 && (
+                    <div className="news_banner_ad">
+                      🎯 뉴스 중간 배너 광고 (1200px x 50px)
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
 
-                {/* 맨 끝 버튼 */}
-                <button
-                  className="news_page_btn"
-                  onClick={() => changePage(totalPages)}
-                  disabled={currentPage === totalPages || loading}
-                >
-                  맨 끝
-                </button>
-              </div>
-            )}
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="news_pagination">
+              {/* 맨 처음 버튼 */}
+              <button
+                className="news_page_btn"
+                onClick={() => changePage(1)}
+                disabled={currentPage === 1 || loading}
+              >
+                맨 처음
+              </button>
+
+              {/* 이전 버튼 */}
+              <button
+                className="news_page_btn"
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+              >
+                &lt;
+              </button>
+
+              {/* 페이지 번호들 */}
+              {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
+                const startPage = Math.max(1, Math.min(currentPage - 5, totalPages - 9));
+                const pageNum = startPage + i;
+                if (pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    className={`news_page_btn ${pageNum === currentPage ? 'active' : ''}`}
+                    onClick={() => changePage(pageNum)}
+                    disabled={loading}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              {/* 다음 버튼 */}
+              <button
+                className="news_page_btn"
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+              >
+                &gt;
+              </button>
+
+              {/* 맨 끝 버튼 */}
+              <button
+                className="news_page_btn"
+                onClick={() => changePage(totalPages)}
+                disabled={currentPage === totalPages || loading}
+              >
+                맨 끝
+              </button>
+            </div>
+          )}
         </div>
       </AdLayout>
       <Footer />

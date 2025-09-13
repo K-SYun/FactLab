@@ -13,9 +13,13 @@ import java.util.Optional;
 @Repository
 public interface NewsSummaryRepository extends JpaRepository<NewsSummary, Integer> {
 
-    // 뉴스 ID로 요약 조회 (기본: 첫 번째 찾은 것)
-    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1")
+    // 뉴스 ID로 요약 조회 (기본: 완료된 것 중 첫 번째, 없으면 가장 최근 것)
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 AND ns.status = 'COMPLETED' ORDER BY ns.updatedAt DESC LIMIT 1")
     Optional<NewsSummary> findSummaryByNewsId(Integer newsId);
+
+    // 뉴스 ID로 요약 조회 (완료된 것이 없을 때 사용)
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 ORDER BY ns.updatedAt DESC LIMIT 1")
+    Optional<NewsSummary> findLatestSummaryByNewsId(Integer newsId);
 
     // 뉴스 ID와 분석 타입으로 요약 조회
     Optional<NewsSummary> findByNewsIdAndAnalysisType(Integer newsId, NewsSummary.AnalysisType analysisType);

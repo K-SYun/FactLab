@@ -45,7 +45,7 @@ def get_existing_analysis_type(news_id: int):
 @router.post("/analyze/news/{news_id}")
 async def analyze_news(
     news_id: int, 
-    summary_id: int, # summary_id 추가
+    summary_id: int = Query(..., description="분석 작업 ID"),
     analysis_type: str = Query(default=None, description="분석 타입: COMPREHENSIVE, FACT_ANALYSIS, BIAS_ANALYSIS")
 ):
     """뉴스 Gemini AI 분석 실행"""

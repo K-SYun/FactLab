@@ -173,57 +173,68 @@ class GeminiNewsAnalyzer:
             "suspicious_points": "구체적인 근거 자료와 출처 확인이 필요하며, 관련 전문가의 의견을 추가로 확인하는 것이 좋습니다."
         }
     
-    def save_analysis_to_db(self, news_id: int, analysis: Dict, analysis_type: str = "COMPREHENSIVE") -> bool:
+    def save_analysis_to_db(self, news_id: int, analysis: Dict, analysis_type: str = "COMPREHENSIVE", summary_id: int = None) -> bool:
         """AI 분석 결과를 DB에 저장 (수정된 로직)"""
         conn = None
         try:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # PENDING 상태의 특정 분석 타입 레코드 찾기
-            logger.info(f"DB에서 업데이트할 레코드 검색: news_id={news_id}, analysis_type={analysis_type}")
-            cursor.execute("SELECT id FROM news_summary WHERE news_id = %s AND analysis_type = %s AND status = 'PENDING' ORDER BY created_at DESC LIMIT 1", 
-                           (news_id, analysis_type))
-            record_to_update = cursor.fetchone()
-            
-            if not record_to_update:
-                logger.error(f"업데이트할 PENDING 상태의 요약 레코드를 찾지 못했습니다: news_id={news_id}, type={analysis_type}")
-                # PENDING이 없으면, 그냥 news_id와 type으로 찾아본다 (재분석의 경우)
-                cursor.execute("SELECT id FROM news_summary WHERE news_id = %s AND analysis_type = %s ORDER BY created_at DESC LIMIT 1",
-                               (news_id, analysis_type))
+            # summary_id가 제공된 경우 해당 레코드 직접 사용
+            if summary_id:
+                logger.info(f"제공된 summary_id 사용: {summary_id}")
+                cursor.execute("SELECT id FROM news_summary WHERE id = %s", (summary_id,))
                 record_to_update = cursor.fetchone()
                 if not record_to_update:
-                    logger.error(f"재분석을 위한 요약 레코드도 찾지 못했습니다: news_id={news_id}, type={analysis_type}")
+                    logger.error(f"제공된 summary_id({summary_id})에 해당하는 레코드를 찾지 못했습니다")
                     return False
+                update_summary_id = summary_id
+            else:
+                # 기존 로직: PENDING 상태의 특정 분석 타입 레코드 찾기
+                logger.info(f"DB에서 업데이트할 레코드 검색: news_id={news_id}, analysis_type={analysis_type}")
+                cursor.execute("SELECT id FROM news_summary WHERE news_id = %s AND analysis_type = %s AND status = 'PENDING' ORDER BY created_at DESC LIMIT 1",
+                               (news_id, analysis_type))
+                record_to_update = cursor.fetchone()
 
-            summary_id = record_to_update['id']
-            logger.info(f"레코드 찾음 (ID: {summary_id}). 업데이트를 진행합니다.")
+                if not record_to_update:
+                    logger.error(f"업데이트할 PENDING 상태의 요약 레코드를 찾지 못했습니다: news_id={news_id}, type={analysis_type}")
+                    # PENDING이 없으면, 그냥 news_id와 type으로 찾아본다 (재분석의 경우)
+                    cursor.execute("SELECT id FROM news_summary WHERE news_id = %s AND analysis_type = %s ORDER BY created_at DESC LIMIT 1",
+                                   (news_id, analysis_type))
+                    record_to_update = cursor.fetchone()
+                    if not record_to_update:
+                        logger.error(f"재분석을 위한 요약 레코드도 찾지 못했습니다: news_id={news_id}, type={analysis_type}")
+                        return False
+
+                update_summary_id = record_to_update['id']
+            logger.info(f"레코드 찾음 (ID: {update_summary_id}). 업데이트를 진행합니다.")
 
             # 공통 필드 추출
             summary = analysis.get('summary', '')
             claim = analysis.get('main_claim', analysis.get('claim', ''))
             keywords = ','.join(analysis.get('keywords', [])) if isinstance(analysis.get('keywords'), list) else analysis.get('keywords', '')
             reliability_score = analysis.get('credibility', {}).get('score') if isinstance(analysis.get('credibility'), dict) else analysis.get('reliability_score', 75)
-            
+            suspicious_points = analysis.get('suspicious_points', '')
+
             # 전체 분석 결과를 JSON으로 저장
             full_analysis_result = json.dumps(analysis, ensure_ascii=False, indent=2)
-            
+
             # 업데이트 실행
             cursor.execute("""
-                UPDATE news_summary 
-                SET summary = %s, claim = %s, keywords = %s, 
-                    reliability_score = %s, ai_confidence = %s, 
-                    updated_at = %s, status = 'COMPLETED', 
-                    full_analysis_result = %s
+                UPDATE news_summary
+                SET summary = %s, claim = %s, keywords = %s,
+                    reliability_score = %s, ai_confidence = %s,
+                    updated_at = %s, status = 'COMPLETED',
+                    full_analysis_result = %s, suspicious_points = %s
                 WHERE id = %s
             """, (
                 summary, claim, keywords, reliability_score,
-                min(reliability_score, 95) if reliability_score else 80, 
-                datetime.now(), full_analysis_result, summary_id
+                min(reliability_score, 95) if reliability_score else 80,
+                datetime.now(), full_analysis_result, suspicious_points, update_summary_id
             ))
             
             conn.commit()
-            logger.info(f"뉴스 {news_id} (Summary ID: {summary_id}) AI 분석 결과 DB 저장 완료 (타입: {analysis_type})")
+            logger.info(f"뉴스 {news_id} (Summary ID: {update_summary_id}) AI 분석 결과 DB 저장 완료 (타입: {analysis_type})")
             return True
             
         except Exception as e:
@@ -253,7 +264,7 @@ class GeminiNewsAnalyzer:
             logger.error(f"백엔드 알림 오류: {e}")
             return False
     
-    def analyze_news_complete(self, news_id: int, title: str, content: str, source: str = "출처 불명", analysis_type: str = "COMPREHENSIVE", prompt_type: str = None) -> Dict:
+    def analyze_news_complete(self, news_id: int, title: str, content: str, source: str = "출처 불명", analysis_type: str = "COMPREHENSIVE", prompt_type: str = None, summary_id: int = None) -> Dict:
         """뉴스 종합 분석 및 결과 저장"""
         try:
             logger.info(f"뉴스 {news_id} 종합 분석 시작")
@@ -262,8 +273,8 @@ class GeminiNewsAnalyzer:
             effective_type = prompt_type or analysis_type
             analysis = self.analyze_news_content(title, content, source, effective_type)
             
-            # DB에 저장
-            db_saved = self.save_analysis_to_db(news_id, analysis, analysis_type)
+            # DB에 저장 (summary_id가 제공된 경우 우선 사용)
+            db_saved = self.save_analysis_to_db(news_id, analysis, analysis_type, summary_id)
             
             # 백엔드 알림
             backend_notified = self.notify_backend(news_id)

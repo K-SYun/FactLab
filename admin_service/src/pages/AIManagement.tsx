@@ -289,7 +289,7 @@ const AIManagement: React.FC = () => {
   const loadNewsData = async (page = 0, size = 100) => {
     try {
       // 백엔드에서 PENDING/PROCESSING 상태만 필터링해서 가져오기
-      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing,review_pending`);
+      const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=${size}&status=pending,processing,rejected`);
       if (response.ok) {
         const result = await response.json();
         const apiNews = result.data || [];
@@ -444,7 +444,7 @@ const AIManagement: React.FC = () => {
 
     const analysisTypeNames = {
       'COMPREHENSIVE': '종합분석',
-      'FACT_ANALYSIS': '사실분석', 
+      'FACT_ANALYSIS': '사실분석',
       'BIAS_ANALYSIS': '편향성분석'
     };
 
@@ -483,11 +483,24 @@ const AIManagement: React.FC = () => {
           });
 
           if (backendResponse.ok) {
-            console.log(`✅ 분석 작업 생성 완료: 뉴스 ID ${newsId}`);
-            
+            const backendResult = await backendResponse.json();
+
+            // 백엔드에서 success: false로 응답한 경우 (논리적 에러)
+            if (!backendResult.success) {
+              alert(`분석 작업 생성 실패: ${backendResult.error}`);
+              throw new Error(backendResult.error);
+            }
+
+            const summaryId = backendResult.data?.id;
+            if (!summaryId) {
+              throw new Error('summary_id를 받지 못했습니다.');
+            }
+
+            console.log(`✅ 분석 작업 생성 완료: 뉴스 ID ${newsId}, 요약 ID ${summaryId}`);
+
             // 3. 실제 AI 분석 실행 (AI 서비스로 직접 호출)
             console.log(`🤖 실제 AI 분석 실행: 뉴스 ID ${newsId}`);
-            const aiResponse = await fetch(`${getAIApiBase()}/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}`, {
+            const aiResponse = await fetch(`${getAIApiBase()}/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}&summary_id=${summaryId}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -506,21 +519,21 @@ const AIManagement: React.FC = () => {
                 }
               });
 
-            // 5. 분석 완료 메시지 표시
-            const newsTitle = newsItems.find(news => news.id === newsId)?.title || '뉴스';
-            alert(`✅ AI 분석 완료!\n\n제목: ${newsTitle}\n\n뉴스 관리 화면에서 승인/거부를 처리할 수 있습니다.`);
+              // 5. 분석 완료 메시지 표시
+              const newsTitle = newsItems.find(news => news.id === newsId)?.title || '뉴스';
+              alert(`✅ AI 분석 완료!\n\n제목: ${newsTitle}\n\n뉴스 관리 화면에서 승인/거부를 처리할 수 있습니다.`);
 
-            // 6. 뉴스 관리로 자동 전송 (분석 완료된 뉴스는 AI 관리에서 제거)
-            setNewsItems(prev => {
-              const filteredItems = prev.filter(news => news.id !== newsId);
-              console.log(`📤 뉴스 ${newsId} AI 관리에서 제거 완료 (뉴스 관리로 이동)`);
-              return filteredItems;
-            });
+              // 6. 뉴스 관리로 자동 전송 (분석 완료된 뉴스는 AI 관리에서 제거)
+              setNewsItems(prev => {
+                const filteredItems = prev.filter(news => news.id !== newsId);
+                console.log(`📤 뉴스 ${newsId} AI 관리에서 제거 완료 (뉴스 관리로 이동)`);
+                return filteredItems;
+              });
 
-          } else {
-            console.error(`❌ AI 분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
-            throw new Error('AI 분석 API 호출 실패');
-          }
+            } else {
+              console.error(`❌ AI 분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
+              throw new Error('AI 분석 API 호출 실패');
+            }
 
           } else {
             console.error(`❌ 백엔드 분석 작업 생성 실패: 뉴스 ID ${newsId}`, backendResponse.status);
@@ -558,8 +571,6 @@ const AIManagement: React.FC = () => {
 
       setSelectedNewsIds([]);
       setIsSelectAll(false);
-
-      alert(`🤖 ${pendingSelectedIds.length}개의 뉴스에 대한 ${analysisTypeNames[analysisType]}(Gemini)이 시작되었습니다!\n\n분석이 완료되면 뉴스 관리 화면으로 자동 전송됩니다.\n뉴스 관리에서 승인하여 사용자 화면에 노출하세요.`);
 
     } catch (error) {
       alert('백엔드 AI 분석 중 오류가 발생했습니다.\n\nbackend-service가 실행되고 있는지 확인해주세요.\n(포트 8080에서 실행되어야 합니다)');
@@ -871,8 +882,6 @@ const AIManagement: React.FC = () => {
         const successNewsIds = completedNews.slice(0, successCount).map(news => news.id);
         setNewsItems(prev => prev.filter(news => !successNewsIds.includes(news.id)));
 
-        console.log(`✅ ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
-
         // 사용자에게 알림 (선택적)
         if (successCount >= 3) { // 3개 이상일 때만 알림
           alert(`🤖 AI 분석이 완료된 ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
@@ -902,7 +911,7 @@ const AIManagement: React.FC = () => {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
@@ -955,10 +964,10 @@ const AIManagement: React.FC = () => {
   // 페이지 변경 핸들러
   const handlePageChange = async (page: number) => {
     console.log(`AIManagement handlePageChange called with page: ${page}`);
-    
+
     // 즉시 페이지 상태 업데이트 (UI 반응성을 위해)
     setCurrentPage(page);
-    
+
     // 체크박스 상태 초기화
     setSelectedNewsIds([]);
     setIsSelectAll(false);
@@ -966,7 +975,7 @@ const AIManagement: React.FC = () => {
     // 약간의 지연 후 데이터 로드 (상태 업데이트가 UI에 반영되도록)
     setTimeout(async () => {
       setLoading(true);
-      
+
       try {
         // 새 페이지 데이터 로드
         const newsData = await loadNewsData(page - 1, itemsPerPage);
@@ -1023,7 +1032,7 @@ const AIManagement: React.FC = () => {
                 return pendingCount > 0 ? ` (${pendingCount})` : '';
               })()}
             </button>
-            
+
             <button
               className="admin-btn admin-btn-info"
               onClick={() => handleStartAnalysisWithType('FACT_ANALYSIS')}
@@ -1040,7 +1049,7 @@ const AIManagement: React.FC = () => {
                 return pendingCount > 0 ? ` (${pendingCount})` : '';
               })()}
             </button>
-            
+
             <button
               className="admin-btn admin-btn-secondary"
               onClick={() => handleStartAnalysisWithType('BIAS_ANALYSIS')}

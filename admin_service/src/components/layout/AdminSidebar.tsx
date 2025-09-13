@@ -41,55 +41,63 @@ const AdminSidebar: React.FC = () => {
     }
   };
 
-  // 간단한 카운터 업데이트 (백엔드 연결 문제로 임시 처리)
+  // 카운터 업데이트 (API 연결 기반)
   useEffect(() => {
     const fetchCounts = async () => {
       try {
         let aiPendingCount = 0;
         let reviewPendingCount = 0;
+        let activeBoardCount = 0;
 
-        // AI 뉴스분석: 8000번 포트 시도 (백엔드 구현 후 활성화)
+        // AI 뉴스분석: 백엔드 API 호출
         try {
-          // 백엔드 서버가 구현되면 주석 해제
-          /*
-          const aiResponse = await fetch('http://localhost:8000/api/news', { 
+          const aiResponse = await fetch('http://localhost:8080/api/news-summary/status/PENDING', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });
           if (aiResponse.ok) {
-            const aiNews = await aiResponse.json();
-            aiPendingCount = Array.isArray(aiNews) ? aiNews.filter((news: any) => news.status === 'PENDING').length : 0;
+            const result = await aiResponse.json();
+            aiPendingCount = result.success && Array.isArray(result.data) ? result.data.length : 0;
           }
-          */
-          // 임시로 기본값 사용
-          aiPendingCount = 0;
         } catch (error) {
           console.log('AI 서비스 연결 실패 - 기본값 사용');
           aiPendingCount = 0;
         }
 
-        // 현재 페이지 경로에 따른 기본값 설정
-        const path = window.location.pathname;
-        if (path === '/ai') {
-          // AI 관리 페이지에 있으면 DOM에서 실제 뉴스 개수 확인
-          const newsItems = document.querySelectorAll('[key^="news-"]');
-          aiPendingCount = newsItems.length;
-        } else if (path === '/news') {
-          // 뉴스 관리 페이지에 있으면 DOM에서 승인대기 탭 개수 확인
-          const pendingTab = document.querySelector('[data-tab="review_pending"]');
-          if (pendingTab) {
-            const badgeText = pendingTab.textContent || '';
-            const match = badgeText.match(/\((\d+)\)/);
-            if (match) {
-              reviewPendingCount = parseInt(match[1]);
-            }
+        // 뉴스 관리: 승인 대기 뉴스 개수
+        try {
+          const newsResponse = await fetch('http://localhost:8080/api/news/approved', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (newsResponse.ok) {
+            const result = await newsResponse.json();
+            reviewPendingCount = result.success && Array.isArray(result.data) ? result.data.length : 0;
           }
+        } catch (error) {
+          console.log('뉴스 서비스 연결 실패 - 기본값 사용');
+          reviewPendingCount = 0;
+        }
+
+        // 게시판 관리: 활성 게시판 개수
+        try {
+          const boardResponse = await fetch('http://localhost:8080/api/boards', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (boardResponse.ok) {
+            const result = await boardResponse.json();
+            activeBoardCount = result.success && Array.isArray(result.data) ? result.data.length : 0;
+          }
+        } catch (error) {
+          console.log('게시판 서비스 연결 실패 - 기본값 사용');
+          activeBoardCount = 0;
         }
 
         setCounters({
-          aiPending: aiPendingCount,
-          newsCollected: reviewPendingCount,
-          activeBoardCount: 0 // TODO: 게시판 API 연결 시 수정
+          aiPending: Math.max(0, aiPendingCount),
+          newsCollected: Math.max(0, reviewPendingCount),
+          activeBoardCount: Math.max(0, activeBoardCount)
         });
 
       } catch (error) {
@@ -110,7 +118,7 @@ const AdminSidebar: React.FC = () => {
     const interval = setInterval(fetchCounts, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [location.pathname]);
 
   const isActive = (path: string) => {
     if (path === '/' || path === '/dashboard') {

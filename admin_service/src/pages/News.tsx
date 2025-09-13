@@ -29,6 +29,8 @@ interface NewsItem {
     factCheck: string;
     reliability: number;
   };
+  detailedAnalysis?: any; // 상세 AI 분석 결과 (JSON)
+  suspiciousPoints?: string; // 의심 포인트
   comments: number;
   votes: { fact: number; doubt: number };
   createdAt: string;
@@ -43,7 +45,7 @@ interface NewsItem {
 
 // 분석 타입을 한글로 변환하는 함수
 const getAnalysisTypeLabel = (analysisType?: string): string => {
-  switch (analysisType) {
+  switch (analysisType?.toUpperCase()) {
     case 'COMPREHENSIVE':
       return '종합';
     case 'FACT_ANALYSIS':
@@ -182,21 +184,21 @@ const News: React.FC = () => {
     try {
       // AI 분석이 실제로 완료된 뉴스만 가져오기 (news_summary가 completed 상태인 뉴스)
       let allNews: any[] = [];
-      
+
       for (let page = 0; page < 10; page++) {
         const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=100`);
         const result = await response.json();
         if (result.success && result.data) {
           const pageNews = Array.isArray(result.data) ? result.data : (result.data as any)?.content || [];
           if (pageNews.length === 0) break;
-          
+
           // 각 뉴스에 대해 AI 분석 완료 여부 확인
           const newsWithAnalysisCheck = await Promise.all(
             pageNews.map(async (news: any) => {
               try {
                 const summaryResponse = await fetch(`${getBackendApiBase()}/news-summary/news/${news.id}`);
                 const summaryResult = await summaryResponse.json();
-                
+
                 // AI 분석이 실제로 완료된 뉴스만 포함 (news_summary.status === 'completed')
                 if (summaryResult.success && summaryResult.data && summaryResult.data.status === 'completed') {
                   return {
@@ -214,11 +216,11 @@ const News: React.FC = () => {
               }
             })
           );
-          
+
           // null이 아닌 뉴스만 추가 (AI 분석 완료된 뉴스만)
           const validNews = newsWithAnalysisCheck.filter(news => news !== null);
           allNews = [...allNews, ...validNews];
-          
+
           if (pageNews.length < 100) break;
         } else {
           break;
@@ -252,6 +254,18 @@ const News: React.FC = () => {
             factCheck: news.factCheck || '검증 필요',
             reliability: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0
           },
+          detailedAnalysis: (() => {
+            if (news.detailedAnalysis && typeof news.detailedAnalysis === 'string') {
+              try {
+                return JSON.parse(news.detailedAnalysis);
+              } catch (error) {
+                console.error('Error parsing detailedAnalysis JSON:', error);
+                return null;
+              }
+            }
+            return news.detailedAnalysis || null;
+          })(),
+          suspiciousPoints: news.suspiciousPoints || null,
           comments: typeof news.comments === 'number' ? news.comments : 0,
           votes: {
             fact: typeof news.votes?.fact === 'number' ? news.votes.fact : 0,
@@ -660,6 +674,18 @@ const News: React.FC = () => {
             factCheck: news.factCheck || '검증 필요',
             reliability: typeof news.reliabilityScore === 'number' ? news.reliabilityScore : 0
           },
+          detailedAnalysis: (() => {
+            if (news.detailedAnalysis && typeof news.detailedAnalysis === 'string') {
+              try {
+                return JSON.parse(news.detailedAnalysis);
+              } catch (error) {
+                console.error('Error parsing detailedAnalysis JSON:', error);
+                return null;
+              }
+            }
+            return news.detailedAnalysis || null;
+          })(),
+          suspiciousPoints: news.suspiciousPoints || null,
           comments: typeof news.comments === 'number' ? news.comments : 0,
           votes: {
             fact: typeof news.votes?.fact === 'number' ? news.votes.fact : 0,
@@ -1230,17 +1256,7 @@ const News: React.FC = () => {
                           <span><i className="fas fa-thumbs-down mr-1"></i>{news.votes.doubt} 의심</span>
                           <span><i className="fas fa-clock mr-1"></i>{formatDateTime(news.createdAt)}</span>
                         </div>
-                        
-                        <button
-                          className="admin-btn admin-btn-sm admin-btn-outline"
-                          onClick={() => {
-                            setSelectedNews(selectedNews?.id === news.id ? null : news);
-                          }}
-                          style={{ minWidth: '80px' }}
-                        >
-                          <i className={`fas ${selectedNews?.id === news.id ? 'fa-chevron-up' : 'fa-chevron-down'} mr-1`}></i>
-                          {selectedNews?.id === news.id ? '간소히' : '상세보기'}
-                        </button>
+
                       </div>
 
                       {/* 펼쳐진 상세 정보 */}
@@ -1250,7 +1266,7 @@ const News: React.FC = () => {
                           {/* 뉴스 원본 링크 */}
                           <div className="admin-mb-3">
                             <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                              <i className="fas fa-external-link-alt mr-2"></i>원본 기사
+                              <i className="fas fa-external-link-alt mr-2"></i> 원본 기사
                             </p>
                             <a
                               href={news.url}
@@ -1264,30 +1280,34 @@ const News: React.FC = () => {
                             </a>
                           </div>
 
-                          {/* AI 분석 결과 */}
-                          <div className="admin-mb-3">
-                            <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
-                              <i className="fas fa-chart-bar mr-2"></i>AI 분석 결과
-                            </p>
-                            <div className="admin-grid admin-grid-cols-2 admin-gap-3">
-                              <div className="admin-analysis-card">
-                                <span className="admin-analysis-label">
-                                  <i className="fas fa-heart mr-1"></i>감정 분석
-                                </span>
-                                <p className="admin-analysis-value">
-                                  {news.aiAnalysisResult?.sentiment || '중립'}
-                                </p>
-                              </div>
-                              <div className="admin-analysis-card">
-                                <span className="admin-analysis-label">
-                                  <i className="fas fa-check-circle mr-1"></i>팩트 체크
-                                </span>
-                                <p className="admin-analysis-value">
-                                  {news.aiAnalysisResult?.factCheck || '검증 필요'}
-                                </p>
+                          {/* AI 분석 기본 정보 */}
+                          {news.aiSummary && (
+                            <div className="admin-mb-3">
+                              <p className="admin-text-sm admin-text-gray-600 admin-mb-2">
+                                <i className="fas fa-chart-bar mr-2"></i>AI 분석 기본 정보
+                              </p>
+                              <div className="admin-grid admin-grid-cols-1 admin-gap-3">
+                                <div className="admin-analysis-card">
+                                  <span className="admin-analysis-label">
+                                    <i className="fas fa-file-text mr-1"></i>핵심 주장
+                                  </span>
+                                  <p className="admin-analysis-value">
+                                    {typeof news.aiAnalysisResult === 'string' ? news.aiAnalysisResult : news.aiAnalysisResult?.summary || 'AI 분석 중...'}
+                                  </p>
+                                </div>
+                                {news.suspiciousPoints && (
+                                  <div className="admin-analysis-card">
+                                    <span className="admin-analysis-label">
+                                      <i className="fas fa-exclamation-triangle mr-1"></i>의심 포인트
+                                    </span>
+                                    <p className="admin-analysis-value">
+                                      {news.suspiciousPoints}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          </div>
+                          )}
 
                           {/* AI 신뢰도 정보 */}
                           <div className="admin-mb-3">
@@ -1329,25 +1349,124 @@ const News: React.FC = () => {
                     {selectedNews?.id === news.id && (
                       <div className="admin-border-t admin-pt-4 admin-mt-4">
                         <div className="admin-grid admin-grid-cols-1 admin-gap-4">
-                          <div>
-                            <h4 className="admin-text-sm admin-font-medium admin-text-gray-700 admin-mb-2">
-                              <i className="fas fa-analytics mr-2"></i>AI 분석 상세 결과
-                            </h4>
-                            <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
-                              <div className="admin-analysis-card admin-mb-2">
-                                <p><strong><i className="fas fa-heart mr-1"></i>감정 분석:</strong> {news.aiAnalysisResult?.sentiment || '중립'}</p>
-                              </div>
-                              <div className="admin-analysis-card admin-mb-2">
-                                <p><strong><i className="fas fa-check-circle mr-1"></i>팩트 체크:</strong> {news.aiAnalysisResult?.factCheck || '검증 필요'}</p>
-                              </div>
-                              <div className="admin-analysis-card admin-mb-2">
-                                <p><strong><i className="fas fa-shield-alt mr-1"></i>콘텐츠 신뢰도:</strong> {news.aiAnalysisResult?.reliability || news.reliabilityScore || 0}%</p>
-                              </div>
-                              <div className="admin-analysis-card">
-                                <p><strong><i className="fas fa-brain mr-1"></i>AI 신뢰도:</strong> {news.confidenceScore ? Math.round(news.confidenceScore * 100) : 0}%</p>
-                              </div>
+                          {/* 상세 AI 분석 결과 */}
+                          {news.detailedAnalysis && (
+                            <div>
+                              <h4 className="admin-text-sm admin-font-medium admin-text-gray-700 admin-mb-2">
+                                <i className="fas fa-analytics mr-2"></i>AI 분석 상세 결과
+                              </h4>
+
+                              {/* 사실 분석 */}
+                              {news.detailedAnalysis.fact_analysis && (
+                                <div className="admin-mb-4">
+                                  <h5 className="admin-text-sm admin-font-medium admin-text-blue-700 admin-mb-2">
+                                    📊 사실 분석
+                                  </h5>
+                                  <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
+                                    {news.detailedAnalysis.fact_analysis.verifiable_facts && news.detailedAnalysis.fact_analysis.verifiable_facts.length > 0 && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>검증 가능한 사실:</strong></p>
+                                        {news.detailedAnalysis.fact_analysis.verifiable_facts.map((fact: any, index: number) => (
+                                          <div key={index} className="admin-ml-4 admin-mb-1">
+                                            <p>• 주장: {fact.claim}</p>
+                                            <p>• 근거: {fact.evidence}</p>
+                                            <p>• 신뢰도: {fact.reliability === 'high' ? '높음' : fact.reliability === 'medium' ? '보통' : '낮음'}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.fact_analysis.questionable_claims && news.detailedAnalysis.fact_analysis.questionable_claims.length > 0 && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>검증 필요한 주장:</strong></p>
+                                        {news.detailedAnalysis.fact_analysis.questionable_claims.map((claim: any, index: number) => (
+                                          <div key={index} className="admin-ml-4 admin-mb-1">
+                                            <p>• 주장: {claim.claim}</p>
+                                            <p>• 이유: {claim.reason}</p>
+                                            <p>• 위험도: {claim.risk_level === 'high' ? '높음' : claim.risk_level === 'medium' ? '보통' : '낮음'}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.fact_analysis.overall_assessment && (
+                                      <div className="admin-analysis-card">
+                                        <p><strong>전체 평가:</strong> {news.detailedAnalysis.fact_analysis.overall_assessment}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 편향성 분석 */}
+                              {news.detailedAnalysis.bias_analysis && (
+                                <div className="admin-mb-4">
+                                  <h5 className="admin-text-sm admin-font-medium admin-text-orange-700 admin-mb-2">
+                                    ⚖️ 편향성 분석
+                                  </h5>
+                                  <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
+                                    {news.detailedAnalysis.bias_analysis.political_leaning && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>정치적 성향:</strong> {news.detailedAnalysis.bias_analysis.political_leaning}</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.bias_analysis.bias_score && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>편향성 점수:</strong> {news.detailedAnalysis.bias_analysis.bias_score}/100점</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.bias_analysis.framing_analysis && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>프레임 분석:</strong> {news.detailedAnalysis.bias_analysis.framing_analysis}</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.bias_analysis.overall_assessment && (
+                                      <div className="admin-analysis-card">
+                                        <p><strong>전체 평가:</strong> {news.detailedAnalysis.bias_analysis.overall_assessment}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 신뢰도 분석 */}
+                              {news.detailedAnalysis.credibility && (
+                                <div className="admin-mb-4">
+                                  <h5 className="admin-text-sm admin-font-medium admin-text-green-700 admin-mb-2">
+                                    🎯 신뢰도 분석
+                                  </h5>
+                                  <div className="admin-text-sm admin-text-gray-600" style={{ lineHeight: '1.6' }}>
+                                    {news.detailedAnalysis.credibility.overall_score && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>전체 신뢰도:</strong> {news.detailedAnalysis.credibility.overall_score}/100점</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.credibility.fact_score && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>사실성 점수:</strong> {news.detailedAnalysis.credibility.fact_score}/100점</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.credibility.bias_impact && (
+                                      <div className="admin-analysis-card admin-mb-2">
+                                        <p><strong>편향성 영향:</strong> {news.detailedAnalysis.credibility.bias_impact}</p>
+                                      </div>
+                                    )}
+
+                                    {news.detailedAnalysis.credibility.assessment_reason && (
+                                      <div className="admin-analysis-card">
+                                        <p><strong>평가 근거:</strong> {news.detailedAnalysis.credibility.assessment_reason}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
                     )}

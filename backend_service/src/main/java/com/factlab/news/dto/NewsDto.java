@@ -23,6 +23,7 @@ public class NewsDto {
     private String aiKeywords;
     private String suspiciousPoints;
     private String analysisType;  // AI 분석 타입 추가
+    private String detailedAnalysis;  // 상세 AI 분석 결과 (JSON)
     private String thumbnail;
     
     // 투표 통계 관련 필드들
@@ -201,6 +202,14 @@ public class NewsDto {
 
     public void setAnalysisType(String analysisType) {
         this.analysisType = analysisType;
+    }
+
+    public String getDetailedAnalysis() {
+        return detailedAnalysis;
+    }
+
+    public void setDetailedAnalysis(String detailedAnalysis) {
+        this.detailedAnalysis = detailedAnalysis;
     }
 
     // 투표 통계 관련 Getters and Setters

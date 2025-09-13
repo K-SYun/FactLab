@@ -364,16 +364,28 @@ public class NewsService {
                 dto.setAiKeywords(summary.getKeywords());
                 dto.setSuspiciousPoints(summary.getSuspiciousPoints());
                 dto.setAnalysisType(summary.getAnalysisType() != null ? summary.getAnalysisType().toString() : null);
-                
+                dto.setDetailedAnalysis(summary.getFullAnalysisResult());
+
                 System.out.println("DEBUG: DTO after setting AI data - aiSummary: " + dto.getAiSummary());
+                System.out.println("DEBUG: DTO after setting AI data - analysisType: " + dto.getAnalysisType());
             } else {
-                System.out.println("DEBUG: No summary found for news ID: " + news.getId());
-                System.out.println("DEBUG: Checking all summaries in database...");
-                // 모든 news_summary 레코드 확인
-                var allSummaries = newsSummaryRepository.findAll();
-                System.out.println("DEBUG: Total summaries in DB: " + allSummaries.size());
-                for (NewsSummary s : allSummaries) {
-                    System.out.println("DEBUG: Summary ID: " + s.getId() + ", News ID: " + s.getNewsId());
+                System.out.println("DEBUG: No completed summary found for news ID: " + news.getId() + ". Trying latest summary...");
+                // 완료된 것이 없으면 최신 것을 찾아보자
+                Optional<NewsSummary> latestSummaryOpt = newsSummaryRepository.findLatestSummaryByNewsId(news.getId());
+                if (latestSummaryOpt.isPresent()) {
+                    NewsSummary summary = latestSummaryOpt.get();
+                    System.out.println("DEBUG: Found latest summary - Status: " + summary.getStatus());
+
+                    dto.setAiSummary(summary.getSummary());
+                    dto.setAiAnalysisResult(summary.getClaim());
+                    dto.setReliabilityScore(summary.getReliabilityScore());
+                    dto.setConfidenceScore(summary.getAiConfidence());
+                    dto.setAiKeywords(summary.getKeywords());
+                    dto.setSuspiciousPoints(summary.getSuspiciousPoints());
+                    dto.setAnalysisType(summary.getAnalysisType() != null ? summary.getAnalysisType().toString() : null);
+                    dto.setDetailedAnalysis(summary.getFullAnalysisResult());
+                } else {
+                    System.out.println("DEBUG: No summary found at all for news ID: " + news.getId());
                 }
             }
         } catch (Exception e) {

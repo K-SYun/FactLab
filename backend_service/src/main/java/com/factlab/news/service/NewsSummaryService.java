@@ -66,7 +66,14 @@ public class NewsSummaryService {
 
     // 특정 뉴스의 요약 조회
     public Optional<NewsSummaryDto> getSummaryByNewsId(Integer newsId) {
-        return newsSummaryRepository.findSummaryByNewsId(newsId)
+        // 먼저 완료된 것을 찾고, 없으면 최신 것을 찾는다
+        Optional<NewsSummary> summary = newsSummaryRepository.findSummaryByNewsId(newsId);
+        if (summary.isPresent()) {
+            return summary.map(this::convertToDtoWithNewsInfo);
+        }
+
+        // 완료된 것이 없으면 최신 것을 찾는다
+        return newsSummaryRepository.findLatestSummaryByNewsId(newsId)
                 .map(this::convertToDtoWithNewsInfo);
     }
 

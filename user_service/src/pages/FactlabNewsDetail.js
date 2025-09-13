@@ -62,7 +62,19 @@ const FactlabNewsDetail = () => {
         }
 
         const response = await newsApi.getNewsById(newsId);
-        setNewsData(response.data.data);
+        const newsData = response.data.data;
+
+        // Parse detailedAnalysis JSON string if it exists
+        if (newsData.detailedAnalysis && typeof newsData.detailedAnalysis === 'string') {
+          try {
+            newsData.detailedAnalysis = JSON.parse(newsData.detailedAnalysis);
+          } catch (error) {
+            console.error('Error parsing detailedAnalysis JSON:', error);
+            newsData.detailedAnalysis = null;
+          }
+        }
+
+        setNewsData(newsData);
         setError(null);
       } catch (err) {
         console.error('Error fetching news detail:', err);
@@ -225,8 +237,8 @@ const FactlabNewsDetail = () => {
       case 'COMPREHENSIVE':
         return [
           { key: 'reliable_neutral', label: '신뢰보도', sublabel: '사실적이고 중립적', emoji: '✅' },
-          { key: 'reliable_right', label: '신뢰+우편향', sublabel: '사실적이나 우편향', emoji: '🔸' },
-          { key: 'reliable_left', label: '신뢰+좌편향', sublabel: '사실적이나 좌편향', emoji: '🔹' },
+          { key: 'reliable_right', label: '우편향', sublabel: '사실적이나 우편향', emoji: '🔸' },
+          { key: 'reliable_left', label: '좌편향', sublabel: '사실적이나 좌편향', emoji: '🔹' },
           { key: 'problematic', label: '문제있음', sublabel: '사실성이나 편향성 문제', emoji: '❌' },
           { key: 'unknown', label: '모르겠음(판단유보)', sublabel: '종합적 판단 어려움', emoji: '❓' }
         ];
@@ -645,7 +657,7 @@ const FactlabNewsDetail = () => {
 
               {/* AI Analysis Results */}
               <div className="content_section">
-                <div className="section_title">🤖 AI 핵심 주장 및 의심포인트</div>
+                <div className="section_title">🤖 AI 종합 분석 결과</div>
                 <div className="summary_content">
                   <strong>핵심 주장:</strong><br />
                   <div className="ai-claim">
@@ -663,17 +675,15 @@ const FactlabNewsDetail = () => {
                         )
                       )
                     ) : (
-                      <>
-                        • 제시된 사실과 수치의 근거 부족<br />
-                        • 정보 출처의 신뢰성<br />
-                        • 추가적인 검증 자료의 필요성
-                      </>
+                      <div className="suspicious-point">
+                        AI 분석 중입니다...
+                      </div>
                     )}
                   </div>
 
                   {newsData.aiKeywords && (
                     <div className="ai-keywords news-ai-keywords">
-                      <strong>주요 키워드:</strong><br />
+                      <strong>주요 키워드: </strong>
                       {newsData.aiKeywords.split(',').map((keyword, index) => (
                         <span key={index} className="keyword-tag">#{keyword.trim()}</span>
                       ))}
@@ -687,6 +697,146 @@ const FactlabNewsDetail = () => {
                   )}
                 </div>
               </div>
+
+              {/* Detailed AI Analysis */}
+              {newsData.detailedAnalysis && (
+                <>
+                  {/* Fact Analysis */}
+                  {newsData.detailedAnalysis.fact_analysis && (
+                    <div className="content_section">
+                      <div className="section_title">📊 사실 분석</div>
+                      <div className="summary_content">
+                        {newsData.detailedAnalysis.fact_analysis.verifiable_facts && newsData.detailedAnalysis.fact_analysis.verifiable_facts.length > 0 && (
+                          <>
+                            <strong>검증 가능한 사실:</strong><br />
+                            {newsData.detailedAnalysis.fact_analysis.verifiable_facts.map((fact, index) => (
+                              <div key={index} className="analysis-item">
+                                • 주장: {fact.claim}<br />
+                                • 근거: {fact.evidence}<br />
+                                • 신뢰도: {fact.reliability === 'high' ? '높음' : fact.reliability === 'medium' ? '보통' : '낮음'}<br />
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.fact_analysis.questionable_claims && newsData.detailedAnalysis.fact_analysis.questionable_claims.length > 0 && (
+                          <>
+                            <strong>검증 필요한 주장:</strong><br />
+                            {newsData.detailedAnalysis.fact_analysis.questionable_claims.map((claim, index) => (
+                              <div key={index} className="analysis-item">
+                                • 주장: {claim.claim}<br />
+                                • 이유: {claim.reason}<br />
+                                • 위험도: {claim.risk_level === 'high' ? '높음' : claim.risk_level === 'medium' ? '보통' : '낮음'}<br />
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.fact_analysis.missing_information && newsData.detailedAnalysis.fact_analysis.missing_information.length > 0 && (
+                          <>
+                            <strong>추가 검증 필요 정보:</strong><br />
+                            {newsData.detailedAnalysis.fact_analysis.missing_information.map((info, index) => (
+                              <div key={index} className="analysis-item">• {info}</div>
+                            ))}
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.fact_analysis.overall_assessment && (
+                          <>
+                            <strong>전체 평가:</strong> {newsData.detailedAnalysis.fact_analysis.overall_assessment}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bias Analysis */}
+                  {newsData.detailedAnalysis.bias_analysis && (
+                    <div className="content_section">
+                      <div className="section_title">⚖️ 편향성 분석</div>
+                      <div className="summary_content">
+                        {newsData.detailedAnalysis.bias_analysis.political_leaning && (
+                          <>
+                            <strong>정치적 성향:</strong> {newsData.detailedAnalysis.bias_analysis.political_leaning}<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.bias_analysis.bias_score && (
+                          <>
+                            <strong>편향성 점수:</strong> {newsData.detailedAnalysis.bias_analysis.bias_score}/100점<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.bias_analysis.framing_analysis && (
+                          <>
+                            <strong>프레임 분석:</strong> {newsData.detailedAnalysis.bias_analysis.framing_analysis}<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.bias_analysis.biased_language && newsData.detailedAnalysis.bias_analysis.biased_language.length > 0 && (
+                          <>
+                            <strong>편향적 표현:</strong><br />
+                            {newsData.detailedAnalysis.bias_analysis.biased_language.map((lang, index) => (
+                              <div key={index} className="analysis-item">
+                                • 표현: {lang.expression}<br />
+                                • 유형: {lang.type}<br />
+                                • 중립적 대안: {lang.neutral_alternative}<br />
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.bias_analysis.missing_perspectives && newsData.detailedAnalysis.bias_analysis.missing_perspectives.length > 0 && (
+                          <>
+                            <strong>누락된 관점:</strong><br />
+                            {newsData.detailedAnalysis.bias_analysis.missing_perspectives.map((perspective, index) => (
+                              <div key={index} className="analysis-item">• {perspective}</div>
+                            ))}
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.bias_analysis.overall_assessment && (
+                          <>
+                            <strong>전체 평가:</strong> {newsData.detailedAnalysis.bias_analysis.overall_assessment}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Credibility Analysis */}
+                  {newsData.detailedAnalysis.credibility && (
+                    <div className="content_section">
+                      <div className="section_title">🎯 신뢰도 분석</div>
+                      <div className="summary_content">
+                        {newsData.detailedAnalysis.credibility.overall_score && (
+                          <>
+                            <strong>전체 신뢰도:</strong> {newsData.detailedAnalysis.credibility.overall_score}/100점<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.credibility.fact_score && (
+                          <>
+                            <strong>사실성 점수:</strong> {newsData.detailedAnalysis.credibility.fact_score}/100점<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.credibility.bias_impact && (
+                          <>
+                            <strong>편향성 영향:</strong> {newsData.detailedAnalysis.credibility.bias_impact}<br />
+                          </>
+                        )}
+
+                        {newsData.detailedAnalysis.credibility.assessment_reason && (
+                          <>
+                            <strong>평가 근거:</strong> {newsData.detailedAnalysis.credibility.assessment_reason}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Voting Section */}

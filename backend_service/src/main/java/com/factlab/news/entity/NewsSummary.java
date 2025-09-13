@@ -53,6 +53,9 @@ public class NewsSummary {
     @Column(name = "suspicious_points", columnDefinition = "TEXT")
     private String suspiciousPoints;
 
+    @Column(name = "full_analysis_result", columnDefinition = "TEXT")
+    private String fullAnalysisResult;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -204,5 +207,13 @@ public class NewsSummary {
 
     public void setSuspiciousPoints(String suspiciousPoints) {
         this.suspiciousPoints = suspiciousPoints;
+    }
+
+    public String getFullAnalysisResult() {
+        return fullAnalysisResult;
+    }
+
+    public void setFullAnalysisResult(String fullAnalysisResult) {
+        this.fullAnalysisResult = fullAnalysisResult;
     }
 }
