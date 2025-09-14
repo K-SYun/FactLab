@@ -58,8 +58,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   // 환경에 따라 basename 설정
-  // 포트 80(nginx)을 통한 접근이면 /admin, 포트 3001(직접)이면 빈 문자열
-  const basename = window.location.port === '80' || window.location.port === '' ? '/admin' : '';
+  // nginx를 통한 접근 (polradar.com 또는 IP:80)이면 /admin, 직접 접근 (포트 3001)이면 빈 문자열
+  const isDirectAccess = window.location.port === '3001';
+  const basename = isDirectAccess ? '' : '/admin';
+
+  console.log('Current location:', window.location);
+  console.log('Using basename:', basename);
 
   return (
     <Router basename={basename}>
