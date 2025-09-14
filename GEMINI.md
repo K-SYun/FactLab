@@ -1030,3 +1030,7 @@ tmpfs           2.0G     0  2.0G   0% /dev/shm
 tmpfs           5.0M     0  5.0M   0% /run/lock
 /dev/sda15      124M   12M  113M  10% /boot/efi
 tmpfs           393M     0  393M   0% /run/user/1000
+
+.env 파일 작성 : cat > .env
+삭제 : rm .env
+작성내용 확인 : cat .env
