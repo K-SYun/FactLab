@@ -1014,6 +1014,7 @@ SNS/공식 사이트 연결
    ./deploy-prod.sh
 
 git clone https://github.com/K-SYun/FactLab.git
+git pull origin main
 
 폴더 삭제 
 rm -rf FactLab
