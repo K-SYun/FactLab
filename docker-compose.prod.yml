@@ -31,7 +31,7 @@ services:
       context: ./user_service
       dockerfile: Dockerfile.prod
     ports:
-      - "3000:3000"
+      - "3000:80"
     expose:
       - "3000"
     environment:
@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     networks:
       - frontend
-    read_only: true
+    #read_only: true
     tmpfs:
       - /tmp
     security_opt:
@@ -61,7 +61,7 @@ services:
     networks:
       - frontend
       - backend
-    read_only: true
+    #read_only: true
     tmpfs:
       - /tmp
     security_opt:

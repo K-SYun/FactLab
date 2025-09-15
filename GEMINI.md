@@ -546,7 +546,7 @@ Validation은 Yup + React Hook Form 또는 Zod 등 라이브러리 기반
  - 제목 앞에 글번호 추가.
  - 게시판 글 상세보기 화면이 없음.
  - 글쓰기 화면: 디자인이 이상해. / 게시판 선택: 현재 내 게시판 자동입력(수정가능)
- - 에디터는 뭐지? 혹시 CKEditor 면 React-Quill 로 변경해
+ - 에디터는 CKEditor 
 
  게시판전체 소스 확인. 개발완료되었다고 말하기전에 테스트확인해.
  1. BEST: 글쓰기 삭제 (미 개발)
@@ -1035,3 +1035,12 @@ tmpfs           393M     0  393M   0% /run/user/1000
 .env 파일 작성 : cat > .env
 삭제 : rm .env
 작성내용 확인 : cat .env
+
+  # 모든 서비스 중지
+  docker-compose -f docker-compose.prod.yml down
+
+  # 캐시 없이 backend-service만 다시 빌드
+  docker-compose -f docker-compose.prod.yml build --no-cache backend-service
+
+  # 전체 서비스 시작
+  docker-compose -f docker-compose.prod.yml up -d
