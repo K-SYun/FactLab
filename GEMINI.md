@@ -971,7 +971,7 @@ SNS/공식 사이트 연결
   # 개발환경 전체 시작
   docker-compose -f docker-compose.dev.yml up -d
 
-  # 캐시 없이 완전 재빌드 후 시작
+  # 캐시 없이 완전 재빌드 후 시작(개발)
   docker-compose -f docker-compose.dev.yml build --no-cache && docker-compose -f
   docker-compose.dev.yml up -d
 
@@ -1044,3 +1044,11 @@ tmpfs           393M     0  393M   0% /run/user/1000
 
   # 전체 서비스 시작
   docker-compose -f docker-compose.prod.yml up -d
+
+  로그확인
+  docker logs 컨테이너id
+
+# 관리자 insert
+  INSERT INTO admin_users (username, email, password, role, is_active, created_at, updated_at)
+  VALUES ('admin', 'admin@example.com',
+  '$2a$10$Zp4KFDzdHVvvfmlD87xofeER7HDfRe3ZQFLwJnV0ovEGD8FeNZXYO', 'ADMIN', true, NOW(), NOW());

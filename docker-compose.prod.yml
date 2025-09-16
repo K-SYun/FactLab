@@ -1,12 +1,14 @@
 # Production 보안 강화 Docker Compose
 services:
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.prod
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx-secure.conf:/etc/nginx/nginx.conf
+      # - ./nginx/nginx-secure.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     depends_on:
