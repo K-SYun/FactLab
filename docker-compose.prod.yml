@@ -20,20 +20,19 @@ services:
       - frontend
       - backend
 
-  # Certbot for SSL certificates
+  # Certbot for SSL certificates (manual execution only)
   certbot:
     image: certbot/certbot
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos --no-eff-email -d polradar.com -d www.polradar.com
+    # Remove automatic command - run manually when needed
+    # command: certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos --no-eff-email -d polradar.com -d www.polradar.com
 
   user-service:
     build:
       context: ./user_service
       dockerfile: Dockerfile.prod
-    ports:
-      - "3000:80"
     expose:
       - "3000"
     environment:
@@ -52,8 +51,6 @@ services:
     build:
       context: ./admin_service
       dockerfile: Dockerfile.prod
-    ports:
-      - "3001:3001"
     expose:
       - "3001"
     environment:
@@ -73,9 +70,6 @@ services:
     build:
       context: ./backend_service
       dockerfile: Dockerfile.prod
-    ports:
-      - "8080:8080"
-      - "8081:8081" # Actuator port
     expose:
       - "8080"
       - "8081" # Actuator port
