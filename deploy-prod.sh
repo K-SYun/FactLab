@@ -142,13 +142,13 @@ health_check() {
             warn "User Service 응답 없음"
         fi
         
-        if curl -s -o /dev/null -w "%{http_code}" http://localhost:3001 | grep -q "200\|301\|302"; then
+        if curl -s -o /dev/null -w "%{http_code}" http://localhost/admin | grep -q "200\|301\|302"; then
             success "Admin Service 정상"
         else
             warn "Admin Service 응답 없음"
         fi
-        
-        if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health | grep -q "200"; then
+
+        if curl -s -o /dev/null -w "%{http_code}" http://localhost/api/health | grep -q "200"; then
             success "Backend Service 정상"
             break
         else
@@ -216,7 +216,7 @@ main() {
     
     success "🎉 FactLab 운영 배포 완료!"
     success "🌐 사이트: https://polradar.com"
-    success "⚙️  관리자: https://polradar.com:3001"
+    success "⚙️  관리자: https://polradar.com/admin"
     
     log "배포 후 확인사항:"
     log "1. 웹사이트 정상 접속 확인"
