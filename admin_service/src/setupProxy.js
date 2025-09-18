@@ -22,7 +22,7 @@ module.exports = function(app) {
 
   // AI 서비스 프록시 설정
   app.use(
-    '/ai',
+    '/ai-api',
     createProxyMiddleware({
       target: 'http://ai-service:8001', // Docker 서비스 이름 사용
       changeOrigin: true,
@@ -30,7 +30,7 @@ module.exports = function(app) {
       proxyTimeout: 60000,
       logLevel: 'debug',
       pathRewrite: {
-        '^/ai': '', // /ai/analyze/news/10 -> /analyze/news/10
+        '^/ai-api': '', // /ai-api/analyze/news/10 -> /analyze/news/10
       },
       onProxyReq: (proxyReq, req, res) => {
         console.log('🤖 AI 프록시 요청:', req.method, req.path);

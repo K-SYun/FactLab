@@ -493,7 +493,7 @@ const News: React.FC = () => {
 
         // 3. 실제 AI 재분석 서비스 API 호출
         console.log(`🤖 실제 AI 재분석 실행: 뉴스 ID ${newsId}`);
-        const aiResponse = await fetch(`/ai/analyze/news/${newsId}?analysis_type=COMPREHENSIVE&summary_id=${summaryId}`, {
+        const aiResponse = await fetch(`/ai-api/analyze/news/${newsId}?analysis_type=COMPREHENSIVE&summary_id=${summaryId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
