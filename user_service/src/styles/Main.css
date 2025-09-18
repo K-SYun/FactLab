@@ -490,18 +490,25 @@
 @media (max-width: 768px) {
     .main-container {
         grid-template-columns: 1fr;
-        padding: 10px;
+        padding: 5px; /* 패딩 줄임 */
     }
     .main-side-ad {
         display: none;
     }
     .main-content-grid {
         grid-template-columns: 1fr;
-        width: 100%;
+        width: calc(100vw - 20px); /* 뷰포트 기준으로 좌우 여백 10px씩 */
+        max-width: 100%;
+        margin: 0 10px; /* 좌우 여백 */
+    }
+    .main-news-section {
+        padding: 10px; /* 뉴스 섹션 내부 패딩 줄임 */
+        margin: 0; /* 마진 제거 */
     }
     .bottom-section {
         grid-template-columns: 1fr;
-        width: 100%;
+        width: calc(100vw - 20px);
+        margin: 0 10px;
     }
     .auth-buttons {
         flex-direction: column;
@@ -515,27 +522,29 @@
         padding: 8px 12px;
         font-size: 12px;
     }
-    
+
     /* 모바일에서 뉴스 카드 비율 조정 */
     .main-news-card {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px; /* gap 줄임 */
+        padding: 12px; /* 패딩 줄임 */
+        margin-bottom: 10px; /* 카드 간격 줄임 */
     }
-    
+
     .main-news-thumbnail {
         width: 100%;
-        height: 120px;
+        height: 100px; /* 높이 줄임 */
     }
-    
+
     .main-news-title {
-        font-size: 16px;
+        font-size: 15px; /* 폰트 크기 줄임 */
         line-height: 1.3;
         max-height: 2.6em; /* line-height 1.3 * 2줄 */
         -webkit-line-clamp: 2;
     }
-    
+
     .main-news-summary {
-        font-size: 13px;
+        font-size: 12px; /* 폰트 크기 줄임 */
         line-height: 1.3;
         max-height: 2.6em; /* line-height 1.3 * 2줄 */
         -webkit-line-clamp: 2;
