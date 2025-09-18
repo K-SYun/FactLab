@@ -1,21 +1,10 @@
 spring:
+  # --- Default (local, non-Docker) Profile ---
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/factlab}
-    username: ${SPRING_DATASOURCE_USERNAME:factlab_user}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    url: jdbc:postgresql://localhost:5432/factlab # 로컬 개발용 DB
+    username: factlab
+    password: password123
     driver-class-name: org.postgresql.Driver
-
-    # mail:
-    #   host: smtp.gmail.com
-    #   port: 587
-    #   username: your-email@gmail.com
-    #   password: your-app-password
-    #   properties:
-    #     mail:
-    #       smtp:
-    #         auth: true
-    #         starttls:
-    #           enable: true
 
   jpa:
     hibernate:
@@ -34,6 +23,28 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
+---
+spring:
+  config:
+    activate:
+      on-profile: "dev"
+  # --- Development (Docker) Profile ---
+  datasource:
+    url: jdbc:postgresql://database:5432/factlab # Docker dev용 DB
+    username: factlab
+    password: password123
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "prod"
+  # --- Production (Docker) Profile ---
+  datasource:
+    url: jdbc:postgresql://database:5432/factlab # Docker prod용 DB
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 server:
   port: 8080
 
@@ -44,21 +55,21 @@ springdoc:
     path: /swagger-ui.html
 
 jwt:
-  secret: factlab-secret-key-for-jwt-token-generation-please-change-in-production
+  secret: ${JWT_SECRET:factlab-secret-key-for-jwt-token-generation-please-change-in-production}
   expiration: 3600000  # 1시간
 
 # 소셜 로그인 OAuth 설정
 oauth:
   google:
-    client-id: ${GOOGLE_CLIENT_ID:your_google_client_id}
-    client-secret: ${GOOGLE_CLIENT_SECRET:your_google_client_secret}
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
     redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/auth/google/callback}
   naver:
-    client-id: ${NAVER_CLIENT_ID:your_naver_client_id}
-    client-secret: ${NAVER_CLIENT_SECRET:your_naver_client_secret}
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
     redirect-uri: ${NAVER_REDIRECT_URI:http://localhost:8080/api/auth/naver/callback}
   kakao:
-    client-id: ${KAKAO_CLIENT_ID:your_kakao_client_id}
+    client-id: ${KAKAO_CLIENT_ID}
     redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/api/auth/kakao/callback}
 
 # 앱 설정
@@ -73,7 +84,6 @@ api:
 
 logging:
   level:
-    com.factlab.admin: DEBUG
-    com.factlab.admin.service.AdminAuthService: DEBUG
+    com.factlab: DEBUG
     org.springframework.security: DEBUG
     root: INFO
