@@ -182,25 +182,26 @@ const News: React.FC = () => {
   // 데이터 새로고침 함수 - AI 분석 완료된 뉴스만 가져오기
   const refreshNewsData = async () => {
     try {
-      // AI 분석이 실제로 완료된 뉴스만 가져오기 (news_summary가 completed 상태인 뉴스)
+      // News.status가 REVIEW_PENDING, APPROVED, REJECTED인 뉴스만 가져오기 (AI 분석 완료된 뉴스)
       let allNews: any[] = [];
 
       for (let page = 0; page < 10; page++) {
-        const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=100`);
+        // 뉴스 관리 화면에서는 AI 분석 완료된 뉴스만 가져오기
+        const response = await fetch(`${getBackendApiBase()}/news?page=${page}&size=100&status=review_pending,approved,rejected`);
         const result = await response.json();
         if (result.success && result.data) {
           const pageNews = Array.isArray(result.data) ? result.data : (result.data as any)?.content || [];
           if (pageNews.length === 0) break;
 
-          // 각 뉴스에 대해 AI 분석 완료 여부 확인
-          const newsWithAnalysisCheck = await Promise.all(
+          // 각 뉴스에 대해 AI 분석 결과 가져오기
+          const newsWithAnalysisData = await Promise.all(
             pageNews.map(async (news: any) => {
               try {
                 const summaryResponse = await fetch(`${getBackendApiBase()}/news-summary/news/${news.id}`);
                 const summaryResult = await summaryResponse.json();
 
-                // AI 분석이 실제로 완료된 뉴스만 포함 (news_summary.status === 'completed')
-                if (summaryResult.success && summaryResult.data && summaryResult.data.status === 'completed') {
+                // AI 분석 결과가 있으면 포함, 없어도 뉴스는 표시 (REVIEW_PENDING 상태이므로)
+                if (summaryResult.success && summaryResult.data) {
                   return {
                     ...news,
                     aiSummary: summaryResult.data.summary || '요약 정보 없음',
@@ -208,18 +209,31 @@ const News: React.FC = () => {
                     reliabilityScore: summaryResult.data.reliabilityScore || 0,
                     analysisType: summaryResult.data.analysisType || 'COMPREHENSIVE'
                   };
+                } else {
+                  // AI 분석 결과가 없어도 뉴스는 포함 (기본값으로 설정)
+                  return {
+                    ...news,
+                    aiSummary: 'AI 분석 결과 없음',
+                    aiKeywords: [],
+                    reliabilityScore: 0,
+                    analysisType: 'COMPREHENSIVE'
+                  };
                 }
-                return null; // AI 분석이 완료되지 않은 뉴스는 제외
               } catch (err) {
-                console.warn(`뉴스 ${news.id} 분석 상태 확인 실패:`, err);
-                return null;
+                console.warn(`뉴스 ${news.id} 분석 결과 가져오기 실패:`, err);
+                // 에러가 있어도 뉴스는 포함 (기본값으로 설정)
+                return {
+                  ...news,
+                  aiSummary: 'AI 분석 결과 가져오기 실패',
+                  aiKeywords: [],
+                  reliabilityScore: 0,
+                  analysisType: 'COMPREHENSIVE'
+                };
               }
             })
           );
 
-          // null이 아닌 뉴스만 추가 (AI 분석 완료된 뉴스만)
-          const validNews = newsWithAnalysisCheck.filter(news => news !== null);
-          allNews = [...allNews, ...validNews];
+          allNews = [...allNews, ...newsWithAnalysisData];
 
           if (pageNews.length < 100) break;
         } else {
@@ -448,9 +462,38 @@ const News: React.FC = () => {
       ));
 
       try {
-        // 2. 실제 AI 재분석 서비스 API 호출
-        console.log(`🤖 AI 재분석 시작: 뉴스 ID ${newsId}`);
-        const aiResponse = await fetch(`/ai/api/analyze/news/${newsId}`, {
+        // 2. 백엔드에 재분석 작업 생성 요청
+        console.log(`🤖 재분석 작업 생성: 뉴스 ID ${newsId}`);
+        const backendResponse = await fetch(`http://localhost:8080/api/news-summary/admin/analyze`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            newsId: newsId,
+            analysisType: 'COMPREHENSIVE'
+          })
+        });
+
+        if (!backendResponse.ok) {
+          throw new Error('백엔드 분석 작업 생성 실패');
+        }
+
+        const backendResult = await backendResponse.json();
+        if (!backendResult.success) {
+          throw new Error(backendResult.error || '분석 작업 생성 실패');
+        }
+
+        const summaryId = backendResult.data?.id;
+        if (!summaryId) {
+          throw new Error('summary_id를 받지 못했습니다.');
+        }
+
+        console.log(`✅ 재분석 작업 생성 완료: 뉴스 ID ${newsId}, 요약 ID ${summaryId}`);
+
+        // 3. 실제 AI 재분석 서비스 API 호출
+        console.log(`🤖 실제 AI 재분석 실행: 뉴스 ID ${newsId}`);
+        const aiResponse = await fetch(`/ai/analyze/news/${newsId}?analysis_type=COMPREHENSIVE&summary_id=${summaryId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

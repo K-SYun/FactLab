@@ -66,15 +66,36 @@ public class NewsSummaryService {
 
     // 특정 뉴스의 요약 조회
     public Optional<NewsSummaryDto> getSummaryByNewsId(Integer newsId) {
-        // 먼저 완료된 것을 찾고, 없으면 최신 것을 찾는다
-        Optional<NewsSummary> summary = newsSummaryRepository.findSummaryByNewsId(newsId);
-        if (summary.isPresent()) {
-            return summary.map(this::convertToDtoWithNewsInfo);
-        }
+        try {
+            System.out.println("DEBUG: getSummaryByNewsId called with newsId=" + newsId);
 
-        // 완료된 것이 없으면 최신 것을 찾는다
-        return newsSummaryRepository.findLatestSummaryByNewsId(newsId)
-                .map(this::convertToDtoWithNewsInfo);
+            // 먼저 완료된 것을 찾고, 없으면 최신 것을 찾는다
+            System.out.println("DEBUG: Calling findCompletedByNewsIdOrderByUpdatedAtDesc");
+            List<NewsSummary> completedSummaries = newsSummaryRepository.findCompletedByNewsIdOrderByUpdatedAtDesc(newsId);
+            System.out.println("DEBUG: Found " + completedSummaries.size() + " completed summaries");
+
+            if (!completedSummaries.isEmpty()) {
+                System.out.println("DEBUG: Converting first completed summary to DTO");
+                return Optional.of(this.convertToDtoWithNewsInfo(completedSummaries.get(0)));
+            }
+
+            // 완료된 것이 없으면 최신 것을 찾는다
+            System.out.println("DEBUG: Calling findByNewsIdOrderByUpdatedAtDesc");
+            List<NewsSummary> allSummaries = newsSummaryRepository.findByNewsIdOrderByUpdatedAtDesc(newsId);
+            System.out.println("DEBUG: Found " + allSummaries.size() + " all summaries");
+
+            if (!allSummaries.isEmpty()) {
+                System.out.println("DEBUG: Converting first summary to DTO");
+                return Optional.of(this.convertToDtoWithNewsInfo(allSummaries.get(0)));
+            }
+
+            System.out.println("DEBUG: No summaries found, returning empty");
+            return Optional.empty();
+        } catch (Exception e) {
+            System.out.println("DEBUG: Exception in getSummaryByNewsId: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     // AI 요약 작업 생성 (기본: 종합분석)
@@ -90,10 +111,30 @@ public class NewsSummaryService {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
 
-        // 같은 분석 타입이 이미 존재하는지 확인
-        Optional<NewsSummary> existingSummary = newsSummaryRepository.findByNewsIdAndAnalysisType(newsId, analysisType);
-        if (existingSummary.isPresent()) {
-            throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 존재합니다: " + newsId);
+        // 같은 분석 타입이 이미 존재하는지 확인 (완료된 것만 체크)
+        List<NewsSummary> existingSummaries = newsSummaryRepository.findSummariesByNewsAndType(newsId, analysisType);
+        if (!existingSummaries.isEmpty()) {
+            NewsSummary existing = existingSummaries.get(0); // 가장 첫 번째 (최신) 레코드 사용
+            // 이미 완료된 분석이 있는 경우만 에러 처리
+            if (existing.getStatus() == NewsSummary.SummaryStatus.COMPLETED) {
+                throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 완료되었습니다: " + newsId + " (ID: " + existing.getId() + ")");
+            }
+            // 진행중이거나 실패한 경우 기존 레코드를 PENDING으로 초기화하여 재사용
+            else {
+                existing.setStatus(NewsSummary.SummaryStatus.PENDING);
+                existing.setErrorMessage(null);
+                existing.setSummary(null);
+                existing.setClaim(null);
+                existing.setKeywords(null);
+                existing.setAutoQuestion(null);
+                existing.setReliabilityScore(null);
+                existing.setAiConfidence(null);
+                existing.setProcessingTime(null);
+                existing.setSuspiciousPoints(null);
+                existing.setFullAnalysisResult(null);
+                existing = newsSummaryRepository.save(existing);
+                return convertToDtoWithNewsInfo(existing);
+            }
         }
 
         NewsSummary summary = new NewsSummary(newsId);
@@ -190,7 +231,10 @@ public class NewsSummaryService {
     public List<NewsSummaryDto> createBatchSummaries() {
         List<News> approvedNews = newsRepository.findByStatusOrderByPublishDateDesc(News.NewsStatus.APPROVED);
         List<NewsSummary> results = approvedNews.stream()
-                .filter(news -> !newsSummaryRepository.findSummaryByNewsId(news.getId()).isPresent())
+                .filter(news -> {
+                    List<NewsSummary> completedSummaries = newsSummaryRepository.findCompletedByNewsIdOrderByUpdatedAtDesc(news.getId());
+                    return completedSummaries.isEmpty();
+                })
                 .map(news -> {
                     NewsSummary summary = new NewsSummary(news.getId());
                     summary.setStatus(NewsSummary.SummaryStatus.PENDING);

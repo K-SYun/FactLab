@@ -71,7 +71,7 @@ public class NewsSummary {
     }
 
     public enum SummaryStatus {
-        PENDING, PROCESSING, COMPLETED, FAILED
+        PENDING, PROCESSING, COMPLETED, FAILED, ANALYSIS_FAILED
     }
 
     public NewsSummary() {}

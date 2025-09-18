@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "news")
@@ -69,10 +70,10 @@ public class News {
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 0;
 
-    // NewsSummary와의 관계 (AI 분석 결과)
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id", referencedColumnName = "news_id", insertable = false, updatable = false)
-    private NewsSummary newsSummary;
+    // NewsSummary와의 관계 (AI 분석 결과) - 일대다 관계로 수정
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "news_id", referencedColumnName = "id")
+    private List<NewsSummary> newsSummaries;
 
     public enum NewsStatus {
         PENDING,        // 크롤링 완료, AI 분석 대기
@@ -212,12 +213,12 @@ public class News {
 
     // AI 관련 getter/setter는 제거 - NewsSummary 엔티티에서 관리
 
-    public NewsSummary getNewsSummary() {
-        return newsSummary;
+    public List<NewsSummary> getNewsSummaries() {
+        return newsSummaries;
     }
 
-    public void setNewsSummary(NewsSummary newsSummary) {
-        this.newsSummary = newsSummary;
+    public void setNewsSummaries(List<NewsSummary> newsSummaries) {
+        this.newsSummaries = newsSummaries;
     }
 
     public Boolean getMainFeatured() {

@@ -257,7 +257,8 @@ public class NewsService {
 
     // 디버그용: NewsSummary 직접 조회
     public Optional<NewsSummary> getNewsSummaryById(Integer newsId) {
-        return newsSummaryRepository.findSummaryByNewsId(newsId);
+        List<NewsSummary> summaries = newsSummaryRepository.findByNewsIdOrderByUpdatedAtDesc(newsId);
+        return summaries.isEmpty() ? Optional.empty() : Optional.of(summaries.get(0));
     }
 
     // 트렌딩 키워드 조회 (승인된 뉴스의 키워드 중 가장 많이 사용된 상위 10개)
@@ -272,7 +273,8 @@ public class NewsService {
             
             // 각 뉴스의 키워드를 추출하여 카운트
             for (News news : approvedNews) {
-                Optional<NewsSummary> summaryOpt = newsSummaryRepository.findSummaryByNewsId(news.getId());
+                List<NewsSummary> summaries = newsSummaryRepository.findByNewsIdOrderByUpdatedAtDesc(news.getId());
+                Optional<NewsSummary> summaryOpt = summaries.isEmpty() ? Optional.empty() : Optional.of(summaries.get(0));
                 if (summaryOpt.isPresent() && summaryOpt.get().getKeywords() != null) {
                     String keywords = summaryOpt.get().getKeywords();
                     // 키워드를 쉼표로 분리하여 각각 카운트
@@ -348,7 +350,8 @@ public class NewsService {
         // AI 분석 관련 필드들은 NewsSummary에서 직접 조회
         try {
             System.out.println("DEBUG: Loading AI summary for news ID: " + news.getId());
-            Optional<NewsSummary> summaryOpt = newsSummaryRepository.findSummaryByNewsId(news.getId());
+            List<NewsSummary> summaries = newsSummaryRepository.findByNewsIdOrderByUpdatedAtDesc(news.getId());
+            Optional<NewsSummary> summaryOpt = summaries.isEmpty() ? Optional.empty() : Optional.of(summaries.get(0));
             System.out.println("DEBUG: Repository query result present: " + summaryOpt.isPresent());
             
             if (summaryOpt.isPresent()) {
@@ -371,7 +374,8 @@ public class NewsService {
             } else {
                 System.out.println("DEBUG: No completed summary found for news ID: " + news.getId() + ". Trying latest summary...");
                 // 완료된 것이 없으면 최신 것을 찾아보자
-                Optional<NewsSummary> latestSummaryOpt = newsSummaryRepository.findLatestSummaryByNewsId(news.getId());
+                // 이미 위에서 조회했으므로 같은 결과 사용
+                Optional<NewsSummary> latestSummaryOpt = summaries.isEmpty() ? Optional.empty() : Optional.of(summaries.get(0));
                 if (latestSummaryOpt.isPresent()) {
                     NewsSummary summary = latestSummaryOpt.get();
                     System.out.println("DEBUG: Found latest summary - Status: " + summary.getStatus());

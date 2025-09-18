@@ -12,7 +12,7 @@ interface NewsItem {
   publisher: string;
   category: string;
   publishDate: string;
-  status: 'PENDING' | 'PROCESSING' | 'REVIEW_PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'PROCESSING' | 'REVIEW_PENDING' | 'APPROVED' | 'REJECTED' | 'ANALYSIS_FAILED';
   createdAt: string;
   updatedAt: string;
   thumbnail?: string;  // 썸네일 이미지 URL
@@ -543,20 +543,47 @@ const AIManagement: React.FC = () => {
         } catch (aiError) {
           console.error(`❌ AI 분석 오류: 뉴스 ID ${newsId}`, aiError);
 
-          // 분석 오류 시 PENDING으로 되돌리기
-          await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
+          // 분석 실패 시 사용자에게 재분석 여부 확인
+          const newsTitle = newsItems.find(news => news.id === newsId)?.title || '뉴스';
+          const retryConfirm = window.confirm(
+            `❌ AI 분석이 실패했습니다.\n\n제목: ${newsTitle.length > 50 ? newsTitle.substring(0, 50) + '...' : newsTitle}\n\n다시 분석하시겠습니까?\n\n- 예: 즉시 재분석 시도\n- 아니오: 분석실패 상태로 표시 (나중에 재분석 가능)`
+          );
 
-          // UI 상태 업데이트
-          setNewsItems(prev => prev.map(news =>
-            news.id === newsId
-              ? { ...news, status: 'PENDING' as const, errorMessage: '네트워크 오류' }
-              : news
-          ));
+          if (retryConfirm) {
+            // 재분석 시도 - PENDING으로 되돌리고 다시 분석
+            await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+
+            // UI 상태 업데이트
+            setNewsItems(prev => prev.map(news =>
+              news.id === newsId
+                ? { ...news, status: 'PENDING' as const, errorMessage: '재분석 대기 중' }
+                : news
+            ));
+
+            alert('🔄 재분석을 위해 대기 상태로 변경되었습니다. 다시 분석해주세요.');
+          } else {
+            // 분석실패 상태로 설정
+            await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=ANALYSIS_FAILED`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+
+            // UI 상태 업데이트
+            setNewsItems(prev => prev.map(news =>
+              news.id === newsId
+                ? { ...news, status: 'ANALYSIS_FAILED' as const, errorMessage: 'AI 분석 실패' }
+                : news
+            ));
+
+            alert('⚠️ 분석실패 상태로 설정되었습니다. 나중에 재분석하거나 삭제할 수 있습니다.');
+          }
         }
       });
 
@@ -639,40 +666,50 @@ const AIManagement: React.FC = () => {
       return;
     }
 
-    // REJECTED 상태인 뉴스만 재분석 가능
-    const rejectedSelectedIds = selectedNewsIds.filter(id => {
+    // ANALYSIS_FAILED 상태인 뉴스만 재분석 가능
+    const failedSelectedIds = selectedNewsIds.filter(id => {
       const news = newsItems.find(item => item.id === id);
-      return news?.status === 'REJECTED';
+      return news?.status === 'ANALYSIS_FAILED';
     });
 
-    if (rejectedSelectedIds.length === 0) {
-      alert('분석 실패한 뉴스를 선택해주세요.');
+    if (failedSelectedIds.length === 0) {
+      alert('분석실패 상태인 뉴스를 선택해주세요.');
       return;
     }
 
-    if (!window.confirm(`선택된 ${rejectedSelectedIds.length}개의 뉴스를 재분석하시겠습니까?`)) {
+    if (!window.confirm(`선택된 ${failedSelectedIds.length}개의 분석실패 뉴스를 재분석하시겠습니까?`)) {
       return;
     }
 
     setActionLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 각 실패한 뉴스를 PENDING 상태로 변경
+      const updatePromises = failedSelectedIds.map(async (newsId) => {
+        await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PENDING`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      });
 
-      // 상태를 PROCESSING으로 변경
+      await Promise.all(updatePromises);
+
+      // UI에서 상태를 PENDING으로 변경
       setNewsItems(prev => prev.map(news =>
-        rejectedSelectedIds.includes(news.id)
-          ? { ...news, status: 'PROCESSING' as const, analysisProgress: 0, errorMessage: undefined, updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
+        failedSelectedIds.includes(news.id)
+          ? { ...news, status: 'PENDING' as const, errorMessage: '재분석 대기 중', updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
           : news
       ));
 
       setSelectedNewsIds([]);
       setIsSelectAll(false);
 
-      alert(`${rejectedSelectedIds.length}개의 뉴스 재분석이 시작되었습니다.`);
+      alert(`${failedSelectedIds.length}개의 뉴스가 재분석 대기 상태로 변경되었습니다. 이제 AI 분석을 실행해주세요.`);
 
     } catch (error) {
-      alert('재분석 중 오류가 발생했습니다.');
+      alert('재분석 준비 중 오류가 발생했습니다.');
       console.error('Retry Analysis Error:', error);
     } finally {
       setActionLoading(false);
@@ -775,25 +812,40 @@ const AIManagement: React.FC = () => {
     }
   };
 
-  // 선택된 AI 분석되지 않은 뉴스 삭제
+  // 선택된 AI 분석되지 않은 뉴스나 분석실패 뉴스 삭제
   const handleClearData = async () => {
     if (selectedNewsIds.length === 0) {
       alert('삭제할 뉴스를 선택해주세요.');
       return;
     }
 
-    // PENDING 상태인 뉴스만 삭제 가능
-    const pendingSelectedIds = selectedNewsIds.filter(id => {
+    // PENDING 또는 ANALYSIS_FAILED 상태인 뉴스만 삭제 가능
+    const deletableSelectedIds = selectedNewsIds.filter(id => {
       const news = newsItems.find(item => item.id === id);
-      return news?.status?.toUpperCase() === 'PENDING';
+      return news?.status?.toUpperCase() === 'PENDING' || news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
     });
 
-    if (pendingSelectedIds.length === 0) {
-      alert('AI 분석되지 않은 뉴스(분석 대기중)를 선택해주세요.');
+    if (deletableSelectedIds.length === 0) {
+      alert('삭제 가능한 뉴스를 선택해주세요.\n(분석 대기중 또는 분석실패 상태인 뉴스만 삭제 가능)');
       return;
     }
 
-    if (!window.confirm(`선택된 ${pendingSelectedIds.length}개의 AI 분석되지 않은 뉴스를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+    const pendingCount = selectedNewsIds.filter(id => {
+      const news = newsItems.find(item => item.id === id);
+      return news?.status?.toUpperCase() === 'PENDING';
+    }).length;
+
+    const failedCount = selectedNewsIds.filter(id => {
+      const news = newsItems.find(item => item.id === id);
+      return news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
+    }).length;
+
+    let confirmMessage = `선택된 뉴스를 삭제하시겠습니까?\n\n`;
+    if (pendingCount > 0) confirmMessage += `- 분석 대기중: ${pendingCount}개\n`;
+    if (failedCount > 0) confirmMessage += `- 분석실패: ${failedCount}개\n`;
+    confirmMessage += `\n총 ${deletableSelectedIds.length}개 뉴스가 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.`;
+
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
@@ -802,7 +854,7 @@ const AIManagement: React.FC = () => {
 
     try {
       // 선택된 뉴스들을 개별적으로 삭제
-      const deletePromises = pendingSelectedIds.map(async (newsId) => {
+      const deletePromises = deletableSelectedIds.map(async (newsId) => {
         const response = await fetch(`${getBackendApiBase()}/news/${newsId}`, {
           method: 'DELETE',
           headers: {
@@ -831,7 +883,11 @@ const AIManagement: React.FC = () => {
       setIsSelectAll(false);
 
       setCrawlingStatus('');
-      alert(`${pendingSelectedIds.length}개의 AI 분석되지 않은 뉴스가 삭제되었습니다.`);
+
+      let successMessage = `총 ${deletableSelectedIds.length}개의 뉴스가 삭제되었습니다.\n\n`;
+      if (pendingCount > 0) successMessage += `- 분석 대기중: ${pendingCount}개 삭제\n`;
+      if (failedCount > 0) successMessage += `- 분석실패: ${failedCount}개 삭제`;
+      alert(successMessage);
 
     } catch (error) {
       console.error('Delete news error:', error);
@@ -923,6 +979,7 @@ const AIManagement: React.FC = () => {
       case 'REVIEW_PENDING': return '분석완료';
       case 'APPROVED': return '승인됨';
       case 'REJECTED': return '거부됨';
+      case 'ANALYSIS_FAILED': return '분석실패';
       default: return '알수없음';
     }
   };
@@ -935,6 +992,7 @@ const AIManagement: React.FC = () => {
       case 'REVIEW_PENDING': return 'completed' as const;
       case 'APPROVED': return 'completed' as const;
       case 'REJECTED': return 'rejected' as const;
+      case 'ANALYSIS_FAILED': return 'rejected' as const;
       default: return 'pending' as const;
     }
   };
@@ -953,6 +1011,7 @@ const AIManagement: React.FC = () => {
 
   const pendingNews = filteredNewsItems.filter(news => news.status?.toUpperCase() === 'PENDING');
   const processingNews = filteredNewsItems.filter(news => news.status?.toUpperCase() === 'PROCESSING');
+  const analysisFailedNews = filteredNewsItems.filter(news => news.status?.toUpperCase() === 'ANALYSIS_FAILED');
 
   // 페이징 계산 (전체 뉴스 수 기준으로 수정)
   const totalItems = totalNewsCount; // 실제 전체 뉴스 수 사용
@@ -1083,35 +1142,78 @@ const AIManagement: React.FC = () => {
             {(isManualCrawling || isScheduleCrawling) ? '크롤링 중...' : '뉴스 크롤링'}
           </button>
 
+          {/* 재분석 버튼 */}
+          <button
+            className={`admin-btn admin-btn-secondary admin-retry-btn`}
+            onClick={handleRetryAnalysis}
+            disabled={actionLoading || selectedNewsIds.filter(id => {
+              const news = newsItems.find(item => item.id === id);
+              return news?.status === 'ANALYSIS_FAILED';
+            }).length === 0}
+            title={selectedNewsIds.filter(id => {
+              const news = newsItems.find(item => item.id === id);
+              return news?.status === 'ANALYSIS_FAILED';
+            }).length === 0 ?
+              "재분석할 분석실패 뉴스를 먼저 선택해주세요" :
+              "선택된 분석실패 뉴스를 대기 상태로 변경하여 재분석을 준비합니다"
+            }
+            style={{
+              color: 'white',
+              cursor: (actionLoading || selectedNewsIds.filter(id => {
+                const news = newsItems.find(item => item.id === id);
+                return news?.status === 'ANALYSIS_FAILED';
+              }).length === 0) ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-redo'} mr-2`}></i>
+            재분석
+            {(() => {
+              const failedCount = selectedNewsIds.filter(id => {
+                const news = newsItems.find(item => item.id === id);
+                return news?.status === 'ANALYSIS_FAILED';
+              }).length;
+              return failedCount > 0 ? ` (${failedCount}개)` : '';
+            })()}
+          </button>
+
           {/* 뉴스삭제 버튼 */}
           <button
             className={`admin-btn admin-btn-warning admin-delete-btn`}
             onClick={handleClearData}
-            disabled={actionLoading || selectedNewsIds.length === 0}
-            title={selectedNewsIds.length === 0 ?
-              "삭제할 뉴스를 먼저 선택해주세요" :
-              "선택된 AI 분석되지 않은 뉴스(분석 대기중)를 삭제합니다"
+            disabled={actionLoading || selectedNewsIds.filter(id => {
+              const news = newsItems.find(item => item.id === id);
+              return news?.status?.toUpperCase() === 'PENDING' || news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
+            }).length === 0}
+            title={selectedNewsIds.filter(id => {
+              const news = newsItems.find(item => item.id === id);
+              return news?.status?.toUpperCase() === 'PENDING' || news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
+            }).length === 0 ?
+              "삭제할 뉴스를 먼저 선택해주세요 (분석 대기중 또는 분석실패 상태만 삭제 가능)" :
+              "선택된 뉴스를 삭제합니다 (분석 대기중 또는 분석실패 상태)"
             }
             style={{
               color: 'white',
-              cursor: (actionLoading || selectedNewsIds.length === 0) ? 'not-allowed' : 'pointer'
+              cursor: (actionLoading || selectedNewsIds.filter(id => {
+                const news = newsItems.find(item => item.id === id);
+                return news?.status?.toUpperCase() === 'PENDING' || news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
+              }).length === 0) ? 'not-allowed' : 'pointer'
             }}
           >
             <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-trash-alt'} mr-2`}></i>
             뉴스삭제
             {(() => {
-              const pendingCount = selectedNewsIds.filter(id => {
+              const deletableCount = selectedNewsIds.filter(id => {
                 const news = newsItems.find(item => item.id === id);
-                return news?.status?.toUpperCase() === 'PENDING';
+                return news?.status?.toUpperCase() === 'PENDING' || news?.status?.toUpperCase() === 'ANALYSIS_FAILED';
               }).length;
-              return pendingCount > 0 ? ` (${pendingCount}개)` : '';
+              return deletableCount > 0 ? ` (${deletableCount}개)` : '';
             })()}
           </button>
         </div>
       </div>
 
       {/* 통계 카드 */}
-      <div className="admin-grid admin-grid-cols-3 admin-gap-6 admin-mb-6">
+      <div className="admin-grid admin-grid-cols-4 admin-gap-6 admin-mb-6">
         <div className="admin-stat-card">
           <div className="admin-stat-flex">
             <div className="admin-stat-icon admin-bg-blue-100">
@@ -1129,6 +1231,16 @@ const AIManagement: React.FC = () => {
             </div>
             <div className="admin-stat-label">AI 분석중</div>
             <div className="admin-stat-number">{processingNews.length}</div>
+          </div>
+        </div>
+
+        <div className="admin-stat-card">
+          <div className="admin-stat-flex">
+            <div className="admin-stat-icon admin-bg-red-100">
+              <i className="fas fa-exclamation-triangle admin-text-red-600"></i>
+            </div>
+            <div className="admin-stat-label">분석실패</div>
+            <div className="admin-stat-number">{analysisFailedNews.length}</div>
           </div>
         </div>
 
@@ -1266,22 +1378,17 @@ const AIManagement: React.FC = () => {
                       )}
 
                       <div style={{ flex: 1 }}>
-                        <h4 className="admin-text-md admin-font-medium admin-text-gray-900"
-                          style={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            marginBottom: '4px'
-                          }}
+                        <h4 className="admin-text-md admin-font-medium admin-text-gray-900 admin-news-title"
                           title={`[${news.id}] ${news.title}`}
                         >
-                          [{news.id}] {news.title}
-                        </h4>
-                        <div className="admin-flex" style={{ alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <StatusBadge
                             status={getStatusBadgeType(news.status)}
                             text={getStatusLabel(news.status)}
                           />
+                          <span className="admin-news-id">#{news.id}</span>
+                          {news.title}
+                        </h4>
+                        <div className="admin-flex admin-news-meta">
                           {news.status === 'PROCESSING' && news.analysisProgress !== undefined && (
                             <div className="admin-flex" style={{ alignItems: 'center', gap: '8px' }}>
                               <div style={{
@@ -1329,10 +1436,17 @@ const AIManagement: React.FC = () => {
                   )}
 
                   {/* 에러 메시지 표시 (실패한 경우) */}
-                  {news.status === 'REJECTED' && news.errorMessage && (
+                  {(news.status === 'REJECTED' || news.status === 'ANALYSIS_FAILED') && news.errorMessage && (
                     <div className="admin-mb-3" style={{ backgroundColor: '#fef2f2', padding: '12px', borderRadius: '6px', border: '1px solid #fecaca' }}>
-                      <h5 className="admin-text-sm admin-font-medium admin-text-red-900 admin-mb-2">분석 실패</h5>
+                      <h5 className="admin-text-sm admin-font-medium admin-text-red-900 admin-mb-2">
+                        {news.status === 'ANALYSIS_FAILED' ? 'AI 분석 실패' : '분석 실패'}
+                      </h5>
                       <div className="admin-text-sm admin-text-red-700">{news.errorMessage}</div>
+                      {news.status === 'ANALYSIS_FAILED' && (
+                        <div className="admin-text-xs admin-text-red-600 admin-mt-2">
+                          💡 이 뉴스를 선택하고 '재분석' 버튼을 클릭하거나 삭제할 수 있습니다.
+                        </div>
+                      )}
                     </div>
                   )}
 

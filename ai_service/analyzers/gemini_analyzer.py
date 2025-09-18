@@ -62,17 +62,48 @@ class GeminiNewsAnalyzer:
                 }]
             }
             
-            response = requests.post(
-                f"{self.api_url}?key={self.api_key}",
-                headers=headers,
-                data=json.dumps(payload),
-                timeout=30
-            )
+            # 재시도 로직 추가 (503 오류 대응)
+            max_retries = 3
+            retry_delay = 2
+
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(
+                        f"{self.api_url}?key={self.api_key}",
+                        headers=headers,
+                        data=json.dumps(payload),
+                        timeout=30
+                    )
+
+                    # 503 오류가 아니면 즉시 처리
+                    if response.status_code != 503:
+                        break
+
+                    # 503 오류인 경우 재시도
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Gemini API 503 오류, {retry_delay}초 후 재시도 ({attempt + 1}/{max_retries})")
+                        import time
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # 지수 백오프
+                    else:
+                        logger.error(f"Gemini API 재시도 횟수 초과: {response.status_code}")
+
+                except requests.exceptions.Timeout:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Gemini API 타임아웃, 재시도 ({attempt + 1}/{max_retries})")
+                        import time
+                        time.sleep(retry_delay)
+                    else:
+                        logger.error("Gemini API 타임아웃 재시도 횟수 초과")
+                        return self.generate_fallback_analysis(title, content)
             
             if response.status_code == 200:
                 result = response.json()
                 analysis_text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
-                
+
+                # 디버깅용 응답 로깅
+                logger.info(f"Gemini API 원본 응답: {analysis_text[:500]}...")
+
                 # JSON 파싱 시도
                 try:
                     # JSON 블록 추출 (```json으로 감싸진 경우 처리)
@@ -80,7 +111,8 @@ class GeminiNewsAnalyzer:
                         analysis_text = analysis_text.split("```json")[1].split("```")[0].strip()
                     elif "```" in analysis_text:
                         analysis_text = analysis_text.split("```")[1].split("```")[0].strip()
-                    
+
+                    logger.info(f"JSON 파싱 시도: {analysis_text[:200]}...")
                     analysis_result = json.loads(analysis_text)
                     logger.info(f"Gemini AI 분석 완료 - 신뢰도: {analysis_result.get('reliability_score', 'N/A')}")
                     return analysis_result
@@ -165,12 +197,36 @@ class GeminiNewsAnalyzer:
         if max_matches > 2:
             reliability += 5
         
+        # 내용 기반 더 구체적인 요약 생성
+        content_preview = content[:200] if content else title
+
+        # 더 다양하고 구체적인 요약 생성
+        summary_templates = [
+            f"{title[:50]}{'...' if len(title) > 50 else ''}에 대한 {detected_category} 분야 보도입니다. {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}",
+            f"이 기사는 {detected_category} 분야의 주요 이슈를 다루고 있습니다. 핵심 내용: {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}",
+            f"{detected_category} 관련 최신 동향을 보도한 기사입니다. {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}"
+        ]
+
+        # 제목 해시 기반으로 템플릿 선택 (일관성 유지)
+        template_index = hash(title) % len(summary_templates)
+        selected_summary = summary_templates[template_index]
+
+        # 다양한 주장 패턴
+        claim_templates = [
+            f"기사에서는 {detected_category} 분야의 현황과 전망에 대해 다루고 있습니다.",
+            f"이 보도는 {detected_category} 관련 정책이나 사안의 중요성을 강조하고 있습니다.",
+            f"주요 관계자들의 입장과 {detected_category} 분야의 향후 방향에 대한 내용을 포함하고 있습니다."
+        ]
+
+        claim_index = hash(content[:100]) % len(claim_templates) if content else 0
+        selected_claim = claim_templates[claim_index]
+
         return {
-            "summary": f"{title}에 관한 {detected_category} 분야 뉴스입니다. 주요 내용과 관련 정보를 포함하고 있으며, 추가 검증이 필요할 수 있습니다.",
-            "claim": f"{detected_category} 관련 주요 이슈로, 관련 기관이나 전문가의 입장과 대응 방안이 포함되어 있습니다.",
+            "summary": selected_summary,
+            "claim": selected_claim,
             "keywords": self.extract_keywords_from_content(title + " " + content),
             "reliability_score": min(reliability, 85),
-            "suspicious_points": "구체적인 근거 자료와 출처 확인이 필요하며, 관련 전문가의 의견을 추가로 확인하는 것이 좋습니다."
+            "suspicious_points": "AI 분석이 일시적으로 제한되어 기본 분석을 제공합니다. 더 정확한 분석을 위해서는 재분석을 권장합니다."
         }
     
     def save_analysis_to_db(self, news_id: int, analysis: Dict, analysis_type: str = "COMPREHENSIVE", summary_id: int = None) -> bool:

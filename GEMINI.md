@@ -1018,6 +1018,7 @@ git pull origin main
 
 폴더 삭제 
 rm -rf FactLab
+sudo rm -rf FactLab
 cd FactLab
 
 

@@ -14,17 +14,19 @@ import java.util.Optional;
 public interface NewsSummaryRepository extends JpaRepository<NewsSummary, Integer> {
 
     // 뉴스 ID로 요약 조회 (기본: 완료된 것 중 첫 번째, 없으면 가장 최근 것)
-    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 AND ns.status = 'COMPLETED' ORDER BY ns.updatedAt DESC LIMIT 1")
-    Optional<NewsSummary> findSummaryByNewsId(Integer newsId);
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 AND ns.status = 'COMPLETED' ORDER BY ns.updatedAt DESC")
+    List<NewsSummary> findCompletedByNewsIdOrderByUpdatedAtDesc(Integer newsId);
 
     // 뉴스 ID로 요약 조회 (완료된 것이 없을 때 사용)
-    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 ORDER BY ns.updatedAt DESC LIMIT 1")
-    Optional<NewsSummary> findLatestSummaryByNewsId(Integer newsId);
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 ORDER BY ns.updatedAt DESC")
+    List<NewsSummary> findByNewsIdOrderByUpdatedAtDesc(Integer newsId);
 
-    // 뉴스 ID와 분석 타입으로 요약 조회
-    Optional<NewsSummary> findByNewsIdAndAnalysisType(Integer newsId, NewsSummary.AnalysisType analysisType);
+    // 뉴스 ID와 분석 타입으로 요약 조회 (최신순)
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 AND ns.analysisType = ?2 ORDER BY ns.updatedAt DESC")
+    List<NewsSummary> findSummariesByNewsAndType(Integer newsId, NewsSummary.AnalysisType analysisType);
 
     // 뉴스 ID로 모든 분석 타입 조회
+    @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 ORDER BY ns.createdAt DESC")
     List<NewsSummary> findByNewsIdOrderByCreatedAtDesc(Integer newsId);
 
     // 상태별 요약 조회
