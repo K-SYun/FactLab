@@ -1053,3 +1053,28 @@ tmpfs           393M     0  393M   0% /run/user/1000
   INSERT INTO admin_users (username, email, password, role, is_active, created_at, updated_at)
   VALUES ('admin', 'admin@example.com',
   '$2a$10$Zp4KFDzdHVvvfmlD87xofeER7HDfRe3ZQFLwJnV0ovEGD8FeNZXYO', 'ADMIN', true, NOW(), NOW());
+
+
+    # 운영 서버에서 실행
+  cd /path/to/FactLab
+
+  # 1. 현재 서비스 중지
+  docker-compose -f docker-compose.prod.yml down
+
+  # 2. 최신 코드 pull
+  git pull origin main
+
+  # 3. 백엔드 이미지 강제 재빌드 (캐시 무시)
+  docker-compose -f docker-compose.prod.yml build --no-cache backend-service
+
+  # 4. nginx도 재빌드 (설정 변경사항 반영)
+  docker-compose -f docker-compose.prod.yml build --no-cache nginx
+
+  # 5. 전체 서비스 재시작
+  docker-compose -f docker-compose.prod.yml up -d
+
+
+docker-compose -f docker-compose.prod.yml up -d --build --force-recreate
+
+docker-compose -f docker-compose.prod.yml run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos
+--no-eff-email -d polradar.com -d www.polradar.com

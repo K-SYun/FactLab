@@ -250,7 +250,7 @@ const FactlabMain = () => {
                       <p className="main-news-summary" onClick={() => goToNewsDetail(item.id)}>{item.content.substring(0, 120)}...</p>
                       <div className="main-news-meta">
                         <span>{item.source} | {getCategoryName(item.category)} | {formatDate(item.publishDate)} | 👀 {item.viewCount || 0}</span>
-                        <div className="main-vote-buttons"> 사용자투표 진행상황 :
+                        <div className="main-vote-buttons">
                           <span className="main-vote-btn agree">사실 ({item.factCount || 0})</span>
                           <span className="main-vote-btn disagree">의심 ({item.doubtCount || 0})</span>
                         </div>
