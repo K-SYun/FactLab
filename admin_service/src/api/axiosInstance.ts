@@ -4,13 +4,20 @@ import axios from 'axios';
 const getBaseURL = () => {
   // 브라우저 환경에서만 window 객체 사용
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+
     // 개발환경 감지 (localhost)
-    if (window.location.hostname === 'localhost') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:8080/api';
+    }
+
+    // 운영환경 - polradar.com 도메인
+    if (hostname === 'polradar.com' || hostname === 'www.polradar.com') {
+      return '/api';  // nginx 프록시를 통한 접근
     }
   }
 
-  // 운영환경 - nginx 프록시 통해 /api로 접근
+  // 기본값: 운영환경
   return '/api';
 };
 
