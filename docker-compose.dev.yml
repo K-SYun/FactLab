@@ -8,9 +8,16 @@ services:
       - "80:80"
     container_name: factlab-nginx_dev
     depends_on:
-      - user-service
-      - admin-service
-      - backend-service
+      user-service:
+        condition: service_healthy
+      admin-service:
+        condition: service_healthy
+      backend-service:
+        condition: service_healthy
+      crawler-service:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - frontend
@@ -31,6 +38,11 @@ services:
       - REACT_APP_API_URL=http://localhost/api
       - CHOKIDAR_USEPOLLING=true
       - FAST_REFRESH=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     networks:
       - frontend
@@ -50,13 +62,18 @@ services:
       - REACT_APP_API_URL=http://localhost/api
       - CHOKIDAR_USEPOLLING=true
       - FAST_REFRESH=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     networks:
       - frontend
       - backend
 
   backend-service:
-    build: 
+    build:
       context: ./backend_service
       dockerfile: Dockerfile
     ports:
@@ -75,12 +92,17 @@ services:
       - LOGGING_LEVEL_SQL=DEBUG
       - SPRING_JPA_SHOW_SQL=true
       - APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     networks:
       - backend
 
   crawler-service:
-    build: 
+    build:
       context: ./crawler
       dockerfile: Dockerfile
     ports:
@@ -95,6 +117,11 @@ services:
     environment:
       - ENVIRONMENT=development
       - LOG_LEVEL=DEBUG
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     networks:
       - backend
@@ -115,6 +142,11 @@ services:
     environment:
       - ENVIRONMENT=development
       - LOG_LEVEL=DEBUG
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     networks:
       - backend

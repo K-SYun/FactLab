@@ -12,8 +12,10 @@ import org.springframework.context.annotation.Profile;
 @EnableAutoConfiguration(exclude = {
     RedisAutoConfiguration.class,
     RedisRepositoriesAutoConfiguration.class,
-    SessionAutoConfiguration.class
+    SessionAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
 })
 public class DevConfiguration {
-    // 개발 환경에서 Redis 관련 자동 구성 비활성화
+    // 개발 환경에서 Redis 및 Security 관련 자동 구성 비활성화
 }
