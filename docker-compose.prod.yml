@@ -120,20 +120,19 @@ services:
     expose:
       - "3002"
     depends_on:
-      - database
       - redis
     env_file:
       - .env
     environment:
       - ENVIRONMENT=production
-      - DB_HOST=database
+      - DB_HOST=34.22.88.229
       - DB_PORT=5432
       - DB_NAME=factlab
       - DB_USER=${DB_USERNAME:-factlab_user}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - DATABASE_URL=postgresql://${DB_USERNAME:-factlab_user}:${DB_PASSWORD}@database:5432/factlab
+      - DATABASE_URL=postgresql://${DB_USERNAME:-factlab_user}:${DB_PASSWORD}@34.22.88.229:5432/factlab
     restart: unless-stopped
     networks:
       - backend
@@ -150,13 +149,12 @@ services:
     expose:
       - "8001"
     depends_on:
-      - database
       - redis
     env_file:
       - .env
     environment:
       - ENVIRONMENT=production
-      - DB_HOST=database
+      - DB_HOST=34.22.88.229
       - DB_PORT=5432
       - DB_NAME=factlab
       - DB_USER=${DB_USERNAME:-factlab_user}
@@ -194,8 +192,6 @@ services:
   # Database backup service
   db-backup:
     image: postgres:15-alpine
-    depends_on:
-      - database
     env_file:
       - .env
     environment:
@@ -205,7 +201,7 @@ services:
     command: >
       sh -c "
         while true; do
-          pg_dump -h database -U ${DB_USERNAME:-factlab_user} -d factlab > /backups/factlab_$$(date +%Y%m%d_%H%M%S).sql
+          pg_dump -h 34.22.88.229 -U ${DB_USERNAME:-factlab_user} -d factlab > /backups/factlab_$$(date +%Y%m%d_%H%M%S).sql
           find /backups -name '*.sql' -mtime +7 -delete
           sleep 86400
         done
