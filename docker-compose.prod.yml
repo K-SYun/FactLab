@@ -9,8 +9,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx-prod.conf:/etc/nginx/nginx.conf
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
     depends_on:
       - user-service
       - admin-service
@@ -24,8 +24,8 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/certbot:/var/www/certbot
+      - certbot_etc:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
     # Remove automatic command - run manually when needed
     # command: certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos --no-eff-email -d polradar.com -d www.polradar.com
 
@@ -240,6 +240,8 @@ volumes:
     driver: local
   loki_data:
     driver: local
+  certbot_etc:
+  certbot_www:
 
 networks:
   frontend:
