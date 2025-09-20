@@ -56,6 +56,12 @@ docker-compose -f docker-compose.prod.yml run --rm certbot \
     -d polradar.com \
     -d www.polradar.com
 
+echo
+echo "🔐 4.5단계: 인증 파일 권한 조정"
+sudo chmod -R 755 /var/www/certbot
+echo "✅ 권한 조정 완료"
+echo
+
 if [ $? -eq 0 ]; then
     echo "✅ SSL 인증서 발급 성공!"
 else
