@@ -4,6 +4,11 @@ import axios from 'axios';
 import '../styles/Auth.css';
 import '../styles/Common.css';
 
+// API 기본 URL 설정
+const API_BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:8080/api'
+  : '/api';
+
 const FactlabRegister = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -220,8 +225,8 @@ const FactlabRegister = () => {
     setEmailVerification(prev => ({ ...prev, isSending: true }));
 
     try {
-      // 임시로 직접 localhost:8080으로 요청
-      const response = await axios.post('http://localhost:8080/api/auth/send-verification', {
+      // 이메일 인증 코드 발송 요청
+      const response = await axios.post(`${API_BASE_URL}/auth/send-verification`, {
         email: formData.email
       });
 
@@ -268,8 +273,8 @@ const FactlabRegister = () => {
         code: emailVerification.code
       });
 
-      // 테스트용 엔드포인트 사용
-      const response = await axios.post('http://localhost:8080/api/auth/test-verify-email', {
+      // 이메일 인증 코드 검증 요청
+      const response = await axios.post(`${API_BASE_URL}/auth/test-verify-email`, {
         email: formData.email,
         code: emailVerification.code
       });

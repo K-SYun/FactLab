@@ -45,7 +45,7 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${getBackendApiBase()}/admin/board-categories`);
+      const response = await fetch(`${getBackendApiBase()}/boards/categories`);
       if (response.ok) {
         const result = await response.json();
         setCategories(result.data || []);
