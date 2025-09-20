@@ -4,6 +4,7 @@ import { Board, BoardCreateRequest, BoardUpdateRequest } from '../types/board';
 import BoardList from '../components/board/BoardList';
 import BoardModal from '../components/board/BoardModal';
 import { getBackendApiBase } from '../utils/api';
+import axiosInstance from '../api/axiosInstance';
 import '../styles/BoardManagement.css';
 
 const BoardManagement: React.FC = () => {
@@ -37,12 +38,9 @@ const BoardManagement: React.FC = () => {
   const loadCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const response = await fetch(`${getBackendApiBase()}/admin/board-categories`);
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          setCategories(result.data);
-        }
+      const response = await axiosInstance.get('/admin/board-categories');
+      if (response.data.success && response.data.data) {
+        setCategories(response.data.data);
       }
     } catch (error) {
       console.error('카테고리 로드 실패:', error);

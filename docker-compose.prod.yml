@@ -74,13 +74,13 @@ services:
       - "8080"
       - "8081" # Actuator port
     depends_on:
-      - database
       - redis
+    # database dependency removed for Google Cloud DB
     env_file:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
+      - SPRING_DATASOURCE_URL=${GOOGLE_CLOUD_DB_URL:-jdbc:postgresql://database:5432/factlab}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-factlab_user}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -189,32 +189,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  database:
-    image: postgres:15-alpine
-    expose:
-      - "5432" # 외부 포트 노출 제거
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_DB=factlab
-      - POSTGRES_USER=${DB_USERNAME:-factlab_user}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_INITDB_ARGS=--auth-host=md5
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
-      - ./database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
-    restart: unless-stopped
-    networks:
-      - backend
-    security_opt:
-      - no-new-privileges:true
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
+  # database service removed - using Google Cloud SQL instead
 
   # Database backup service
   db-backup:

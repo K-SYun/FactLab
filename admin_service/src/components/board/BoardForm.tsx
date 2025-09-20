@@ -45,7 +45,7 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${getBackendApiBase()}/admin/board-categories`);
+      const response = await fetch(`${getBackendApiBase()}/boards/categories`);
       if (response.ok) {
         const result = await response.json();
         setCategories(result.data || []);
@@ -58,12 +58,12 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
   // 입력값 변경 처리
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              type === 'number' ? parseInt(value) || 0 : 
-              name === 'categoryId' ? (value ? parseInt(value) : undefined) : value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked :
+        type === 'number' ? parseInt(value) || 0 :
+          name === 'categoryId' ? (value ? parseInt(value) : undefined) : value
     }));
 
     // 에러 메시지 제거
@@ -101,7 +101,7 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -150,7 +150,7 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
             ))}
           </select>
           {errors.categoryId && <span className="error-message">{errors.categoryId}</span>}
-          <div className="admin-category-info">Lab실, 취미, 먹고살기, 갤러리 중 선택</div>
+          <div className="admin-category-info">포럼, 취미, 먹고살기, 갤러리 중 선택</div>
         </div>
 
         <div className="form-row">
@@ -214,16 +214,16 @@ const BoardForm: React.FC<BoardFormProps> = ({ board, onSubmit, onCancel, isLoad
         </div>
 
         <div className="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={onCancel}
             className="btn btn-secondary"
             disabled={isLoading}
           >
             취소
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary"
             disabled={isLoading}
           >

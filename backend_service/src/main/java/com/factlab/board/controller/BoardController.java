@@ -44,6 +44,21 @@ public class BoardController {
     }
 
     /**
+     * 게시판 카테고리 목록 조회 (공개 API)
+     * GET /api/boards/categories
+     */
+    @GetMapping("/categories")
+    @Operation(summary = "게시판 카테고리 목록 조회", description = "게시판 카테고리 목록을 조회합니다")
+    public ApiResponse<List<BoardCategoryDto>> getBoardCategories() {
+        try {
+            List<BoardCategoryDto> categories = categoryService.getAllCategories();
+            return ApiResponse.success(categories, "카테고리 목록을 성공적으로 조회했습니다.");
+        } catch (Exception e) {
+            return ApiResponse.error("카테고리 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
      * 게시판 상세 조회
      * GET /api/boards/{id}
      */
