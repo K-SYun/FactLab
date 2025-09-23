@@ -26,7 +26,7 @@ public class NewsController {
     @GetMapping
     @Operation(summary = "전체 뉴스 조회", description = "모든 뉴스를 최신순으로 조회합니다. status 파라미터로 필터링 가능합니다.")
     public ApiResponse<List<NewsDto>> getAllNews(@RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size,
+                                               @RequestParam(defaultValue = "20") int size,
                                                @RequestParam(required = false) String status) {
         List<NewsDto> news;
         
@@ -43,14 +43,14 @@ public class NewsController {
 
     @GetMapping("/latest")
     @Operation(summary = "최신 뉴스 조회", description = "최신 뉴스를 지정된 개수만큼 조회합니다.")
-    public ApiResponse<List<NewsDto>> getLatestNews(@RequestParam(defaultValue = "10") int limit) {
+    public ApiResponse<List<NewsDto>> getLatestNews(@RequestParam(defaultValue = "20") int limit) {
         List<NewsDto> news = newsService.getLatestNews(limit);
         return ApiResponse.success(news);
     }
 
     @GetMapping("/approved/latest")
     @Operation(summary = "승인된 최신 뉴스 조회", description = "승인된 최신 뉴스를 지정된 개수만큼 조회합니다.")
-    public ApiResponse<List<NewsDto>> getLatestApprovedNews(@RequestParam(defaultValue = "10") int limit) {
+    public ApiResponse<List<NewsDto>> getLatestApprovedNews(@RequestParam(defaultValue = "20") int limit) {
         List<NewsDto> news = newsService.getLatestApprovedNews(limit);
         return ApiResponse.success(news);
     }
@@ -58,7 +58,7 @@ public class NewsController {
     @GetMapping("/approved")
     @Operation(summary = "승인된 뉴스 조회", description = "승인된 뉴스를 최신순으로 조회합니다.")
     public ApiResponse<List<NewsDto>> getApprovedNews(@RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
+                                                    @RequestParam(defaultValue = "20") int size) {
         List<NewsDto> news = newsService.getApprovedNews(page, size);
         return ApiResponse.success(news);
     }
@@ -68,7 +68,7 @@ public class NewsController {
     @Operation(summary = "승인된 카테고리별 뉴스 조회", description = "승인된 특정 카테고리의 뉴스를 조회합니다.")
     public ApiResponse<List<NewsDto>> getApprovedNewsByCategory(@PathVariable String category,
                                                               @RequestParam(defaultValue = "0") int page,
-                                                              @RequestParam(defaultValue = "10") int size) {
+                                                              @RequestParam(defaultValue = "20") int size) {
         try {
             String decodedCategory = java.net.URLDecoder.decode(category, "UTF-8");
             List<NewsDto> news = newsService.getApprovedNewsByCategory(decodedCategory, page, size);
@@ -83,7 +83,7 @@ public class NewsController {
     @Operation(summary = "카테고리별 뉴스 조회", description = "특정 카테고리의 뉴스를 조회합니다.")
     public ApiResponse<List<NewsDto>> getNewsByCategory(@PathVariable String category,
                                                       @RequestParam(defaultValue = "0") int page,
-                                                      @RequestParam(defaultValue = "10") int size) {
+                                                      @RequestParam(defaultValue = "20") int size) {
         try {
             // URL 디코딩
             String decodedCategory = java.net.URLDecoder.decode(category, "UTF-8");
@@ -110,7 +110,7 @@ public class NewsController {
     @Operation(summary = "베스트 뉴스 조회", description = "기간별 베스트 뉴스를 조회합니다.")
     public ApiResponse<List<NewsDto>> getBestNews(
             @RequestParam(defaultValue = "daily") String period,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "20") int limit) {
         try {
             List<NewsDto> bestNews = newsService.getBestNewsByPeriod(period, limit);
             return ApiResponse.success(bestNews);
@@ -299,7 +299,7 @@ public class NewsController {
     @GetMapping("/analyzed/category/{category}")
     @Operation(summary = "카테고리별 분석 완료된 뉴스 조회", description = "AI 분석이 완료된 승인된 뉴스를 카테고리별로 조회합니다.")
     public ApiResponse<List<NewsDto>> getAnalyzedNewsByCategory(@PathVariable String category,
-                                                              @RequestParam(defaultValue = "10") int limit) {
+                                                              @RequestParam(defaultValue = "20") int limit) {
         try {
             String decodedCategory = java.net.URLDecoder.decode(category, "UTF-8");
             List<NewsDto> analyzedNews = newsService.getAnalyzedNewsByCategory(decodedCategory, limit);
