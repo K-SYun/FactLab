@@ -13,10 +13,10 @@ class DatabaseManager:
     def __init__(self):
         self.connection_params = {
             'host': os.getenv('DB_HOST', 'localhost'),
-            'port': os.getenv('DB_PORT', '5433'),  # FactLab 포트
+            'port': os.getenv('DB_PORT', '5432'),
             'database': os.getenv('DB_NAME', 'factlab'),
-            'user': os.getenv('DB_USER', 'factlab_user'),
-            'password': os.getenv('DB_PASSWORD', 'password')  # FactLab 비밀번호
+            'user': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'factlab')),  # DB_USER 또는 POSTGRES_USER 환경변수 사용
+            'password': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'password123'))  # DB_PASSWORD 또는 POSTGRES_PASSWORD 환경변수 사용
         }
     
     def normalize_url(self, url: str) -> str:
@@ -82,6 +82,7 @@ class DatabaseManager:
     def save_news_item(self, news_item) -> Optional[int]:
         """뉴스 아이템 저장 - 강화된 중복 체크"""
         try:
+            logger.info(f"💾 뉴스 저장 시작: {getattr(news_item, 'title', 'No Title')[:50]}...")
             with self.get_connection() as conn:
                 with conn.cursor() as cursor:
                     # URL 정규화
@@ -107,7 +108,7 @@ class DatabaseManager:
                             WHERE source = %s 
                             AND DATE(publish_date) = DATE(%s)
                             AND LOWER(REGEXP_REPLACE(REGEXP_REPLACE(title, '[^\\w\\s가-힣]', '', 'g'), '\\s+', ' ', 'g')) = %s
-                        """, (news_item.source, news_item.publish_date, normalized_title))
+                        """, (news_item.source, getattr(news_item, 'publish_date', datetime.now()), normalized_title))
                         
                         title_duplicate = cursor.fetchone()
                         if title_duplicate:

@@ -10,6 +10,9 @@ import com.factlab.news.repository.NewsRepository;
 import com.factlab.news.repository.NewsSummaryRepository;
 import com.factlab.news.repository.NewsVoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,7 +39,9 @@ public class NewsService {
     }
 
     public List<NewsDto> getAllNews(int page, int size) {
-        return newsRepository.findAllOrderByPublishDateDesc(page * size, size)
+        Pageable pageable = PageRequest.of(page, size);
+        Page<News> newsPage = newsRepository.findAllOrderByPublishDateDesc(pageable);
+        return newsPage.getContent()
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -62,7 +67,9 @@ public class NewsService {
                 return new ArrayList<>();
             }
             
-            return newsRepository.findByStatusInOrderByPublishDateDesc(statusList, page * size, size)
+            Pageable pageable = PageRequest.of(page, size);
+            Page<News> newsPage = newsRepository.findByStatusInOrderByPublishDateDesc(statusList, pageable);
+            return newsPage.getContent()
                     .stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
@@ -81,7 +88,9 @@ public class NewsService {
     }
 
     public List<NewsDto> getNewsByCategory(String category, int page, int size) {
-        return newsRepository.findByCategoryOrderByPublishDateDesc(category, page * size, size)
+        Pageable pageable = PageRequest.of(page, size);
+        Page<News> newsPage = newsRepository.findByCategoryOrderByPublishDateDesc(category, pageable);
+        return newsPage.getContent()
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -93,8 +102,9 @@ public class NewsService {
     }
 
     public List<NewsDto> getLatestNews(int limit) {
-        return newsRepository.findLatestNews(limit)
-                .stream()
+        Pageable pageable = PageRequest.of(0, limit);
+        List<News> newsList = newsRepository.findLatestNews(pageable);
+        return newsList.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -513,8 +523,9 @@ public class NewsService {
 
     // 카테고리별 분석 완료된 뉴스 조회 (AI 분석이 완료된 승인된 뉴스)
     public List<NewsDto> getAnalyzedNewsByCategory(String category, int limit) {
-        List<News> analyzedNews = newsRepository.findAnalyzedNewsByCategory(category, limit);
-        
+        Pageable pageable = PageRequest.of(0, limit);
+        List<News> analyzedNews = newsRepository.findAnalyzedNewsByCategory(category, pageable);
+
         return analyzedNews.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

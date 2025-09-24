@@ -501,11 +501,11 @@ class UnifiedCrawlerManager:
         
         results = {}
         
-        # 순차 실행 (네이버 → 다음 → 구글)
-        results['naver'] = await self.crawl_naver_news()
+        # 순차 실행 (다음 → 네이버 → 구글)
+        results['daum'] = await self.crawl_daum_news()
         await asyncio.sleep(10)  # 간격
-        
-        results['daum'] = await self.crawl_daum_news() 
+
+        results['naver'] = await self.crawl_naver_news()
         await asyncio.sleep(10)  # 간격
         
         results['google'] = await self.crawl_google_news()

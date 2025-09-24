@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import StatusBadge from '../components/common/StatusBadge';
 import { NEWS_STATUS_LABELS, NEWS_CATEGORY_LABELS } from '../services/newsApi';
 import { newsApi } from '../services/api'; // 실제 백엔드 API 추가
@@ -148,18 +148,9 @@ const News: React.FC = () => {
     setNewsItems(filteredNews);
   }, [selectedTab, selectedCategory, allNewsData]);
 
-  // 이전 값을 추적하기 위한 ref
-  const prevSelectedTabRef = useRef(selectedTab);
-  const prevSelectedCategoryRef = useRef(selectedCategory);
-
   // 탭이나 카테고리 변경 시에만 페이지 리셋
   useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current || selectedCategory !== prevSelectedCategoryRef.current) {
-      console.log(`Tab/Category changed: ${prevSelectedTabRef.current}→${selectedTab}, ${prevSelectedCategoryRef.current}→${selectedCategory}`);
-      setCurrentPage(1);
-      prevSelectedTabRef.current = selectedTab;
-      prevSelectedCategoryRef.current = selectedCategory;
-    }
+    setCurrentPage(1);
   }, [selectedTab, selectedCategory]);
 
   // 체크박스 토글
