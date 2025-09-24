@@ -19,7 +19,7 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     
     List<News> findByCategory(String category);
     
-    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary ORDER BY n.publishDate DESC")
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummaries ORDER BY n.publishDate DESC")
     List<News> findAllOrderByPublishDateDesc();
 
     @Query("SELECT n FROM News n ORDER BY n.publishDate DESC")
@@ -59,7 +59,7 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
     List<News> findLatestByStatusAndVisibility(@Param("status") NewsStatus status, @Param("visibility") NewsVisibility visibility, Pageable pageable);
     
     // NewsSummary와 함께 조회하는 메서드
-    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummary WHERE n.id = :id")
+    @Query("SELECT n FROM News n LEFT JOIN FETCH n.newsSummaries WHERE n.id = :id")
     Optional<News> findByIdWithSummary(@Param("id") Integer id);
     
     // 베스트 뉴스 조회 (기간별)
