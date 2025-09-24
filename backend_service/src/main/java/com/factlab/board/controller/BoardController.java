@@ -90,23 +90,7 @@ public class BoardController {
         }
     }
 
-    // ===== 카테고리 관리 API =====
-    
-    /**
-     * 활성화된 카테고리 목록 조회 (사용자용)
-     * GET /api/boards/categories
-     */
-    @GetMapping("/categories")
-    @Operation(summary = "활성화된 카테고리 목록 조회", description = "사용자가 활성화된 카테고리 목록을 조회합니다")
-    public ApiResponse<List<BoardCategoryDto>> getActiveCategories() {
-        try {
-            List<BoardCategoryDto> categories = categoryService.getActiveCategories();
-            return ApiResponse.success(categories, "카테고리 목록을 성공적으로 조회했습니다.");
-        } catch (Exception e) {
-            return ApiResponse.error("카테고리 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
-    
+
     /**
      * 카테고리 상세 조회
      * GET /api/boards/categories/{id}

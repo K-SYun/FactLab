@@ -254,14 +254,20 @@ services:
 
   promtail:
     image: grafana/promtail:2.9.0
+    user: root  # 로그 파일 접근을 위해 root 권한 필요
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
     command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
     networks:
       - monitoring
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   postgres_data:
