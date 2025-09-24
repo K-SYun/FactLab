@@ -38,7 +38,7 @@ spring:
       
   # Redis 설정 (세션 스토어)
   redis:
-    host: ${REDIS_HOST:localhost}
+    host: ${REDIS_HOST:redis}
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD:}
     timeout: 2000ms
