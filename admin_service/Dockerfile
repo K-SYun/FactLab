@@ -13,6 +13,7 @@ COPY . .
 # Build React app for production
 ENV ESLINT_NO_DEV_ERRORS=true
 ENV GENERATE_SOURCEMAP=false
+ENV PUBLIC_URL=/admin
 RUN npm run build
 
 # Production stage - serve with Nginx
