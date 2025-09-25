@@ -22,5 +22,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port
 EXPOSE 3002
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3002", "--reload"]
+# Command to run the application for production (without --reload)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3002"]

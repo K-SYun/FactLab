@@ -1,23 +1,29 @@
-FROM node:20
+# Production build stage
+FROM node:20 as build-stage
 
 WORKDIR /app
 
-# package.json과 package-lock.json 복사
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# 의존성 설치 (도커 내부에서)
 RUN npm install
 
-# ESLint 캐시 디렉토리 생성 및 권한 설정
-RUN mkdir -p node_modules/.cache && chmod 777 node_modules/.cache
-
-# 소스 코드 복사
+# Copy source code
 COPY . .
 
-# ESLint 캐시 비활성화 환경변수
-ENV ESLINT_NO_DEV_ERRORS=true
-ENV GENERATE_SOURCEMAP=false
-ENV ESLINT_NO_ESLINTRC=false
-ENV SKIP_PREFLIGHT_CHECK=true
+# Build React app for production
+RUN npm run build
 
-CMD ["npm", "start"]
+# Production stage - serve with Nginx
+FROM nginx:alpine
+
+# Copy built React files to Nginx
+COPY --from=build-stage /app/build /usr/share/nginx/html
+
+# Copy custom Nginx config if exists
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

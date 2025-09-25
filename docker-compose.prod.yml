@@ -32,7 +32,7 @@ services:
   user-service:
     build:
       context: ./user_service
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "80"
     environment:
@@ -50,7 +50,7 @@ services:
   admin-service:
     build:
       context: ./admin_service
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "80"
     environment:
@@ -69,7 +69,7 @@ services:
   backend-service:
     build:
       context: ./backend_service
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "8080"
       - "8081" # Actuator port
@@ -117,7 +117,7 @@ services:
   crawler-service:
     build:
       context: ./crawler
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "3002"
     depends_on:
@@ -147,7 +147,7 @@ services:
   ai-service:
     build:
       context: ./ai_service
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "8001"
     depends_on:

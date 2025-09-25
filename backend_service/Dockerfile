@@ -1,23 +1,64 @@
-FROM openjdk:17-jdk-slim
+# Multi-stage build for production
+FROM openjdk:17-jdk-slim as builder
+
+# Create non-root user for security
+RUN groupadd -r factlab && useradd -r -g factlab factlab
 
 WORKDIR /app
 
-# Maven 설치
+# Install Maven
 RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
-# 개발 환경에서는 소스가 마운트되므로 여기서는 기본 구조만 복사
-COPY pom.xml .
+# Copy pom.xml and download dependencies (cache optimization)
+COPY pom-secure.xml pom.xml
+RUN mvn dependency:go-offline -B
+
+# Copy source code and build
 COPY src ./src
+RUN mvn clean package -DskipTests -B
 
-# JAR 파일 빌드
-RUN mvn clean package -DskipTests
+# Production image
+FROM openjdk:17-jdk-slim
 
-# JAR 파일을 app.jar로 복사
-RUN cp target/factlab-backend-0.0.1-SNAPSHOT.jar app.jar
+# Install security packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# 시작 스크립트 복사
-COPY start.sh /app/start.sh
-RUN chmod 755 /app/start.sh
+# Create non-root user
+RUN groupadd -r factlab && useradd -r -g factlab factlab
 
-EXPOSE 8080
-ENTRYPOINT ["bash", "/app/start.sh"]
+# Create directories and set permissions
+RUN mkdir -p /app /var/log/factlab && \
+    chown -R factlab:factlab /app /var/log/factlab
+
+WORKDIR /app
+
+# Copy built JAR file
+COPY --from=builder --chown=factlab:factlab /app/target/*.jar app.jar
+
+# Switch to non-root user
+USER factlab
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8081/actuator/health || exit 1
+
+# JVM options (security and performance)
+ENV JAVA_OPTS="-Xms512m -Xmx1024m \
+                -XX:+UseG1GC \
+                -XX:MaxGCPauseMillis=200 \
+                -XX:+UseStringDeduplication \
+                -Djava.security.egd=file:/dev/./urandom \
+                -Dspring.profiles.active=prod \
+                -Djava.awt.headless=true \
+                -Dfile.encoding=UTF-8"
+
+# Run application
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
