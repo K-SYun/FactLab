@@ -1073,8 +1073,12 @@ tmpfs           393M     0  393M   0% /run/user/1000
   # 5. 전체 서비스 재시작
   docker-compose -f docker-compose.prod.yml up -d
 
-# 서비스 상태 확인
+  # 서비스 상태 확인
   docker-compose -f docker-compose.prod.yml ps
+
+  # 컨테이너 중지 필요 없이 중지-삭제-새로운 컨테이너 생성 및 시작.
+  docker-compose up -d --force-recreate admin-service  
+
   
 
 docker-compose -f docker-compose.prod.yml up -d --build --force-recreate
