@@ -19,40 +19,38 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@Profile("prod")  // 운영 환경에서만 사용
+@Profile("prod") // 운영 환경에서만 사용
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-                // 공개 API (인증 불필요)
-                .requestMatchers("/api/health", "/actuator/**").permitAll()
-                .requestMatchers("/api/news/**").permitAll() // 뉴스 조회는 공개
-                .requestMatchers("/api/boards/**").permitAll() // 게시판 조회는 공개
-                .requestMatchers("/api/trending/**").permitAll() // 트렌딩 키워드
-                .requestMatchers("/api/popups/**").permitAll() // 팝업
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // 공개 API (인증 불필요)
+                        .requestMatchers("/api/health", "/actuator/**").permitAll()
+                        .requestMatchers("/api/news/**").permitAll() // 뉴스 조회는 공개
+                        .requestMatchers("/api/boards/**").permitAll() // 게시판 조회는 공개
+                        .requestMatchers("/api/trending/**").permitAll() // 트렌딩 키워드
+                        .requestMatchers("/api/popups/**").permitAll() // 팝업
 
-                // 인증 API (로그인/회원가입)
-                .requestMatchers("/api/user/auth/**").permitAll()
-                .requestMatchers("/api/admin/auth/**").permitAll()
+                        // 인증 API (로그인/회원가입)
+                        .requestMatchers("/api/user/auth/**").permitAll()
+                        .requestMatchers("/api/admin/auth/**").permitAll()
 
-                // 사용자 API (인증 필요)
-                .requestMatchers("/api/user/**").authenticated() // 마이페이지, 사용자 정보
-                .requestMatchers("/api/comments/**").authenticated() // 댓글 작성/수정
-                .requestMatchers("/api/votes/**").authenticated() // 투표
+                        // 사용자 API (인증 필요)
+                        .requestMatchers("/api/user/**").authenticated() // 마이페이지, 사용자 정보
+                        .requestMatchers("/api/comments/**").authenticated() // 댓글 작성/수정
+                        .requestMatchers("/api/votes/**").authenticated() // 투표
 
-                // 관리자 API (관리자 인증 필요)
-                .requestMatchers("/api/admin/**").authenticated()
+                        // 관리자 API (관리자 인증 필요)
+                        .requestMatchers("/api/admin/**").authenticated()
 
-                // 기타 모든 요청은 인증 필요
-                .anyRequest().authenticated()
-            );
+                        // 기타 모든 요청은 인증 필요
+                        .anyRequest().authenticated());
 
         return http.build();
     }
@@ -72,10 +70,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
-            "https://polradar.com",
-            "https://www.polradar.com",
-            "http://polradar.com",
-            "http://www.polradar.com"
+                "https://polradar.com",
+                "https://www.polradar.com",
+                "http://polradar.com",
+                "http://www.polradar.com",
+                "http://backend-service:8080", // 내부 네트워크 추가
+                "http://nginx:*" // nginx 컨테이너 허용
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
