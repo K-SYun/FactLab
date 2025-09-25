@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/actuator/**").permitAll()
                 .requestMatchers("/api/news/**").permitAll() // 뉴스 조회는 공개
                 .requestMatchers("/api/boards/**").permitAll() // 게시판 조회는 공개
+                .requestMatchers("/api/trending/**").permitAll() // 트렌딩 키워드
+                .requestMatchers("/api/popups/**").permitAll() // 팝업
 
                 // 인증 API (로그인/회원가입)
                 .requestMatchers("/api/user/auth/**").permitAll()
@@ -71,7 +73,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "https://polradar.com",
-            "https://www.polradar.com"
+            "https://www.polradar.com",
+            "http://polradar.com",
+            "http://www.polradar.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
