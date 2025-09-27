@@ -59,7 +59,7 @@ const AdminLogin: React.FC = () => {
           localStorage.removeItem('rememberedUsername');
         }
 
-        window.location.href = '/dashboard';
+        navigate('/dashboard');
       } else {
         setErrorMessage(response.message || '로그인에 실패했습니다.');
       }
@@ -128,7 +128,7 @@ const AdminLogin: React.FC = () => {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   disabled={isLoading}
                 />
-                <span className="admin-checkbox-text">계정 기억하기 (24시간)</span>
+                <span className="admin-checkbox-text">로그인 세션 유지 (24시간)</span>
               </label>
             </div>
 
