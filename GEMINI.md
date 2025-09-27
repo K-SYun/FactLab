@@ -1085,3 +1085,6 @@ docker-compose -f docker-compose.prod.yml up -d --build --force-recreate
 
 docker-compose -f docker-compose.prod.yml run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email jysystem22@gmail.com --agree-tos
 --no-eff-email -d polradar.com -d www.polradar.com
+
+# 터미널 > 운영서버 접속 방법
+ssh -i ~/.ssh/id_rsa jysystem22@34.22.97.240

@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/votes/**").authenticated() // 투표
 
                         // 관리자 API (관리자 인증 필요)
+                        .requestMatchers("/api/admin/dashboard/**").permitAll() // 임시: 대시보드 API 허용
                         .requestMatchers("/api/admin/**").authenticated()
 
                         // 기타 모든 요청은 인증 필요

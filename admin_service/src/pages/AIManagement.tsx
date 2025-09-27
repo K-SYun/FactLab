@@ -82,16 +82,32 @@ const AIManagement: React.FC = () => {
 
   // 크롤러 API 경로 설정 함수
   const getCrawlerApiBase = () => {
-    // 개발 환경에서는 직접 포트 접근, 프로덕션에서는 nginx 프록시
-    return window.location.port === '3001' ? 'http://localhost:3002' : '/crawler';
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+
+    // 운영환경 (polradar.com)
+    if (hostname === 'polradar.com' || hostname === 'www.polradar.com') {
+      return '/crawler';
+    }
+
+    // 개발환경 - 직접 접근 (localhost:3001)
+    if (hostname === 'localhost' && port === '3001') {
+      return 'http://localhost:3002';
+    }
+
+    // 기본값: nginx 프록시 경유
+    return '/crawler';
   };
 
-  // 크롤링 상태 실시간 체크
+  // 크롤링 상태 실시간 체크 (크롤러 서비스 있을 때만)
   const checkCrawlingStatus = useCallback(async () => {
     try {
       // 진행중인 크롤링 상태 확인을 위한 더 정확한 체크
       const apiUrl = `${getCrawlerApiBase()}/scheduler/status`;
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
       if (response.ok) {
         const result = await response.json();
         const progressData = result.progress;
@@ -171,17 +187,42 @@ const AIManagement: React.FC = () => {
       } else {
       }
     } catch (error) {
-      // 네트워크 오류 시에도 상태 초기화
+      // 크롤러 서비스가 없거나 네트워크 오류 시 조용히 상태 초기화
       setIsManualCrawling(false);
       setIsScheduleCrawling(false);
       setManualCrawlingProgress(0);
       setScheduleCrawlingProgress(0);
+      setManualRemainingTime(0);
+      setScheduleRemainingTime(0);
+      setManualCrawlingMessage('');
+      setScheduleCrawlingMessage('');
+      setManualCrawlingDetails([]);
+      // 콘솔에 에러 출력하지 않음 - 크롤러 서비스가 없는 것은 정상 상황
     }
   }, []);
 
   // 환경에 따라 백엔드 API 경로 설정하는 공통 함수
   const getBackendApiBase = () => {
-    return window.location.port === '80' || window.location.port === '' ? '/api' : 'http://localhost/api';
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+
+    // 운영환경 (polradar.com)
+    if (hostname === 'polradar.com' || hostname === 'www.polradar.com') {
+      return '/api';
+    }
+
+    // 개발환경 - 직접 접근 (localhost:3001)
+    if (hostname === 'localhost' && port === '3001') {
+      return 'http://localhost:8080/api';
+    }
+
+    // 개발환경 - nginx 통해서 (localhost:80 또는 localhost)
+    if (hostname === 'localhost' && (port === '80' || port === '')) {
+      return '/api';
+    }
+
+    // 기본값: nginx 프록시 경유
+    return '/api';
   };
 
   // AI 서비스 상태 체크 (백엔드 서비스 확인)
@@ -806,7 +847,7 @@ const AIManagement: React.FC = () => {
 
     } catch (error) {
       console.error('Crawling error:', error);
-      alert('뉴스 크롤링 시작 중 오류가 발생했습니다: ' + (error as Error).message);
+      alert('크롤링 서비스에 연결할 수 없습니다.\n\n현재 크롤링 서비스가 실행되지 않거나 네트워크 문제가 있을 수 있습니다.\n관리자에게 문의하세요.');
     } finally {
       setActionLoading(false);
     }
@@ -940,7 +981,7 @@ const AIManagement: React.FC = () => {
 
         // 사용자에게 알림 (선택적)
         if (successCount >= 3) { // 3개 이상일 때만 알림
-          alert(`🤖 AI 분석이 완료된 ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
+          alert(` AI 분석이 완료된 ${successCount}개의 뉴스가 자동으로 뉴스 관리로 전송되었습니다.`);
         }
       }
 
