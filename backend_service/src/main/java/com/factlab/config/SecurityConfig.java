@@ -30,29 +30,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 공개 API (인증 불필요)
-                        .requestMatchers("/api/health", "/actuator/**").permitAll()
-                        .requestMatchers("/api/news/**").permitAll() // 뉴스 조회는 공개
-                        .requestMatchers("/api/news-summary/**").permitAll() // 뉴스 요약 공개
-                        .requestMatchers("/api/boards/**").permitAll() // 게시판 조회는 공개
-                        .requestMatchers("/api/trending/**").permitAll() // 트렌딩 키워드
-                        .requestMatchers("/api/popups/**").permitAll() // 팝업
-
-                        // 인증 API (로그인/회원가입)
-                        .requestMatchers("/api/user/auth/**").permitAll()
-                        .requestMatchers("/api/admin/auth/**").permitAll()
-
-                        // 사용자 API (인증 필요)
-                        .requestMatchers("/api/user/**").authenticated() // 마이페이지, 사용자 정보
-                        .requestMatchers("/api/comments/**").authenticated() // 댓글 작성/수정
-                        .requestMatchers("/api/votes/**").authenticated() // 투표
-
-                        // 관리자 API (관리자 인증 필요)
-                        .requestMatchers("/api/admin/dashboard/**").permitAll() // 임시: 대시보드 API 허용
-                        .requestMatchers("/api/admin/**").authenticated()
-
-                        // 기타 모든 요청은 인증 필요
-                        .anyRequest().authenticated());
+                        // 개발 환경용: 모든 API 허용
+                        .anyRequest().permitAll());
 
         return http.build();
     }

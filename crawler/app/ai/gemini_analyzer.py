@@ -278,7 +278,7 @@ class GeminiNewsAnalyzer:
         keywords = self.extract_keywords(title + " " + snippet)
         reliability = 70 + (5 if len(content) > 400 else 0)
         return {
-            "summary": f"{title} - {snippet[:300]}",
+            "summary": f"{title} - {snippet[:800] if len(snippet) <= 800 else snippet[:800] + ' (계속...)'}",
             "claim": "본문에서 파악되는 주요 주장(자동 추출). 관리자 검토 필요",
             "keywords": keywords,
             "reliability_score": min(reliability, 90),
@@ -299,8 +299,8 @@ class GeminiNewsAnalyzer:
             if sum_m:
                 res["summary"] = sum_m.group(2).strip()
             else:
-                # first 200 chars as summary
-                res["summary"] = text[:200] + "..."
+                # use more complete text as summary - avoid truncating
+                res["summary"] = text[:1000] if len(text) <= 1000 else text[:1000] + " (계속...)"
             # keywords heuristic
             kw_m = re.search(r"(keywords?[:\-]\s*)([^\n]+)", joined, re.IGNORECASE)
             if kw_m:
