@@ -47,7 +47,7 @@ const AdminLogin: React.FC = () => {
     try {
       const response = await adminLogin(formData);
 
-      if (response.success) {
+      if (response.success && response.data) {
         // JWT 토큰과 사용자 정보 저장
         localStorage.setItem('adminToken', response.data.token);
         localStorage.setItem('adminUser', JSON.stringify(response.data.user));
@@ -59,15 +59,15 @@ const AdminLogin: React.FC = () => {
           localStorage.removeItem('rememberedUsername');
         }
 
-        navigate('/dashboard');
+        window.location.href = '/admin/dashboard';
       } else {
-        setErrorMessage(response.message || '로그인에 실패했습니다.');
+        setErrorMessage(response.message || response.error || '로그인에 실패했습니다.');
       }
     } catch (error: any) {
       if (error.response) {
         // 서버에서 응답은 받았지만 4xx, 5xx 에러
         const errorData = error.response.data;
-        setErrorMessage(errorData.message || '로그인에 실패했습니다.');
+        setErrorMessage(errorData.message || errorData.error || '로그인에 실패했습니다.');
       } else if (error.request) {
         // 요청은 보냈지만 응답을 받지 못함
         setErrorMessage('서버 연결에 실패했습니다.');

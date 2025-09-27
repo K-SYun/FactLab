@@ -7,7 +7,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   success: boolean;
-  data: {
+  data?: {
     token: string;
     user: {
       id: number;
@@ -17,6 +17,7 @@ export interface LoginResponse {
     };
   };
   message?: string;
+  error?: string;
 }
 
 export interface AdminUser {

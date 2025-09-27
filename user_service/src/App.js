@@ -35,7 +35,7 @@ const App = () => (
         <Route path="/news/detail" element={<FactlabNewsDetail />} />
         <Route path="/news/detail/:id" element={<FactlabNewsDetail />} />
         <Route path="/news_detail" element={<FactlabNewsDetail />} />
-        <Route path="/login" element={<div>로그인 페이지 (개발 예정)</div>} />
+
         <Route path="/login/callback" element={<LoginCallback />} />
         <Route path="/register" element={<FactlabRegister />} />
         <Route path="/mypage" element={<FactlabMypage />} />
