@@ -1,6 +1,7 @@
 {
-  "name": "factlab-admin",
-  "version": "0.0.0",
+  "name": "admin_service",
+  "version": "0.1.0",
+  "homepage": "/admin",
   "private": true,
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^39.0.2",
