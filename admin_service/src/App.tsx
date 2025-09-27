@@ -24,15 +24,24 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   useEffect(() => {
     const checkAuth = async () => {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setIsLoading(false);
+        navigate('/login');
+        return;
+      }
+
       try {
         const isValid = await verifyToken();
-        if (!isValid) {
+        if (isValid) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('adminToken'); // 유효하지 않은 토큰 제거
           navigate('/login');
-          return;
         }
-        setIsAuthenticated(true);
       } catch (error) {
         console.error('Authentication check failed:', error);
+        localStorage.removeItem('adminToken'); // 오류 발생 시 토큰 제거
         navigate('/login');
       } finally {
         setIsLoading(false);
