@@ -139,6 +139,7 @@ services:
     dns:
       - "8.8.8.8"
     networks:
+      - frontend
       - backend
     read_only: true
     tmpfs:
