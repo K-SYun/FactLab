@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import StatCard from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
 import { LineChart, DoughnutChart } from '../components/charts';
@@ -394,7 +395,7 @@ const AdminDashboard: React.FC = () => {
         <div className="admin-card" style={{ gridColumn: 'span 2' }}>
           <div className="admin-flex-between admin-mb-4" style={{ paddingBottom: '16px', borderBottom: '1px solid #e5e7eb' }}>
             <h3 className="admin-text-lg admin-font-medium admin-text-gray-800">최근 뉴스 수집 현황</h3>
-            <a href="/admin/news" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 보기</a>
+            <Link to="/news" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 보기</Link>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="admin-table">
@@ -519,7 +520,7 @@ const AdminDashboard: React.FC = () => {
       <div className="admin-card">
         <div className="admin-flex-between admin-mb-4">
           <h3 className="admin-text-lg admin-font-medium admin-text-gray-800">실시간 인기 토론 주제</h3>
-          <a href="/boards" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 게시판 보기</a>
+          <Link to="/boards" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 게시판 보기</Link>
         </div>
         <div className="admin-grid admin-grid-cols-3">
           {trendingTopics.map(topic => (

@@ -33,6 +33,7 @@ public class SecurityConfig {
                         // 공개 API (인증 불필요)
                         .requestMatchers("/api/health", "/actuator/**").permitAll()
                         .requestMatchers("/api/news/**").permitAll() // 뉴스 조회는 공개
+                        .requestMatchers("/api/news-summary/**").permitAll() // 뉴스 요약 공개
                         .requestMatchers("/api/boards/**").permitAll() // 게시판 조회는 공개
                         .requestMatchers("/api/trending/**").permitAll() // 트렌딩 키워드
                         .requestMatchers("/api/popups/**").permitAll() // 팝업
