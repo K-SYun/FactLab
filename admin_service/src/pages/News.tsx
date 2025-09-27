@@ -501,9 +501,9 @@ const News: React.FC = () => {
 
         console.log(`✅ 재분석 작업 생성 완료: 뉴스 ID ${newsId}, 요약 ID ${summaryId}`);
 
-        // 3. 실제 AI 재분석 서비스 API 호출
-        console.log(`🤖 실제 AI 재분석 실행: 뉴스 ID ${newsId}`);
-        const aiResponse = await fetch(`/ai-api/analyze/news/${newsId}?analysis_type=COMPREHENSIVE&summary_id=${summaryId}`, {
+        // 3. 실제 AI 재분석 서비스 API 호출 (백엔드 경유)
+        console.log(`🤖 실제 AI 재분석 실행 (백엔드 경유): 뉴스 ID ${newsId}`);
+        const aiResponse = await fetch(`${getBackendApiBase()}/ai-proxy/analyze/news/${newsId}?analysis_type=COMPREHENSIVE&summary_id=${summaryId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

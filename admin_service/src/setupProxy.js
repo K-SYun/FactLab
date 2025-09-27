@@ -20,34 +20,6 @@ module.exports = function(app) {
     })
   );
 
-  // AI 서비스 프록시 설정
-  app.use(
-    '/ai-api',
-    createProxyMiddleware({
-      target: 'http://ai-service:8001', // Docker 서비스 이름 사용
-      changeOrigin: true,
-      timeout: 60000, // 60초 타임아웃
-      proxyTimeout: 60000,
-      logLevel: 'debug',
-      pathRewrite: {
-        '^/ai-api': '', // /ai-api/analyze/news/10 -> /analyze/news/10
-      },
-      onProxyReq: (proxyReq, req, res) => {
-        console.log('🤖 AI 프록시 요청:', req.method, req.path);
-      },
-      onProxyRes: (proxyRes, req, res) => {
-        console.log('✅ AI 프록시 응답:', proxyRes.statusCode, req.path);
-      },
-      onError: (err, req, res) => {
-        console.error('❌ AI 프록시 에러:', err.message, req.path);
-        res.status(502).json({ 
-          success: false, 
-          message: 'AI 서비스 연결 실패' 
-        });
-      }
-    })
-  );
-
   // 크롤러 서비스 프록시 설정
   app.use(
     '/crawler',

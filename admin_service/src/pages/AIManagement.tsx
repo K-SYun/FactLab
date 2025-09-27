@@ -73,30 +73,6 @@ const AIManagement: React.FC = () => {
   ];
 
 
-  // 환경에 따라 AI API 경로 설정하는 공통 함수
-  const getAIApiBase = () => {
-    const hostname = window.location.hostname;
-    const port = window.location.port;
-
-    // 운영환경 (polradar.com)
-    if (hostname === 'polradar.com' || hostname === 'www.polradar.com') {
-      return '/ai';
-    }
-
-    // 개발환경 - 직접 접근 (localhost:3001)
-    if (hostname === 'localhost' && port === '3001') {
-      return 'http://localhost:8001';
-    }
-
-    // 개발환경 - nginx 통해서 (localhost:80 또는 localhost)
-    if (hostname === 'localhost' && (port === '80' || port === '')) {
-      return '/ai';
-    }
-
-    // 기본값: nginx 프록시 경유
-    return '/ai';
-  };
-
   // 크롤러 API 경로 설정 함수
   const getCrawlerApiBase = () => {
     const hostname = window.location.hostname;
@@ -556,9 +532,9 @@ const AIManagement: React.FC = () => {
 
             console.log(`✅ 분석 작업 생성 완료: 뉴스 ID ${newsId}, 요약 ID ${summaryId}`);
 
-            // 3. 실제 AI 분석 실행 (AI 서비스로 직접 호출)
-            console.log(`🤖 실제 AI 분석 실행: 뉴스 ID ${newsId}`);
-            const aiResponse = await fetch(`${getAIApiBase()}/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}&summary_id=${summaryId}`, {
+            // 3. 실제 AI 분석 실행 (백엔드를 통해 AI 서비스 호출)
+            console.log(`🤖 실제 AI 분석 실행 (백엔드 경유): 뉴스 ID ${newsId}`);
+            const aiResponse = await fetch(`${getBackendApiBase()}/ai-proxy/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}&summary_id=${summaryId}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
