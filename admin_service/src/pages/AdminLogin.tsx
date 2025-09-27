@@ -59,7 +59,7 @@ const AdminLogin: React.FC = () => {
           localStorage.removeItem('rememberedUsername');
         }
 
-        window.location.href = '/admin/dashboard';
+        window.location.href = '/admin/';
       } else {
         setErrorMessage(response.message || response.error || '로그인에 실패했습니다.');
       }

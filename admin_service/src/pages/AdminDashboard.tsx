@@ -394,7 +394,7 @@ const AdminDashboard: React.FC = () => {
         <div className="admin-card" style={{ gridColumn: 'span 2' }}>
           <div className="admin-flex-between admin-mb-4" style={{ paddingBottom: '16px', borderBottom: '1px solid #e5e7eb' }}>
             <h3 className="admin-text-lg admin-font-medium admin-text-gray-800">최근 뉴스 수집 현황</h3>
-            <a href="/news" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 보기</a>
+            <a href="/admin/news" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 보기</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="admin-table">
@@ -519,7 +519,7 @@ const AdminDashboard: React.FC = () => {
       <div className="admin-card">
         <div className="admin-flex-between admin-mb-4">
           <h3 className="admin-text-lg admin-font-medium admin-text-gray-800">실시간 인기 토론 주제</h3>
-          <a href="/community" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 게시판 보기</a>
+          <a href="/boards" className="admin-text-sm" style={{ color: '#4f46e5', textDecoration: 'none' }}>전체 게시판 보기</a>
         </div>
         <div className="admin-grid admin-grid-cols-3">
           {trendingTopics.map(topic => (

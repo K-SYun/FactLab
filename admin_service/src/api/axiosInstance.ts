@@ -69,7 +69,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminUser');
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     }
     return Promise.reject(error);
   }
