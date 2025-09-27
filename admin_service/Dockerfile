@@ -14,6 +14,7 @@ COPY . .
 ENV ESLINT_NO_DEV_ERRORS=true
 ENV GENERATE_SOURCEMAP=false
 ENV PUBLIC_URL=/admin
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
 
 # Production stage - serve with Nginx
