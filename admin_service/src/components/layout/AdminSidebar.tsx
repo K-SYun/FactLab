@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { adminLogout } from '../../api/auth';
+import { getBackendApiBase } from '../../utils/api';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
@@ -51,7 +52,7 @@ const AdminSidebar: React.FC = () => {
 
         // AI 뉴스분석: 백엔드 API 호출
         try {
-          const aiResponse = await fetch('http://localhost:8080/api/news-summary/status/PENDING', {
+          const aiResponse = await fetch(`${getBackendApiBase()}/news-summary/status/PENDING`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });
@@ -66,7 +67,7 @@ const AdminSidebar: React.FC = () => {
 
         // 뉴스 관리: 승인 대기 뉴스 개수
         try {
-          const newsResponse = await fetch('http://localhost:8080/api/news/approved', {
+          const newsResponse = await fetch(`${getBackendApiBase()}/news/approved`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });
@@ -81,7 +82,7 @@ const AdminSidebar: React.FC = () => {
 
         // 게시판 관리: 활성 게시판 개수
         try {
-          const boardResponse = await fetch('http://localhost:8080/api/boards', {
+          const boardResponse = await fetch(`${getBackendApiBase()}/boards`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });

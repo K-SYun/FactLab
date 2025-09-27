@@ -437,7 +437,7 @@ const News: React.FC = () => {
       setActionLoading(true);
 
       // 1. 뉴스 상태를 PROCESSING으로 변경
-      await fetch(`http://localhost:8080/api/news/${newsId}/status?status=PROCESSING`, {
+      await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=PROCESSING`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -455,7 +455,7 @@ const News: React.FC = () => {
       try {
         // 2. 백엔드에 재분석 작업 생성 요청
         console.log(`🤖 재분석 작업 생성: 뉴스 ID ${newsId}`);
-        const backendResponse = await fetch(`http://localhost:8080/api/news-summary/admin/analyze`, {
+        const backendResponse = await fetch(`${getBackendApiBase()}/news-summary/admin/analyze`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -496,7 +496,7 @@ const News: React.FC = () => {
           console.log(`✅ AI 재분석 완료: 뉴스 ID ${newsId}`, aiResult);
 
           // 3. 재분석 성공 시 REVIEW_PENDING으로 상태 변경
-          await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REVIEW_PENDING`, {
+          await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REVIEW_PENDING`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -517,7 +517,7 @@ const News: React.FC = () => {
           console.error(`❌ AI 재분석 실패: 뉴스 ID ${newsId}`, aiResponse.status, aiResponse.statusText);
 
           // 재분석 실패 시 REJECTED으로 되돌리기
-          await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REJECTED`, {
+          await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REJECTED`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -538,7 +538,7 @@ const News: React.FC = () => {
         console.error(`❌ AI 재분석 오류: 뉴스 ID ${newsId}`, aiError);
 
         // 재분석 오류 시 REJECTED으로 되돌리기
-        await fetch(`http://localhost:8080/api/news/${newsId}/status?status=REJECTED`, {
+        await fetch(`${getBackendApiBase()}/news/${newsId}/status?status=REJECTED`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -587,7 +587,7 @@ const News: React.FC = () => {
       setActionLoading(true);
 
       // 백엔드 API 호출로 노출 상태 변경
-      const response = await fetch(`http://localhost:8080/api/news/${newsId}/visibility?visible=${newVisibility}`, {
+      const response = await fetch(`${getBackendApiBase()}/news/${newsId}/visibility?visible=${newVisibility}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -632,7 +632,7 @@ const News: React.FC = () => {
       setActionLoading(true);
 
       // 백엔드에서 뉴스 삭제
-      const response = await fetch(`http://localhost:8080/api/news/${newsId}`, {
+      const response = await fetch(`${getBackendApiBase()}/news/${newsId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
