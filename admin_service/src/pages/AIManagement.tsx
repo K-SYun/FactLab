@@ -75,9 +75,26 @@ const AIManagement: React.FC = () => {
 
   // 환경에 따라 AI API 경로 설정하는 공통 함수
   const getAIApiBase = () => {
-    // 개발환경에서 포트 3001 직접 접근 시 nginx 프록시를 통해 AI 서비스 접근
-    // 운영환경에서는 nginx 프록시를 통해 접근
-    return window.location.port === '3001' ? 'http://localhost/ai' : '/ai';
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+
+    // 운영환경 (polradar.com)
+    if (hostname === 'polradar.com' || hostname === 'www.polradar.com') {
+      return '/ai';
+    }
+
+    // 개발환경 - 직접 접근 (localhost:3001)
+    if (hostname === 'localhost' && port === '3001') {
+      return 'http://localhost:8001';
+    }
+
+    // 개발환경 - nginx 통해서 (localhost:80 또는 localhost)
+    if (hostname === 'localhost' && (port === '80' || port === '')) {
+      return '/ai';
+    }
+
+    // 기본값: nginx 프록시 경유
+    return '/ai';
   };
 
   // 크롤러 API 경로 설정 함수
@@ -810,7 +827,7 @@ const AIManagement: React.FC = () => {
       setSelectedNewsIds([]);
       setIsSelectAll(false);
 
-      alert(`${reviewPendingSelectedIds.length}개의 뉴스가 뉴스 관리로 전송되었습니다.\n뉴스 관리 화면(http://localhost:3001/news)에서 확인하세요.`);
+      alert(`${reviewPendingSelectedIds.length}개의 뉴스가 뉴스 관리로 전송되었습니다.\n뉴스 관리 화면(/admin/news)에서 확인하세요.`);
 
     } catch (error) {
       alert('뉴스 전송 중 오류가 발생했습니다: ' + (error as Error).message);
