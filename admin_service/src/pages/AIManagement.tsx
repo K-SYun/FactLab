@@ -534,11 +534,15 @@ const AIManagement: React.FC = () => {
 
             // 3. 실제 AI 분석 실행 (백엔드를 통해 AI 서비스 호출)
             console.log(`🤖 실제 AI 분석 실행 (백엔드 경유): 뉴스 ID ${newsId}`);
-            const aiResponse = await fetch(`${getBackendApiBase()}/ai-proxy/analyze/news/${newsId}?analysis_type=${analysisType.toUpperCase()}&summary_id=${summaryId}`, {
+            const aiResponse = await fetch(`${getBackendApiBase()}/admin/analyze`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-              }
+              },
+              body: JSON.stringify({
+                newsId: newsId,
+                analysisType: analysisType.toUpperCase()
+              })
             });
 
             if (aiResponse.ok) {
