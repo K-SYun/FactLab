@@ -114,16 +114,6 @@ public class AdminNewsController {
         }
     }
 
-    @PostMapping("/analyze")
-    @Operation(summary = "뉴스 AI 분석 실행", description = "선택된 뉴스에 대해 AI 분석을 실행합니다")
-    public ApiResponse<String> analyzeNews(@RequestBody AnalyzeNewsRequest request) {
-        try {
-            adminNewsService.analyzeNews(request.getNewsId(), request.getAnalysisType());
-            return ApiResponse.success("뉴스 ID " + request.getNewsId() + "에 대한 AI 분석이 시작되었습니다");
-        } catch (Exception e) {
-            return ApiResponse.error("AI 분석 실행 실패: " + e.getMessage());
-        }
-    }
 
     // DTO for AI Analysis Request
     public static class AIAnalysisRequest {
@@ -148,5 +138,28 @@ public class AdminNewsController {
 
         public String[] getAiKeywords() { return aiKeywords; }
         public void setAiKeywords(String[] aiKeywords) { this.aiKeywords = aiKeywords; }
+    }
+
+    // DTO for Analyze News Request
+    public static class AnalyzeNewsRequest {
+        private Integer newsId;
+        private String analysisType;
+
+        public Integer getNewsId() { return newsId; }
+        public void setNewsId(Integer newsId) { this.newsId = newsId; }
+
+        public String getAnalysisType() { return analysisType; }
+        public void setAnalysisType(String analysisType) { this.analysisType = analysisType; }
+    }
+
+    @PostMapping("/analyze")
+    @Operation(summary = "뉴스 AI 분석 실행", description = "선택된 뉴스에 대해 AI 분석을 실행합니다")
+    public ApiResponse<String> analyzeNews(@RequestBody AnalyzeNewsRequest request) {
+        try {
+            adminNewsService.requestAIAnalysis(request.getNewsId(), request.getAnalysisType());
+            return ApiResponse.success("뉴스 ID " + request.getNewsId() + "에 대한 AI 분석이 시작되었습니다");
+        } catch (Exception e) {
+            return ApiResponse.error("AI 분석 실행 실패: " + e.getMessage());
+        }
     }
 }

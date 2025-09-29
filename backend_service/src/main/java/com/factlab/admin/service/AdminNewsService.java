@@ -140,4 +140,21 @@ public class AdminNewsService {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
     }
+
+    public void requestAIAnalysis(Integer newsId, String analysisType) {
+        Optional<News> newsOptional = newsRepository.findById(newsId);
+        if (newsOptional.isPresent()) {
+            News news = newsOptional.get();
+
+            // 뉴스 상태를 PROCESSING으로 변경
+            news.setStatus(NewsStatus.PROCESSING);
+            newsRepository.save(news);
+
+            // TODO: 실제 AI 분석 서비스 호출
+            // aiAnalysisService.requestAnalysis(newsId, analysisType);
+
+        } else {
+            throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
+        }
+    }
 }
