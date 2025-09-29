@@ -114,6 +114,17 @@ public class AdminNewsController {
         }
     }
 
+    @PostMapping("/analyze")
+    @Operation(summary = "뉴스 AI 분석 실행", description = "선택된 뉴스에 대해 AI 분석을 실행합니다")
+    public ApiResponse<String> analyzeNews(@RequestBody AnalyzeNewsRequest request) {
+        try {
+            adminNewsService.analyzeNews(request.getNewsId(), request.getAnalysisType());
+            return ApiResponse.success("뉴스 ID " + request.getNewsId() + "에 대한 AI 분석이 시작되었습니다");
+        } catch (Exception e) {
+            return ApiResponse.error("AI 분석 실행 실패: " + e.getMessage());
+        }
+    }
+
     // DTO for AI Analysis Request
     public static class AIAnalysisRequest {
         private String aiSummary;
