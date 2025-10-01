@@ -674,7 +674,24 @@ class DaumMobileCrawler:
         except Exception as e:
             logger.error(f"Error crawling article {url}: {e}")
             return None
-    
+
+    async def save_news_to_db(self, news_item: NewsItem) -> bool:
+        """뉴스 1건을 DB에 저장"""
+        try:
+            # NewsItem에 source_url이 없으면 url 값으로 설정
+            if not hasattr(news_item, 'source_url'):
+                setattr(news_item, 'source_url', news_item.url)
+
+            news_id = self.db_manager.save_news_item(news_item)
+            if news_id:
+                return True
+            else:
+                return False
+
+        except Exception as e:
+            logger.error(f"❌ DB 저장 실패: {e}")
+            return False
+
     async def crawl_category(self, category: str, count: int = 20) -> List[NewsItem]:
         """특정 카테고리 뉴스 크롤링"""
         logger.info(f"Starting crawl for category: {category} (target: {count} articles)")
@@ -689,18 +706,24 @@ class DaumMobileCrawler:
                 logger.warning(f"No news URLs found for category: {category}")
                 return []
             
-            # 2. 개별 기사 크롤링 (5초 간격)
+            # 2. 개별 기사 크롤링 (5초 간격) - 즉시 DB 저장
             news_items = []
+            saved_count = 0
             for i, url in enumerate(news_urls):
                 logger.info(f"Crawling article {i+1}/{len(news_urls)}: {url}")
-                
+
                 news_item = await self.crawl_news_article(url, category)
                 if news_item:
                     news_items.append(news_item)
-                
+
+                    # 즉시 DB 저장
+                    if await self.save_news_to_db(news_item):
+                        saved_count += 1
+                        logger.info(f"✅ DB 저장 완료: {news_item.title[:50]}")
+
                 # 진행률 로그
                 if (i + 1) % 5 == 0:
-                    logger.info(f"Progress: {i+1}/{len(news_urls)} articles crawled")
+                    logger.info(f"Progress: {i+1}/{len(news_urls)} articles crawled, {saved_count} saved")
             
             logger.info(f"Completed crawling for {category}: {len(news_items)} articles collected")
             return news_items
