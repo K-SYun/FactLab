@@ -1,6 +1,7 @@
 package com.factlab.admin.service;
 
 import com.factlab.admin.controller.AdminNewsController.AIAnalysisRequest;
+import com.factlab.ai.service.AIAnalysisService;
 import com.factlab.news.entity.News;
 import com.factlab.news.entity.News.NewsStatus;
 import com.factlab.news.entity.News.NewsVisibility;
@@ -22,6 +23,9 @@ public class AdminNewsService {
 
     @Autowired
     private NewsRepository newsRepository;
+
+    @Autowired
+    private AIAnalysisService aiAnalysisService;
 
     public Page<News> getPendingNews(Pageable pageable) {
         // PENDING과 REVIEW_PENDING 상태 모두 조회
@@ -150,8 +154,8 @@ public class AdminNewsService {
             news.setStatus(NewsStatus.PROCESSING);
             newsRepository.save(news);
 
-            // TODO: 실제 AI 분석 서비스 호출
-            // aiAnalysisService.requestAnalysis(newsId, analysisType);
+            // 실제 AI 분석 서비스 호출
+            aiAnalysisService.analyzeNews(newsId, analysisType);
 
         } else {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
