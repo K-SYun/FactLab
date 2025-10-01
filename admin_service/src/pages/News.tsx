@@ -503,7 +503,7 @@ const News: React.FC = () => {
 
         // 3. 실제 AI 재분석 서비스 API 호출 (백엔드 경유)
         console.log(`🤖 실제 AI 재분석 실행 (백엔드 경유): 뉴스 ID ${newsId}`);
-        const aiResponse = await fetch(`${getBackendApiBase()}/admin/analyze`, {
+        const aiResponse = await fetch(`${getBackendApiBase()}/admin/news/analyze`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

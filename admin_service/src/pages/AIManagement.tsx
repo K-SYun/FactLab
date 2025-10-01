@@ -534,7 +534,7 @@ const AIManagement: React.FC = () => {
 
             // 3. 실제 AI 분석 실행 (백엔드를 통해 AI 서비스 호출)
             console.log(`🤖 실제 AI 분석 실행 (백엔드 경유): 뉴스 ID ${newsId}`);
-            const aiResponse = await fetch(`${getBackendApiBase()}/admin/analyze`, {
+            const aiResponse = await fetch(`${getBackendApiBase()}/admin/news/analyze`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
