@@ -4,7 +4,7 @@
 .main-top-banner-ad {
   width: 100%;
   max-width: 1200px;
-  height: 90px;
+  height: 90px !important;
   margin: 5px auto 0px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -15,13 +15,6 @@
   overflow: hidden;
 }
 
-.main-top-banner-ad .ad-banner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* 사이드 광고 - 200px 너비 (그리드와 일치) */
 .main-side-ad {
@@ -39,20 +32,13 @@
   align-self: start;
 }
 
-.main-side-ad .ad-banner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* 하단 배너 광고 - 1200px x 200px */
-.main-bottom-banner-ad {
+.main-bottom-banner-ad, .main-bottom-banner-ad-second {
   width: 100%;
   max-width: 1200px;
-  height: 200px;
-  margin: 0px auto;
+  height: 200px !important;
+  margin: 0 auto 10px; /* 하단 마진 10px 추가 */
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 4px;
@@ -62,22 +48,16 @@
   overflow: hidden;
 }
 
-.main-bottom-banner-ad .ad-banner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* 반응형 처리 */
 @media (max-width: 1280px) {
   .main-side-ad {
     display: none; /* 모바일에서는 사이드 광고 숨김 */
   }
-  
+
   .main-top-banner-ad,
-  .main-bottom-banner-ad {
+  .main-bottom-banner-ad,
+  .main-bottom-banner-ad-second {
     margin-left: 10px;
     margin-right: 10px;
     max-width: calc(100% - 20px);
@@ -86,20 +66,17 @@
 
 @media (max-width: 768px) {
   .main-top-banner-ad {
-    height: 80px; /* 모바일에서는 높이 축소 */
+    height: 80px !important; /* 모바일에서는 높이 축소 */
   }
-  
-  .main-bottom-banner-ad {
-    height: 80px; /* 모바일에서는 높이 축소 */
+
+  .main-bottom-banner-ad,
+  .main-bottom-banner-ad-second {
+    height: 80px !important; /* 모바일에서는 높이 축소 */
   }
 }
 
 /* 로딩 상태 스타일 */
-.ad-banner {
-  position: relative;
-}
-
-.ad-banner .adsbygoogle:empty {
+.adsbygoogle:empty {
   background: #f8f9fa;
   border: 2px dashed #dee2e6;
   display: flex;
@@ -109,7 +86,7 @@
   font-size: 14px;
 }
 
-.ad-banner .adsbygoogle:empty::after {
+.adsbygoogle:empty::after {
   content: "광고 로딩 중...";
 }
 

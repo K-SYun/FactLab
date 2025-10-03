@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-const AdBanner = ({ 
-  adSlot, 
-  adFormat = 'auto', 
-  style = { display: 'block' },
+const AdBanner = ({
+  adSlot,
+  adFormat = 'auto',
   className = '',
-  fullWidthResponsive = true 
+  fullWidthResponsive = true
 }) => {
   const adRef = useRef(null);
 
@@ -21,11 +20,10 @@ const AdBanner = ({
   }, []);
 
   return (
-    <div className={`ad-banner ${className}`}>
+    <div className={className}>
       <ins
         ref={adRef}
         className="adsbygoogle"
-        style={style}
         data-ad-client="ca-pub-9530160990034599"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
