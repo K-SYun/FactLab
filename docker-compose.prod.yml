@@ -173,7 +173,6 @@ services:
       - "8.8.8.8"
     restart: unless-stopped
     networks:
-      - frontend
       - backend
     read_only: true
     tmpfs:
@@ -200,7 +199,7 @@ services:
   database:
     image: postgres:15-alpine
     expose:
-      - "5432"  # 외부 포트 노출 제거
+      - "5432" # 외부 포트 노출 제거
     env_file:
       - .env
     environment:
@@ -223,8 +222,6 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-
-
 
   # Database backup service
   db-backup:
@@ -261,7 +258,7 @@ services:
 
   promtail:
     image: grafana/promtail:2.9.0
-    user: root  # 로그 파일 접근을 위해 root 권한 필요
+    user: root # 로그 파일 접근을 위해 root 권한 필요
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
