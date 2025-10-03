@@ -86,11 +86,11 @@
 
 @media (max-width: 768px) {
   .main-top-banner-ad {
-    height: 60px; /* 모바일에서는 높이 축소 */
+    height: 80px; /* 모바일에서는 높이 축소 */
   }
   
   .main-bottom-banner-ad {
-    height: 120px; /* 모바일에서는 높이 축소 */
+    height: 80px; /* 모바일에서는 높이 축소 */
   }
 }
 
