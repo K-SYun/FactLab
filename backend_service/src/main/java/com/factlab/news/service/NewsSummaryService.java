@@ -2,6 +2,7 @@ package com.factlab.news.service;
 
 import com.factlab.news.dto.NewsSummaryDto;
 import com.factlab.news.entity.News;
+import com.factlab.news.entity.News.NewsStatus;
 import com.factlab.news.entity.NewsSummary;
 import com.factlab.news.repository.NewsRepository;
 import com.factlab.news.repository.NewsSummaryRepository;
@@ -111,16 +112,19 @@ public class NewsSummaryService {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
 
-        // 같은 분석 타입이 이미 존재하는지 확인 (완료된 것만 체크)
+        News news = newsOpt.get();
+
+        // 같은 분석 타입이 이미 존재하는지 확인
         List<NewsSummary> existingSummaries = newsSummaryRepository.findSummariesByNewsAndType(newsId, analysisType);
         if (!existingSummaries.isEmpty()) {
             NewsSummary existing = existingSummaries.get(0); // 가장 첫 번째 (최신) 레코드 사용
-            // 이미 완료된 분석이 있는 경우만 에러 처리
-            if (existing.getStatus() == NewsSummary.SummaryStatus.COMPLETED) {
-                throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 완료되었습니다: " + newsId + " (ID: " + existing.getId() + ")");
-            }
-            // 진행중이거나 실패한 경우 기존 레코드를 PENDING으로 초기화하여 재사용
-            else {
+
+            // 재분석이 필요한 경우: 뉴스가 거부 상태이거나, 기존 요약이 실패/진행중인 경우
+            boolean needsReAnalysis = news.getStatus() == NewsStatus.REJECTED
+                                   || existing.getStatus() != NewsSummary.SummaryStatus.COMPLETED;
+
+            if (needsReAnalysis) {
+                // 기존 레코드를 PENDING으로 초기화하여 재사용
                 existing.setStatus(NewsSummary.SummaryStatus.PENDING);
                 existing.setErrorMessage(null);
                 existing.setSummary(null);
@@ -134,6 +138,9 @@ public class NewsSummaryService {
                 existing.setFullAnalysisResult(null);
                 existing = newsSummaryRepository.save(existing);
                 return convertToDtoWithNewsInfo(existing);
+            } else {
+                // 이미 완료된 분석이 있고, 뉴스가 승인/대기 상태인 경우만 에러
+                throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 완료되었습니다: " + newsId + " (ID: " + existing.getId() + ")");
             }
         }
 

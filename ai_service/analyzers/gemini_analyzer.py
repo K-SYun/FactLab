@@ -274,7 +274,21 @@ class GeminiNewsAnalyzer:
                 keywords = raw_keywords
             else:
                 keywords = ''
-            reliability_score = analysis.get('credibility', {}).get('score') if isinstance(analysis.get('credibility'), dict) else analysis.get('reliability_score', 75)
+
+            # reliability_score 안전하게 추출
+            credibility_data = analysis.get('credibility')
+            if isinstance(credibility_data, dict):
+                reliability_score = credibility_data.get('score', 75)
+            elif isinstance(credibility_data, (int, float)):
+                reliability_score = int(credibility_data)
+            else:
+                reliability_score = analysis.get('reliability_score', 75)
+
+            # 정수로 변환
+            if isinstance(reliability_score, (int, float)):
+                reliability_score = int(reliability_score)
+            else:
+                reliability_score = 75
             suspicious_points_list = []
             
             # 1. Handle Fact Analysis part (present in FACT_ANALYSIS and COMPREHENSIVE)
