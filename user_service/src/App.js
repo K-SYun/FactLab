@@ -14,6 +14,7 @@ import FactlabMypage from './pages/FactlabMypage';
 import FactlabNotice from './pages/FactlabNotice';
 import FactlabNoticeDetail from './pages/FactlabNoticeDetail';
 import LoginCallback from './pages/LoginCallback';
+import AboutPage from './pages/AboutPage';
 
 // Bill pages
 import BillMain from './pages/BillMain';
@@ -41,6 +42,7 @@ const App = () => (
         <Route path="/mypage" element={<FactlabMypage />} />
         <Route path="/notice" element={<FactlabNotice />} />
         <Route path="/notice/:id" element={<FactlabNoticeDetail />} />
+        <Route path="/about" element={<AboutPage />} />
 
         {/* Bill Routes */}
         <Route path="/bill" element={<BillMain />} />
