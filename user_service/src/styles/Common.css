@@ -502,6 +502,17 @@ body {
     }
 }
 
+.main-container {
+    max-width: 1680px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px 1200px 200px;
+    gap: 20px;
+    padding: 20px;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* 404 페이지 스타일 */
 .not-found-container {
     padding: 50px 20px;
