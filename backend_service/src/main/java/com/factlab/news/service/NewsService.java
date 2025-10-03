@@ -249,6 +249,13 @@ public class NewsService {
 
     // 뉴스 삭제
     public void deleteNews(Integer newsId) {
+        // First, explicitly delete the associated summaries to handle the corrupted/null data case
+        List<NewsSummary> summaries = newsSummaryRepository.findByNewsIdOrderByUpdatedAtDesc(newsId);
+        if (summaries != null && !summaries.isEmpty()) {
+            newsSummaryRepository.deleteAll(summaries);
+        }
+
+        // Now, delete the news article itself
         News news = newsRepository.findById(newsId)
                 .orElseThrow(() -> new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId));
         
