@@ -48,7 +48,6 @@ const AdLayout = ({ children, showSideAds = true, showTopAd = true, showBottomAd
             adSlot="3571713105"
             adFormat="horizontal"
           />
-          <div className="ad-separator" />
           <AdBanner
             key="bottom-ad-2"
             className="main-bottom-banner-ad-second"
