@@ -44,12 +44,28 @@ def get_existing_analysis_type(news_id: int):
 
 @router.post("/analyze/news/{news_id}")
 async def analyze_news(
-    news_id: int, 
-    summary_id: int = Query(..., description="분석 작업 ID"),
+    news_id: int,
+    summary_id: int = Query(default=None, description="분석 작업 ID (선택)"),
     analysis_type: str = Query(default=None, description="분석 타입: COMPREHENSIVE, FACT_ANALYSIS, BIAS_ANALYSIS")
 ):
     """뉴스 Gemini AI 분석 실행"""
     try:
+        # summary_id가 없으면 자동으로 조회
+        if summary_id is None:
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM news_summary WHERE news_id = %s ORDER BY created_at DESC LIMIT 1", (news_id,))
+                result = cursor.fetchone()
+                if result:
+                    summary_id = result['id']
+                    logger.info(f"뉴스 {news_id}: summary_id 자동 조회 완료 (id={summary_id})")
+                else:
+                    raise HTTPException(status_code=404, detail=f"뉴스 {news_id}에 대한 요약 정보가 없습니다.")
+            finally:
+                cursor.close()
+                conn.close()
+
         # 기존 분석 타입 조회 (재분석인 경우)
         existing_analysis_type = get_existing_analysis_type(news_id)
         

@@ -15,7 +15,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@org.springframework.context.annotation.Profile("!dev")  // dev 환경에서는 비활성화
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired

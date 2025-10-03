@@ -21,7 +21,8 @@ class GeminiNewsAnalyzer:
     def __init__(self):
         # Gemini API 설정
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        # Gemini API - gemini-pro 모델 사용
+        self.api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent"
         
         # 백엔드 API 엔드포인트
         self.backend_url = os.getenv('BACKEND_URL', 'http://backend-service:8080')
@@ -72,7 +73,7 @@ class GeminiNewsAnalyzer:
                         f"{self.api_url}?key={self.api_key}",
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=30
+                        timeout=60
                     )
 
                     # 503 오류가 아니면 즉시 처리
@@ -197,14 +198,12 @@ class GeminiNewsAnalyzer:
         if max_matches > 2:
             reliability += 5
         
-        # 내용 기반 더 구체적인 요약 생성
-        content_preview = content[:200] if content else title
-
-        # 더 다양하고 구체적인 요약 생성
+        # 제목과 카테고리 기반 요약 생성 (본문 복사 금지)
+        # 요약은 제목을 기반으로 간결하게 작성 (최대 150자)
         summary_templates = [
-            f"{title[:50]}{'...' if len(title) > 50 else ''}에 대한 {detected_category} 분야 보도입니다. {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}",
-            f"이 기사는 {detected_category} 분야의 주요 이슈를 다루고 있습니다. 핵심 내용: {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}",
-            f"{detected_category} 관련 최신 동향을 보도한 기사입니다. {content_preview[:100]}{'...' if len(content_preview) > 100 else ''}"
+            f"{detected_category} 분야: {title[:100]}{'...' if len(title) > 100 else ''}에 관한 보도입니다.",
+            f"이 기사는 {detected_category} 관련 '{title[:80]}{'...' if len(title) > 80 else ''}'를 다루고 있습니다.",
+            f"{detected_category} 최신 동향: {title[:100]}{'...' if len(title) > 100 else ''}"
         ]
 
         # 제목 해시 기반으로 템플릿 선택 (일관성 유지)
@@ -268,9 +267,58 @@ class GeminiNewsAnalyzer:
             # 공통 필드 추출
             summary = analysis.get('summary', '')
             claim = analysis.get('main_claim', analysis.get('claim', ''))
-            keywords = ','.join(analysis.get('keywords', [])) if isinstance(analysis.get('keywords'), list) else analysis.get('keywords', '')
+            raw_keywords = analysis.get('keywords', [])
+            if isinstance(raw_keywords, list):
+                keywords = ','.join(map(str, raw_keywords))
+            elif isinstance(raw_keywords, str):
+                keywords = raw_keywords
+            else:
+                keywords = ''
             reliability_score = analysis.get('credibility', {}).get('score') if isinstance(analysis.get('credibility'), dict) else analysis.get('reliability_score', 75)
-            suspicious_points = analysis.get('suspicious_points', '')
+            suspicious_points_list = []
+            
+            # 1. Handle Fact Analysis part (present in FACT_ANALYSIS and COMPREHENSIVE)
+            fact_analysis = analysis.get('fact_analysis')
+            if fact_analysis and isinstance(fact_analysis, dict):
+                questionable_claims = fact_analysis.get('questionable_claims')
+                if questionable_claims and isinstance(questionable_claims, list):
+                    for claim in questionable_claims:
+                        if isinstance(claim, dict) and 'reason' in claim:
+                            suspicious_points_list.append(claim['reason'])
+                
+                # Use overall assessment if no specific questionable claims
+                if not questionable_claims:
+                    assessment = fact_analysis.get('overall_assessment')
+                    if assessment:
+                        suspicious_points_list.append(assessment)
+
+            # 2. Handle Bias Analysis part (present in BIAS_ANALYSIS and COMPREHENSIVE)
+            bias_analysis = analysis.get('bias_analysis')
+            if bias_analysis and isinstance(bias_analysis, dict):
+                reason = bias_analysis.get('political_leaning_reason')
+                if reason:
+                    suspicious_points_list.append(reason)
+                framing = bias_analysis.get('framing_analysis')
+                if framing:
+                    suspicious_points_list.append(framing)
+
+            # 3. Handle Credibility part (present in COMPREHENSIVE)
+            credibility_analysis = analysis.get('credibility')
+            if credibility_analysis and isinstance(credibility_analysis, dict):
+                reason = credibility_analysis.get('assessment_reason')
+                if reason:
+                    suspicious_points_list.append(reason)
+
+            # 4. Final fallback: use main summary if no suspicious points found
+            if not suspicious_points_list:
+                summary = analysis.get('summary')
+                if summary:
+                    suspicious_points_list.append("AI 요약: " + summary)
+
+            suspicious_points = '. '.join(suspicious_points_list)
+            if suspicious_points and not suspicious_points.endswith('.'):
+                suspicious_points += '.'
+
 
             # 전체 분석 결과를 JSON으로 저장
             full_analysis_result = json.dumps(analysis, ensure_ascii=False, indent=2)
