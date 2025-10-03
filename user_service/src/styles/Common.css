@@ -502,47 +502,6 @@ body {
     }
 }
 
-/* 광고 영역 공통 스타일 */
-.main-side-ad {
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    width: 200px;
-    height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-size: 12px;
-    position: sticky;
-    top: 0;
-    flex-direction: column;
-    align-self: start;
-}
-
-.main-side-ad::before {
-    content: "📢";
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-
-.main-side-ad::after {
-    content: "광고 영역\A(200px × 600px)";
-    white-space: pre-line;
-    text-align: center;
-    line-height: 1.4;
-}
-
-.main-container {
-    max-width: 1680px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 200px 1200px 200px;
-    gap: 20px;
-    padding: 20px;
-    border: none !important;
-    box-shadow: none !important;
-}
-
 /* 404 페이지 스타일 */
 .not-found-container {
     padding: 50px 20px;
