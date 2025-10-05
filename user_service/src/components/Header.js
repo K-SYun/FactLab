@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
 import boardService from '../services/boardService';
@@ -13,6 +13,7 @@ const Header = () => {
   const [isLoadingBoards, setIsLoadingBoards] = useState(true);
   const { isLoggedIn, user, getWelcomeMessage, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // useLocation 훅 사용
 
   const handleLoginClick = () => {
     setIsLoginModalOpen(true);
@@ -85,6 +86,8 @@ const Header = () => {
 
     return grouped;
   };
+
+
 
   return (
     <>
@@ -239,15 +242,12 @@ const Header = () => {
       {/* Navigation Menu (파란색 라인 아래에 위치) */}
       <div className="news-nav-menu">
         <div className="news-nav-content">
-          <Link to="/news_feed" state={{ category: '정치' }} className="news-nav-item">정치</Link>
-          <Link to="/news_feed" state={{ category: '경제' }} className="news-nav-item">경제</Link>
-          <Link to="/news_feed" state={{ category: '사회' }} className="news-nav-item">사회</Link>
-          <Link to="/news_feed" state={{ category: 'IT과학' }} className="news-nav-item">IT/과학</Link>
-          <Link to="/news_feed" state={{ category: '세계' }} className="news-nav-item">세계</Link>
-          <Link to="/news_feed" state={{ category: '기후환경' }} className="news-nav-item">기후/환경</Link>
-          {/* <Link to="/bill/list" className="news-nav-item">법안</Link> */}
-          {/* <Link to="/news_feed" state={{ category: '연예' }} className="news-nav-item">연예</Link>
-        <Link to="/news_feed" state={{ category: '스포츠' }} className="news-nav-item">스포츠</Link> */}
+          <Link to={{ pathname: "/news_feed", search: "?category=정치" }} state={{ category: '정치' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === '정치' ? 'active' : ''}`}>정치</Link>
+          <Link to={{ pathname: "/news_feed", search: "?category=경제" }} state={{ category: '경제' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === '경제' ? 'active' : ''}`}>경제</Link>
+          <Link to={{ pathname: "/news_feed", search: "?category=사회" }} state={{ category: '사회' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === '사회' ? 'active' : ''}`}>사회</Link>
+          <Link to={{ pathname: "/news_feed", search: "?category=IT과학" }} state={{ category: 'IT과학' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === 'IT과학' ? 'active' : ''}`}>IT/과학</Link>
+          <Link to={{ pathname: "/news_feed", search: "?category=세계" }} state={{ category: '세계' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === '세계' ? 'active' : ''}`}>세계</Link>
+          <Link to={{ pathname: "/news_feed", search: "?category=기후환경" }} state={{ category: '기후환경' }} className={`news-nav-item ${location.pathname === '/news_feed' && new URLSearchParams(location.search).get('category') === '기후환경' ? 'active' : ''}`}>기후/환경</Link>
           <div className="news-nav-item community-lab" id="communityNav" style={{ position: 'relative' }}>
             커뮤니티Lab
             <div className="community-dropdown" id="communityDropdown">
