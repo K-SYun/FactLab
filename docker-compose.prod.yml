@@ -175,7 +175,7 @@ services:
     restart: unless-stopped
     networks:
       - backend
-      - frontend  # Gemini API 접근을 위해 frontend 네트워크 추가
+      - frontend # Gemini API 접근을 위해 frontend 네트워크 추가
     read_only: true
     tmpfs:
       - /tmp
