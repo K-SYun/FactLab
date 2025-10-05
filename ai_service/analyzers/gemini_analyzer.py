@@ -350,7 +350,12 @@ class GeminiNewsAnalyzer:
             if credibility_analysis and isinstance(credibility_analysis, dict):
                 reason = credibility_analysis.get('assessment_reason')
                 if reason:
-                    suspicious_points_list.append(reason)
+                    if isinstance(reason, list):
+                        # If the reason is a list of bullet points, join them into a single string
+                        suspicious_points_list.append('. '.join(map(str, reason)))
+                    else:
+                        # Otherwise, append the reason as is
+                        suspicious_points_list.append(str(reason))
 
             # 4. Final fallback: use main summary if no suspicious points found
             if not suspicious_points_list:
