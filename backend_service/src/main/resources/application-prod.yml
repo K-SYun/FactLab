@@ -50,6 +50,7 @@ spring:
         min-idle: 0
 
 server:
+  address: 0.0.0.0
   port: 8080
   servlet:
     context-path: /
