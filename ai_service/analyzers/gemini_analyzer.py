@@ -265,8 +265,29 @@ class GeminiNewsAnalyzer:
             logger.info(f"레코드 찾음 (ID: {update_summary_id}). 업데이트를 진행합니다.")
 
             # 공통 필드 추출
-            summary = analysis.get('summary', '')
-            claim = analysis.get('main_claim', analysis.get('claim', ''))
+            summary_data = analysis.get('summary', '')
+            # summary가 dict나 list인 경우 처리
+            if isinstance(summary_data, dict):
+                summary = summary_data.get('text', summary_data.get('content', str(summary_data)))
+            elif isinstance(summary_data, list) and summary_data:
+                summary = ' '.join(str(item) for item in summary_data)
+            else:
+                summary = str(summary_data) if summary_data else ''
+
+            # claim 추출 (dict 또는 str일 수 있음)
+            main_claim_data = analysis.get('main_claim', analysis.get('claim', ''))
+            if isinstance(main_claim_data, dict):
+                # dict인 경우 'claim' 키의 값만 추출
+                claim = main_claim_data.get('claim', '')
+                if not claim:
+                    # 'claim' 키가 없으면 첫 번째 값을 사용
+                    claim = next((v for v in main_claim_data.values() if isinstance(v, str)), str(main_claim_data))
+            elif isinstance(main_claim_data, list) and main_claim_data:
+                # list인 경우 첫 번째 항목 사용
+                first_item = main_claim_data[0]
+                claim = first_item.get('claim', str(first_item)) if isinstance(first_item, dict) else str(first_item)
+            else:
+                claim = str(main_claim_data) if main_claim_data else ''
             raw_keywords = analysis.get('keywords', [])
             if isinstance(raw_keywords, list):
                 keywords = ','.join(map(str, raw_keywords))
@@ -276,15 +297,23 @@ class GeminiNewsAnalyzer:
                 keywords = ''
 
             # reliability_score 안전하게 추출
-            credibility_data = analysis.get('credibility')
-            if isinstance(credibility_data, dict):
-                reliability_score = credibility_data.get('score', 75)
-            elif isinstance(credibility_data, (int, float)):
-                reliability_score = int(credibility_data)
-            else:
-                reliability_score = analysis.get('reliability_score', 75)
+            # 우선순위: reliability_score > credibility.overall_score > credibility.score > 기본값 75
+            reliability_score = None
 
-            # 정수로 변환
+            # 1. 직접 reliability_score 키 확인
+            if 'reliability_score' in analysis:
+                reliability_score = analysis.get('reliability_score')
+
+            # 2. credibility 객체 내부 확인
+            if reliability_score is None:
+                credibility_data = analysis.get('credibility')
+                if isinstance(credibility_data, dict):
+                    # overall_score 또는 score 사용
+                    reliability_score = credibility_data.get('overall_score') or credibility_data.get('score')
+                elif isinstance(credibility_data, (int, float)):
+                    reliability_score = credibility_data
+
+            # 3. 정수로 안전하게 변환
             if isinstance(reliability_score, (int, float)):
                 reliability_score = int(reliability_score)
             else:
@@ -336,6 +365,39 @@ class GeminiNewsAnalyzer:
 
             # 전체 분석 결과를 JSON으로 저장
             full_analysis_result = json.dumps(analysis, ensure_ascii=False, indent=2)
+
+            # 디버깅: 모든 변수 타입 확인
+            logger.info(f"📊 DB 저장 전 타입 확인:")
+            logger.info(f"  summary: {type(summary).__name__}")
+            logger.info(f"  claim: {type(claim).__name__}")
+            logger.info(f"  keywords: {type(keywords).__name__}")
+            logger.info(f"  reliability_score: {type(reliability_score).__name__}")
+            logger.info(f"  suspicious_points: {type(suspicious_points).__name__}")
+
+            # dict 타입이 있는지 한번 더 확인하고 자동 변환
+            params_to_check = {
+                'summary': summary,
+                'claim': claim,
+                'keywords': keywords,
+                'suspicious_points': suspicious_points
+            }
+
+            for key, value in params_to_check.items():
+                if isinstance(value, (dict, list)):
+                    logger.error(f"⚠️ {key}가 {type(value).__name__} 타입입니다!")
+                    logger.error(f"  내용: {str(value)[:200]}")
+                    # 자동 변환
+                    if isinstance(value, dict):
+                        params_to_check[key] = json.dumps(value, ensure_ascii=False)
+                    elif isinstance(value, list):
+                        params_to_check[key] = ', '.join(str(item) for item in value)
+                    logger.info(f"  → 문자열로 변환 완료")
+
+            # 변환된 값 적용
+            summary = params_to_check['summary']
+            claim = params_to_check['claim']
+            keywords = params_to_check['keywords']
+            suspicious_points = params_to_check['suspicious_points']
 
             # 업데이트 실행
             cursor.execute("""
