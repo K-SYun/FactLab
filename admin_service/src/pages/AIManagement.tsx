@@ -465,14 +465,15 @@ const AIManagement: React.FC = () => {
       return;
     }
 
-    // PENDING 상태인 뉴스만 분석 가능
-    const pendingSelectedIds = selectedNewsIds.filter(id => {
+    // PENDING, REJECTED, ANALYSIS_FAILED 상태인 뉴스만 분석 가능
+    const analyzableSelectedIds = selectedNewsIds.filter(id => {
       const news = newsItems.find(item => item.id === id);
-      return news?.status?.toUpperCase() === 'PENDING';
+      const status = news?.status?.toUpperCase();
+      return status === 'PENDING' || status === 'REJECTED' || status === 'ANALYSIS_FAILED';
     });
 
-    if (pendingSelectedIds.length === 0) {
-      alert('분석 대기 중인 뉴스를 선택해주세요.');
+    if (analyzableSelectedIds.length === 0) {
+      alert('분석 가능한 뉴스를 선택해주세요.\n(대기중, 거부됨, 분석실패 상태만 분석 가능합니다)');
       return;
     }
 
@@ -482,7 +483,7 @@ const AIManagement: React.FC = () => {
       'BIAS_ANALYSIS': '편향성분석'
     };
 
-    if (!window.confirm(`선택된 ${pendingSelectedIds.length}개의 뉴스를 ${analysisTypeNames[analysisType]}하시겠습니까?`)) {
+    if (!window.confirm(`선택된 ${analyzableSelectedIds.length}개의 뉴스를 ${analysisTypeNames[analysisType]}하시겠습니까?`)) {
       return;
     }
 
@@ -490,7 +491,7 @@ const AIManagement: React.FC = () => {
 
     try {
       // 실제 AI 분석 서비스 API 호출
-      const analysisPromises = pendingSelectedIds.map(async (newsId) => {
+      const analysisPromises = analyzableSelectedIds.map(async (newsId) => {
         const news = newsItems.find(item => item.id === newsId);
         if (!news) return;
 
@@ -629,7 +630,7 @@ const AIManagement: React.FC = () => {
 
       // UI에서 상태를 PROCESSING으로 즉시 변경
       setNewsItems(prev => prev.map(news =>
-        pendingSelectedIds.includes(news.id)
+        analyzableSelectedIds.includes(news.id)
           ? { ...news, status: 'PROCESSING' as const, updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') }
           : news
       ));
