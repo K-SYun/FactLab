@@ -327,7 +327,11 @@ class GeminiNewsAnalyzer:
                 if questionable_claims and isinstance(questionable_claims, list):
                     for questionable_claim in questionable_claims:
                         if isinstance(questionable_claim, dict) and 'reason' in questionable_claim:
-                            suspicious_points_list.append(questionable_claim['reason'])
+                            reason_item = questionable_claim['reason']
+                            if isinstance(reason_item, list):
+                                suspicious_points_list.append('. '.join(map(str, reason_item)))
+                            else:
+                                suspicious_points_list.append(str(reason_item))
                 
                 # Use overall assessment if no specific questionable claims
                 if not questionable_claims:
@@ -338,12 +342,21 @@ class GeminiNewsAnalyzer:
             # 2. Handle Bias Analysis part (present in BIAS_ANALYSIS and COMPREHENSIVE)
             bias_analysis = analysis.get('bias_analysis')
             if bias_analysis and isinstance(bias_analysis, dict):
+                # political_leaning_reason 처리
                 reason = bias_analysis.get('political_leaning_reason')
                 if reason:
-                    suspicious_points_list.append(reason)
+                    if isinstance(reason, list):
+                        suspicious_points_list.append('. '.join(map(str, reason)))
+                    else:
+                        suspicious_points_list.append(str(reason))
+                
+                # framing_analysis 처리
                 framing = bias_analysis.get('framing_analysis')
                 if framing:
-                    suspicious_points_list.append(framing)
+                    if isinstance(framing, list):
+                        suspicious_points_list.append('. '.join(map(str, framing)))
+                    else:
+                        suspicious_points_list.append(str(framing))
 
             # 3. Handle Credibility part (present in COMPREHENSIVE)
             credibility_analysis = analysis.get('credibility')

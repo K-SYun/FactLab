@@ -12,9 +12,12 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     depends_on:
-      - user-service
-      - admin-service
-      - backend-service
+      user-service:
+        condition: service_started
+      admin-service:
+        condition: service_started
+      backend-service:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - frontend
@@ -70,6 +73,12 @@ services:
     build:
       context: ./backend_service
       dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     expose:
       - "8080"
       - "8081" # Actuator port
