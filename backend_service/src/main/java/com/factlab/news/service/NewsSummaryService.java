@@ -2,7 +2,6 @@ package com.factlab.news.service;
 
 import com.factlab.news.dto.NewsSummaryDto;
 import com.factlab.news.entity.News;
-import com.factlab.news.entity.News.NewsStatus;
 import com.factlab.news.entity.NewsSummary;
 import com.factlab.news.repository.NewsRepository;
 import com.factlab.news.repository.NewsSummaryRepository;
@@ -107,41 +106,30 @@ public class NewsSummaryService {
     // AI 요약 작업 생성 (분석 타입 지정)
     public NewsSummaryDto createSummary(Integer newsId, NewsSummary.AnalysisType analysisType) {
         // 뉴스 존재 확인
-        Optional<News> newsOpt = newsRepository.findById(newsId);
-        if (!newsOpt.isPresent()) {
+        if (!newsRepository.findById(newsId).isPresent()) {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
-
-        News news = newsOpt.get();
 
         // 같은 분석 타입이 이미 존재하는지 확인
         List<NewsSummary> existingSummaries = newsSummaryRepository.findSummariesByNewsAndType(newsId, analysisType);
         if (!existingSummaries.isEmpty()) {
             NewsSummary existing = existingSummaries.get(0); // 가장 첫 번째 (최신) 레코드 사용
 
-            // 재분석이 필요한 경우: 뉴스가 거부 상태이거나, 기존 요약이 실패/진행중인 경우
-            boolean needsReAnalysis = news.getStatus() == NewsStatus.REJECTED
-                                   || existing.getStatus() != NewsSummary.SummaryStatus.COMPLETED;
-
-            if (needsReAnalysis) {
-                // 기존 레코드를 PENDING으로 초기화하여 재사용
-                existing.setStatus(NewsSummary.SummaryStatus.PENDING);
-                existing.setErrorMessage(null);
-                existing.setSummary(null);
-                existing.setClaim(null);
-                existing.setKeywords(null);
-                existing.setAutoQuestion(null);
-                existing.setReliabilityScore(null);
-                existing.setAiConfidence(null);
-                existing.setProcessingTime(null);
-                existing.setSuspiciousPoints(null);
-                existing.setFullAnalysisResult(null);
-                existing = newsSummaryRepository.save(existing);
-                return convertToDtoWithNewsInfo(existing);
-            } else {
-                // 이미 완료된 분석이 있고, 뉴스가 승인/대기 상태인 경우만 에러
-                throw new RuntimeException("이미 " + getAnalysisTypeName(analysisType) + " 분석이 완료되었습니다: " + newsId + " (ID: " + existing.getId() + ")");
-            }
+            // 재분석 요청 시 기존 레코드를 PENDING으로 초기화하여 재사용
+            // (관리자가 명시적으로 재분석을 요청한 경우 항상 허용)
+            existing.setStatus(NewsSummary.SummaryStatus.PENDING);
+            existing.setErrorMessage(null);
+            existing.setSummary(null);
+            existing.setClaim(null);
+            existing.setKeywords(null);
+            existing.setAutoQuestion(null);
+            existing.setReliabilityScore(null);
+            existing.setAiConfidence(null);
+            existing.setProcessingTime(null);
+            existing.setSuspiciousPoints(null);
+            existing.setFullAnalysisResult(null);
+            existing = newsSummaryRepository.save(existing);
+            return convertToDtoWithNewsInfo(existing);
         }
 
         NewsSummary summary = new NewsSummary(newsId);
