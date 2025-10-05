@@ -325,9 +325,9 @@ class GeminiNewsAnalyzer:
             if fact_analysis and isinstance(fact_analysis, dict):
                 questionable_claims = fact_analysis.get('questionable_claims')
                 if questionable_claims and isinstance(questionable_claims, list):
-                    for claim in questionable_claims:
-                        if isinstance(claim, dict) and 'reason' in claim:
-                            suspicious_points_list.append(claim['reason'])
+                    for questionable_claim in questionable_claims:
+                        if isinstance(questionable_claim, dict) and 'reason' in questionable_claim:
+                            suspicious_points_list.append(questionable_claim['reason'])
                 
                 # Use overall assessment if no specific questionable claims
                 if not questionable_claims:
