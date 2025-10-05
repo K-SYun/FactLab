@@ -171,9 +171,11 @@ services:
       - DATABASE_URL=postgresql://${DB_USERNAME:-factlab_user}:${DB_PASSWORD}@database:5432/factlab
     dns:
       - "8.8.8.8"
+      - "8.8.4.4"
     restart: unless-stopped
     networks:
       - backend
+      - frontend  # Gemini API 접근을 위해 frontend 네트워크 추가
     read_only: true
     tmpfs:
       - /tmp
