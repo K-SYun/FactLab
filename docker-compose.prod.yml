@@ -103,6 +103,8 @@ services:
       - FRONTEND_URL=https://polradar.com
       - ADMIN_URL=https://polradar.com/admin
       - CORS_ALLOWED_ORIGINS=https://polradar.com
+      - GMAIL_USERNAME=${GMAIL_USERNAME}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
     restart: unless-stopped
     networks:
       - backend
