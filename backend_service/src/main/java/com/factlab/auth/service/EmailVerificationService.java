@@ -2,6 +2,8 @@ package com.factlab.auth.service;
 
 import com.factlab.auth.entity.EmailVerification;
 import com.factlab.auth.repository.EmailVerificationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,24 +15,23 @@ import java.util.Optional;
 @Service
 @Transactional(readOnly = true)
 public class EmailVerificationService {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailVerificationService.class);
+
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
-    
+
     @Autowired
     private EmailService emailService;
-    
-    private static final int CODE_EXPIRY_MINUTES = 30; // 30분 만료 (테스트용)
+
+    private static final int CODE_EXPIRY_MINUTES = 30;
     private static final SecureRandom random = new SecureRandom();
     
     /**
      * 6자리 숫자 인증 코드 생성
-     * 테스트를 위해 임시로 123456 하드코딩
      */
     private String generateVerificationCode() {
-        // TODO: 실제 운영 시에는 아래 랜덤 코드 생성으로 변경
-        // return String.format("%06d", random.nextInt(1000000));
-        return "123456"; // 테스트용 하드코딩
+        return String.format("%06d", random.nextInt(1000000));
     }
     
     /**
@@ -39,39 +40,38 @@ public class EmailVerificationService {
     @Transactional
     public boolean sendVerificationCode(String email) {
         try {
-            System.out.println("이메일 인증 코드 발송 시작: " + email); // 디버깅 로그
-            
+            logger.info("이메일 인증 코드 발송 시작: {}", email);
+
             // 기존 인증 코드 삭제
             emailVerificationRepository.deleteByEmail(email);
-            System.out.println("기존 인증 코드 삭제 완료"); // 디버깅 로그
-            
+            logger.debug("기존 인증 코드 삭제 완료: {}", email);
+
             // 새로운 인증 코드 생성
             String code = generateVerificationCode();
             LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(CODE_EXPIRY_MINUTES);
-            System.out.println("새 인증 코드 생성: " + code + ", 만료시간: " + expiresAt); // 디버깅 로그
-            
+            logger.debug("새 인증 코드 생성 완료: email={}, expiresAt={}", email, expiresAt);
+
             // 인증 코드 저장
             EmailVerification verification = new EmailVerification(email, code, expiresAt);
             emailVerificationRepository.save(verification);
-            System.out.println("인증 코드 DB 저장 완료"); // 디버깅 로그
-            
-            // 이메일 발송 (테스트용으로 true로 고정)
-            boolean emailSent = true; // emailService.sendVerificationCode(email, code);
-            System.out.println("이메일 발송 결과: " + emailSent); // 디버깅 로그
-            
+            logger.debug("인증 코드 DB 저장 완료: {}", email);
+
+            // 이메일 발송
+            boolean emailSent = emailService.sendVerificationCode(email, code);
+            logger.info("이메일 발송 결과: email={}, sent={}", email, emailSent);
+
             if (!emailSent) {
                 // 이메일 발송 실패 시 인증 코드 삭제
                 emailVerificationRepository.deleteByEmail(email);
-                System.out.println("이메일 발송 실패로 인증 코드 삭제"); // 디버깅 로그
+                logger.warn("이메일 발송 실패로 인증 코드 삭제: {}", email);
                 return false;
             }
-            
-            System.out.println("이메일 인증 코드 발송 완료: " + email); // 디버깅 로그
+
+            logger.info("이메일 인증 코드 발송 완료: {}", email);
             return true;
-            
+
         } catch (Exception e) {
-            System.out.println("이메일 발송 중 예외 발생: " + e.getMessage()); // 디버깅 로그
-            e.printStackTrace();
+            logger.error("이메일 발송 중 오류 발생: email={}, error={}", email, e.getMessage(), e);
             return false;
         }
     }
@@ -82,40 +82,37 @@ public class EmailVerificationService {
     @Transactional
     public boolean verifyCode(String email, String code) {
         try {
-            System.out.println("이메일 인증 시도: email=" + email + ", code=" + code); // 디버깅 로그
-            
-            Optional<EmailVerification> verification = 
+            logger.debug("이메일 인증 시도: email={}", email);
+
+            Optional<EmailVerification> verification =
                 emailVerificationRepository.findByEmailAndVerificationCode(email, code);
-            
+
             if (verification.isEmpty()) {
-                System.out.println("인증 코드를 찾을 수 없음"); // 디버깅 로그
-                return false; // 인증 코드 없음
+                logger.warn("인증 코드를 찾을 수 없음: email={}", email);
+                return false;
             }
-            
+
             EmailVerification emailVerification = verification.get();
-            System.out.println("인증 코드 찾음: " + emailVerification.getVerificationCode() + 
-                             ", 만료시간: " + emailVerification.getExpiresAt() + 
-                             ", 현재시간: " + java.time.LocalDateTime.now()); // 디버깅 로그
-            
+            logger.debug("인증 코드 찾음: email={}, expiresAt={}", email, emailVerification.getExpiresAt());
+
             if (emailVerification.isExpired()) {
-                System.out.println("인증 코드 만료됨"); // 디버깅 로그
-                return false; // 만료됨
+                logger.warn("인증 코드 만료됨: email={}", email);
+                return false;
             }
-            
+
             if (emailVerification.getIsVerified()) {
-                System.out.println("이미 사용된 인증 코드"); // 디버깅 로그
-                return false; // 이미 사용됨
+                logger.warn("이미 사용된 인증 코드: email={}", email);
+                return false;
             }
-            
+
             // 인증 완료 처리
             emailVerificationRepository.markAsVerified(email, code);
-            System.out.println("이메일 인증 성공"); // 디버깅 로그
-            
+            logger.info("이메일 인증 성공: {}", email);
+
             return true;
-            
+
         } catch (Exception e) {
-            System.out.println("이메일 인증 중 예외 발생: " + e.getMessage()); // 디버깅 로그
-            e.printStackTrace();
+            logger.error("이메일 인증 중 오류 발생: email={}, error={}", email, e.getMessage(), e);
             return false;
         }
     }

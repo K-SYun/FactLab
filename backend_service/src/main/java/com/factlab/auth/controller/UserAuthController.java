@@ -13,6 +13,8 @@ import com.factlab.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +22,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-// @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})  // nginx에서 CORS 처리하므로 비활성화
 public class UserAuthController {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(UserAuthController.class);
+
     @Autowired
     private UserAuthService userAuthService;
-    
+
     @Autowired
     private EmailVerificationService emailVerificationService;
     
@@ -69,23 +72,22 @@ public class UserAuthController {
             @Valid @RequestBody EmailVerificationRequestDto requestDto) {
         
         try {
-            System.out.println("인증 코드 발송 요청: " + requestDto.getEmail()); // 디버깅 로그
-            
+            logger.info("이메일 인증 코드 발송 요청: {}", requestDto.getEmail());
+
             boolean sent = emailVerificationService.sendVerificationCode(requestDto.getEmail());
-            
+
             if (sent) {
-                System.out.println("인증 코드 발송 성공: " + requestDto.getEmail()); // 디버깅 로그
+                logger.info("이메일 인증 코드 발송 성공: {}", requestDto.getEmail());
                 return ResponseEntity.ok(ApiResponse.success("인증 코드가 발송되었습니다."));
             } else {
-                System.out.println("인증 코드 발송 실패: " + requestDto.getEmail()); // 디버깅 로그
+                logger.warn("이메일 인증 코드 발송 실패: {}", requestDto.getEmail());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("인증 코드 발송에 실패했습니다."));
             }
         } catch (Exception e) {
-            System.out.println("인증 코드 발송 중 예외 발생: " + e.getMessage()); // 디버깅 로그
-            e.printStackTrace();
+            logger.error("이메일 인증 코드 발송 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("인증 코드 발송 중 오류가 발생했습니다: " + e.getMessage()));
+                .body(ApiResponse.error("인증 코드 발송 중 오류가 발생했습니다."));
         }
     }
     
@@ -97,65 +99,43 @@ public class UserAuthController {
             @Valid @RequestBody EmailVerificationDto requestDto) {
         
         try {
-            System.out.println("이메일 인증 요청 수신: " + requestDto.getEmail() + ", 코드: " + requestDto.getCode()); // 디버깅 로그
-            
+            logger.debug("이메일 인증 요청: email={}", requestDto.getEmail());
+
             // validation 체크
             if (requestDto.getEmail() == null || requestDto.getEmail().trim().isEmpty()) {
-                System.out.println("이메일이 비어있음"); // 디버깅 로그
+                logger.warn("이메일 인증 실패: 이메일이 비어있음");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("이메일은 필수입니다."));
             }
-            
+
             if (requestDto.getCode() == null || requestDto.getCode().trim().isEmpty()) {
-                System.out.println("인증 코드가 비어있음"); // 디버깅 로그
+                logger.warn("이메일 인증 실패: 인증 코드가 비어있음");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("인증 코드는 필수입니다."));
             }
-            
+
             if (requestDto.getCode().length() != 6) {
-                System.out.println("인증 코드 길이 오류: " + requestDto.getCode().length()); // 디버깅 로그
+                logger.warn("이메일 인증 실패: 인증 코드 길이 오류 ({}자)", requestDto.getCode().length());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("인증 코드는 6자리여야 합니다."));
             }
-            
+
             boolean verified = emailVerificationService.verifyCode(requestDto.getEmail(), requestDto.getCode());
-            
+
             if (verified) {
-                System.out.println("이메일 인증 성공: " + requestDto.getEmail()); // 디버깅 로그
+                logger.info("이메일 인증 성공: {}", requestDto.getEmail());
                 return ResponseEntity.ok(ApiResponse.success("이메일 인증이 완료되었습니다."));
             } else {
-                System.out.println("이메일 인증 실패: " + requestDto.getEmail() + ", 코드: " + requestDto.getCode()); // 디버깅 로그
+                logger.warn("이메일 인증 실패: email={}", requestDto.getEmail());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("인증 코드가 올바르지 않거나 만료되었습니다."));
             }
         } catch (Exception e) {
-            System.out.println("이메일 인증 중 예외 발생: " + e.getMessage()); // 디버깅 로그
-            e.printStackTrace();
+            logger.error("이메일 인증 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("이메일 인증 중 오류가 발생했습니다: " + e.getMessage()));
+                .body(ApiResponse.error("이메일 인증 중 오류가 발생했습니다."));
         }
     }
-    
-    /**
-     * 테스트용 이메일 인증 (간단 버전)
-     */
-    @PostMapping("/test-verify-email")
-    public ResponseEntity<ApiResponse<String>> testVerifyEmail(
-            @RequestBody EmailVerificationDto requestDto) {
-        
-        System.out.println("테스트 이메일 인증 요청: " + requestDto.getEmail() + ", 코드: " + requestDto.getCode());
-        
-        // 테스트용: 무조건 123456이면 성공
-        if ("123456".equals(requestDto.getCode())) {
-            System.out.println("테스트 인증 성공");
-            return ResponseEntity.ok(ApiResponse.success("테스트 이메일 인증이 완료되었습니다."));
-        } else {
-            System.out.println("테스트 인증 실패");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("테스트: 123456을 입력하세요."));
-        }
-    }
-    
     /**
      * 사용자 회원가입
      */
@@ -164,31 +144,25 @@ public class UserAuthController {
             @Valid @RequestBody UserRegisterRequestDto requestDto) {
         
         try {
-            System.out.println("회원가입 요청: " + requestDto.getEmail() + ", " + requestDto.getNickname()); // 디버깅 로그
-            
-            // 테스트 환경에서는 이메일 인증 체크 우회 (임시)
-            // TODO: 프로덕션에서는 이메일 인증 체크 활성화 필요
-            boolean isTestMode = true; // 테스트 모드
-            
-            if (!isTestMode) {
-                // 이메일 인증 상태 확인
-                if (!emailVerificationService.isEmailVerified(requestDto.getEmail())) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ApiResponse.error("이메일 인증을 완료해주세요."));
-                }
+            logger.info("회원가입 요청: email={}, nickname={}", requestDto.getEmail(), requestDto.getNickname());
+
+            // 이메일 인증 상태 확인
+            if (!emailVerificationService.isEmailVerified(requestDto.getEmail())) {
+                logger.warn("회원가입 실패: 이메일 미인증 - {}", requestDto.getEmail());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("이메일 인증을 완료해주세요."));
             }
-            
+
             UserRegisterResponseDto result = userAuthService.registerUser(requestDto);
-            System.out.println("회원가입 성공: " + result.getEmail()); // 디버깅 로그
+            logger.info("회원가입 성공: email={}, userId={}", result.getEmail(), result.getId());
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(result, "회원가입이 완료되었습니다."));
         } catch (IllegalArgumentException e) {
-            System.out.println("회원가입 실패 (검증 오류): " + e.getMessage()); // 디버깅 로그
+            logger.warn("회원가입 실패 (검증 오류): {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-            System.out.println("회원가입 실패 (내부 오류): " + e.getMessage()); // 디버깅 로그
-            e.printStackTrace();
+            logger.error("회원가입 실패 (내부 오류): {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("회원가입 중 오류가 발생했습니다."));
         }

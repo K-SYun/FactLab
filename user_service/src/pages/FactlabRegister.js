@@ -274,7 +274,7 @@ const FactlabRegister = () => {
       });
 
       // 이메일 인증 코드 검증 요청
-      const response = await axios.post(`${API_BASE_URL}/auth/test-verify-email`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/verify-email`, {
         email: formData.email,
         code: emailVerification.code
       });
@@ -527,8 +527,9 @@ const FactlabRegister = () => {
     <div className="register-page">
       <header className="header">
         <div className="header-content">
-          <a href="/" className="logo">
-            <img src="/Logo.png" alt="PolRadar" className="logo-img" />
+          <a href="/" className="news-logo">
+            <img src="/Logo.png" alt="PolRadar Icon" className="news-logo-icon" />
+            <img src="/Logo2.png" alt="PolRadar" className="news-logo-text" />
           </a>
           <div className="nav-menu">
             <a href="/">홈</a>
@@ -571,7 +572,7 @@ const FactlabRegister = () => {
               />
               <span className="required">[필수]</span>
               <span className="terms-text">이용약관</span>
-              <a href="#" className="terms-link-inline">보기</a>
+              <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="terms-link-inline">보기</a>
             </label>
           </div>
           <div className="checkbox-group">
@@ -584,7 +585,7 @@ const FactlabRegister = () => {
               />
               <span className="required">[필수]</span>
               <span className="terms-text">개인정보처리방침</span>
-              <a href="#" className="terms-link-inline">보기</a>
+              <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="terms-link-inline">보기</a>
             </label>
           </div>
         </div>

@@ -543,7 +543,7 @@ body {
     display: grid;
     grid-template-columns: 200px 1200px 200px;
     gap: 20px;
-    padding: 10px;
+    padding: 20px;
     border: none !important;
     box-shadow: none !important;
 }
