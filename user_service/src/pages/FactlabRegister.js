@@ -811,6 +811,7 @@ const FactlabRegister = () => {
           </div>
         </form>
 
+        {/*
         <div className="divider">
           <span>또는</span>
         </div>
@@ -845,6 +846,7 @@ const FactlabRegister = () => {
             카카오로 회원가입
           </button>
         </div>
+        */}
 
         <div className="auth-links">
           <span>이미 계정이 있으신가요?</span>
