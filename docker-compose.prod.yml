@@ -296,7 +296,7 @@ networks:
     driver: bridge
   backend:
     driver: bridge
-    internal: true # 외부 접근 차단
+    # internal: true  # SMTP 접근을 위해 주석 처리
   monitoring:
     driver: bridge
     internal: true
