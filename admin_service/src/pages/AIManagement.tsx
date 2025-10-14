@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import StatusBadge from '../components/common/StatusBadge';
 import Pagination from '../components/common/Pagination';
 import '../styles/AIManagement.css';
+import { formatToKST } from '../utils/dateFormatter';
 
 interface NewsItem {
   id: number;
@@ -997,18 +998,7 @@ const AIManagement: React.FC = () => {
     return () => clearInterval(interval);
   }, [handleAutoSendCompleted]);
 
-  // 시간 포맷팅
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
 
   // 상태별 라벨
   const getStatusLabel = (status: string) => {
@@ -1492,7 +1482,7 @@ const AIManagement: React.FC = () => {
                   <div className="admin-flex admin-text-sm admin-text-gray-500" style={{ gap: '16px' }}>
                     <span><i className="fas fa-building mr-1"></i> {news.source} / {news.publisher}</span>
                     <span><i className="fas fa-folder mr-1"></i> {news.category}</span>
-                    <span><i className="fas fa-clock mr-1"></i> {formatDateTime(news.createdAt)}</span>
+                    <span><i className="fas fa-clock mr-1"></i> {formatToKST(news.createdAt)}</span>
                     <span><i className="fas fa-link mr-1"></i><a href={news.url} target="_blank" rel="noopener noreferrer" className="admin-text-blue-600 hover:admin-text-blue-800"> 원문 보기</a></span>
                   </div>
                 </div>
