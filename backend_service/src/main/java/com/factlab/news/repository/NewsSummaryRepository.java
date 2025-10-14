@@ -2,6 +2,7 @@ package com.factlab.news.repository;
 
 import com.factlab.news.entity.NewsSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -9,9 +10,15 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface NewsSummaryRepository extends JpaRepository<NewsSummary, Integer> {
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM NewsSummary ns WHERE ns.newsId IN :newsIds")
+    void deleteByNewsIdIn(@Param("newsIds") List<Integer> newsIds);
 
     // 뉴스 ID로 요약 조회 (기본: 완료된 것 중 첫 번째, 없으면 가장 최근 것)
     @Query("SELECT ns FROM NewsSummary ns WHERE ns.newsId = ?1 AND ns.status = 'COMPLETED' ORDER BY ns.updatedAt DESC")

@@ -65,12 +65,20 @@ public class PostService {
     public PostResponseDto getPost(Long postId) {
         Post post = postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-        
-        // 조회수 증가는 임시로 비활성화 (트랜잭션 이슈로 인해)
-        // TODO: 조회수 증가 기능 수정 필요
-        // incrementViewCount(postId);
-        
-        return new PostResponseDto(post, true); // 댓글 포함
+
+        // 이전/다음 게시글 조회
+        Post previousPost = postRepository.findTopByBoardIdAndIdLessThanOrderByIdDesc(post.getBoard().getId(), postId).orElse(null);
+        Post nextPost = postRepository.findTopByBoardIdAndIdGreaterThanOrderByIdAsc(post.getBoard().getId(), postId).orElse(null);
+
+        PostResponseDto responseDto = new PostResponseDto(post, true); // 댓글 포함
+        if (previousPost != null) {
+            responseDto.setPreviousPost(new PostResponseDto.PostStubDto(previousPost));
+        }
+        if (nextPost != null) {
+            responseDto.setNextPost(new PostResponseDto.PostStubDto(nextPost));
+        }
+
+        return responseDto;
     }
     
     /**

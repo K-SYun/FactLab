@@ -6,6 +6,7 @@ import { AdLayout } from '../components/ads';
 import '../styles/News.css';
 import '../styles/Main.css';
 import { newsApi } from '../services/api';
+import { formatToKST } from '../utils/dateFormatter.js';
 
 const FactlabNewsFeed = () => {
   const [searchParams] = useSearchParams();
@@ -255,11 +256,6 @@ const FactlabNewsFeed = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
-
   return (
     <>
       <Header />
@@ -369,7 +365,7 @@ const FactlabNewsFeed = () => {
                       {/* 뉴스 통계 및 액션 */}
                       <div className="news_stats">
                         <div className="news_stats_left">
-                          <span>{newsItem.source} | {newsItem.category} | {formatDate(newsItem.publishDate)} | 👀 {newsItem.viewCount || 0}</span>
+                          <span>{newsItem.source} | {newsItem.category} | {formatToKST(newsItem.publishDate)} | 👀 {newsItem.viewCount || 0}</span>
                         </div>
                         <button
                           className="news_discussion_btn"

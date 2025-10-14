@@ -152,12 +152,35 @@ public class AdminNewsController {
         public void setAnalysisType(String analysisType) { this.analysisType = analysisType; }
     }
 
+    // DTO for Bulk Analyze News Request
+    public static class BulkAnalyzeNewsRequest {
+        private java.util.List<Integer> newsIds;
+        private String analysisType;
+
+        public java.util.List<Integer> getNewsIds() { return newsIds; }
+        public void setNewsIds(java.util.List<Integer> newsIds) { this.newsIds = newsIds; }
+
+        public String getAnalysisType() { return analysisType; }
+        public void setAnalysisType(String analysisType) { this.analysisType = analysisType; }
+    }
+
     @PostMapping("/analyze")
     @Operation(summary = "뉴스 AI 분석 실행", description = "선택된 뉴스에 대해 AI 분석을 실행합니다")
     public ApiResponse<String> analyzeNews(@RequestBody AnalyzeNewsRequest request) {
         try {
             adminNewsService.requestAIAnalysis(request.getNewsId(), request.getAnalysisType());
             return ApiResponse.success("뉴스 ID " + request.getNewsId() + "에 대한 AI 분석이 시작되었습니다");
+        } catch (Exception e) {
+            return ApiResponse.error("AI 분석 실행 실패: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/bulk-analyze")
+    @Operation(summary = "뉴스 일괄 AI 분석 실행", description = "선택된 여러 뉴스에 대해 AI 분석을 일괄 실행합니다.")
+    public ApiResponse<String> bulkAnalyzeNews(@RequestBody BulkAnalyzeNewsRequest request) {
+        try {
+            adminNewsService.requestBulkAIAnalysis(request.getNewsIds(), request.getAnalysisType());
+            return ApiResponse.success(request.getNewsIds().size() + "개의 뉴스에 대한 AI 분석이 시작되었습니다.");
         } catch (Exception e) {
             return ApiResponse.error("AI 분석 실행 실패: " + e.getMessage());
         }

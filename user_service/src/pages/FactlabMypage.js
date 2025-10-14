@@ -7,6 +7,7 @@ import { commentApi } from '../services/commentApi';
 import { mypageApi } from '../services/userApi';
 import { boardService } from '../services/boardApi';
 import { useAuth } from '../contexts/AuthContext';
+import { formatToKST } from '../utils/dateFormatter';
 import '../styles/Common.css';
 import '../styles/Main.css';
 import '../styles/News.css';
@@ -543,7 +544,7 @@ const FactlabMypage = () => {
     return (
       <>
         <Header />
-        <div className="main-container">
+        <div className="mypage-container">
           <div className="news-container">
             <div className="news-mypage-loading">로딩 중...</div>
           </div>
@@ -557,7 +558,7 @@ const FactlabMypage = () => {
     return (
       <>
         <Header />
-        <div className="main-container">
+        <div className="mypage-container">
           <div className="news-container">
             <div className="news-page-header">
               <div className="news-page-header-title">👤 마이페이지</div>
@@ -579,7 +580,7 @@ const FactlabMypage = () => {
       <div className="main-top-banner-ad">
         🎯 상단 배너 광고 영역 (1200px x 90px)
       </div>
-      <div className="main-container">
+      <div className="mypage-container">
         {/* 좌측 광고 */}
         <div className="main-side-ad">
 
@@ -680,8 +681,8 @@ const FactlabMypage = () => {
                   <div className="news-mypage-profile-info">
                     <div className="news-mypage-profile-name">{profileData.nickname || '닉네임 없음'}</div>
                     <div className="news-mypage-profile-stats">
-                      <span>가입일: {profileData.joinDate ? new Date(profileData.joinDate).toLocaleDateString('ko-KR') : '-'}</span>
-                      <span>최근 접속: {profileData.lastLogin ? new Date(profileData.lastLogin).toLocaleDateString('ko-KR') + ' ' + new Date(profileData.lastLogin).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
+                      <span>가입일: {formatToKST(profileData.joinDate)}</span>
+                      <span>최근 접속: {formatToKST(profileData.lastLogin)}</span>
                     </div>
                     <div className="news-mypage-level-info">
                       <div>레벨 {profileData.level} - {getLevelTitle(profileData.level)} (활동점수: {profileData.activityScore?.toLocaleString() || 0}점)</div>
@@ -797,10 +798,7 @@ const FactlabMypage = () => {
                             <td>{post?.boardName || '-'}</td>
                             <td>{post?.viewCount || 0}</td>
                             <td>{post?.commentCount || 0}</td>
-                            <td>{post?.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit'
-                            }) : '-'}</td>
+                            <td>{post?.createdAt ? formatToKST(post.createdAt).substring(0, 10) : '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -844,10 +842,7 @@ const FactlabMypage = () => {
                               </Link>
                             </td>
                             <td>{comment.likeCount || 0}</td>
-                            <td>{comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit'
-                            }) : '-'}</td>
+                            <td>{comment.createdAt ? formatToKST(comment.createdAt).substring(0, 10) : '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -891,10 +886,7 @@ const FactlabMypage = () => {
                             </td>
                             <td>{post.authorNickname || '-'}</td>
                             <td>{post.boardName || '-'}</td>
-                            <td>{post.likedAt ? new Date(post.likedAt).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit'
-                            }) : '-'}</td>
+                            <td>{post.likedAt ? formatToKST(post.likedAt).substring(0, 10) : '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -938,10 +930,7 @@ const FactlabMypage = () => {
                                     vote.voteType === 'PARTIAL' ? '⚠️ 부분사실' : vote.voteType}
                               </span>
                             </td>
-                            <td>{vote.votedAt ? new Date(vote.votedAt).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit'
-                            }) : '-'}</td>
+                            <td>{vote.votedAt ? formatToKST(vote.votedAt).substring(0, 10) : '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1046,7 +1035,7 @@ const FactlabMypage = () => {
                                     {accountInfo.providerName && ` | 이름: ${accountInfo.providerName}`}
                                   </div>
                                   <div className="social-account-date-info">
-                                    연결일: {new Date(accountInfo.createdAt).toLocaleDateString('ko-KR')}
+                                    연결일: {formatToKST(accountInfo.createdAt).substring(0, 10)}
                                   </div>
                                 </div>
                               )}

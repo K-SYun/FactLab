@@ -855,3 +855,8 @@
     border-color: #fdd835;
     color: #3c1e1e;
 }
+
+.social-logo {
+    width: 20px;
+    height: 20px;
+}

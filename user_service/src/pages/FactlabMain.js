@@ -9,6 +9,7 @@ import '../styles/Common.css';
 import '../styles/AdStyle.css';
 import { newsApi } from '../services/api';
 import { AdBanner } from '../components/ads';
+import { formatToKST } from '../utils/dateFormatter';
 
 const FactlabMain = () => {
   const navigate = useNavigate();
@@ -155,15 +156,7 @@ const FactlabMain = () => {
     }
   }, [location.state, navigate]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
 
-  const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
 
   const getCategoryName = (category) => {
     const categoryMap = {
@@ -249,7 +242,7 @@ const FactlabMain = () => {
                       <h3 className="main-news-title" onClick={() => goToNewsDetail(item.id)}>{item.title}</h3>
                       <p className="main-news-summary" onClick={() => goToNewsDetail(item.id)}>{item.content.substring(0, 120)}...</p>
                       <div className="main-news-meta">
-                        <span>{item.source} | {getCategoryName(item.category)} | {formatDate(item.publishDate)} | 👀 {item.viewCount || 0}</span>
+                        <span>{item.source} | {getCategoryName(item.category)} | {formatToKST(item.publishDate)} | 👀 {item.viewCount || 0}</span>
                         <div className="main-vote-buttons">
                           <span className="main-vote-btn agree">사실 ({item.factCount || 0})</span>
                           <span className="main-vote-btn disagree">의심 ({item.doubtCount || 0})</span>
@@ -348,7 +341,7 @@ const FactlabMain = () => {
               <h2 className="main-section-title">📰 오늘의 뉴스</h2>
               {todaysNews.map((item, index) => (
                 <div key={item.id} className="news-item">
-                  <strong>{formatTime(item.originalPublishDate || item.publishDate)}</strong>
+                  <strong>{formatToKST(item.originalPublishDate || item.publishDate).substring(11, 16)}</strong>
                   <span
                     className="main-todays-news-clickable"
                     onClick={() => goToNewsDetail(item.id)}

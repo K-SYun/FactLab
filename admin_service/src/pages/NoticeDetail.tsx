@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/AdminCommon.css';
 import '../styles/NoticeManagement.css';
 import { noticeApi, NoticeResponse } from '../api/noticeApi';
+import { formatToKST } from '../utils/dateFormatter';
 
 type Notice = NoticeResponse & {
   category?: 'ALL' | 'IMPORTANT' | 'UPDATE' | 'EVENT';
@@ -40,16 +41,6 @@ const NoticeDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const categoryLabels = {
@@ -132,12 +123,12 @@ const NoticeDetail: React.FC = () => {
             </div>
             <div className="detail-info-item">
               <span className="info-label">작성일:</span>
-              <span className="info-value">{formatDate(notice.createdAt)}</span>
+              <span className="info-value">{formatToKST(notice.createdAt)}</span>
             </div>
             {notice.updatedAt !== notice.createdAt && (
               <div className="detail-info-item">
                 <span className="info-label">수정일:</span>
-                <span className="info-value">{formatDate(notice.updatedAt)}</span>
+                <span className="info-value">{formatToKST(notice.updatedAt)}</span>
               </div>
             )}
             <div className="detail-info-item">

@@ -24,6 +24,8 @@ public class PostResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<CommentResponseDto> comments;
+    private PostStubDto previousPost;
+    private PostStubDto nextPost;
     
     // Constructors
     public PostResponseDto() {}
@@ -209,5 +211,50 @@ public class PostResponseDto {
     
     public void setComments(List<CommentResponseDto> comments) {
         this.comments = comments;
+    }
+
+    public PostStubDto getPreviousPost() {
+        return previousPost;
+    }
+
+    public void setPreviousPost(PostStubDto previousPost) {
+        this.previousPost = previousPost;
+    }
+
+    public PostStubDto getNextPost() {
+        return nextPost;
+    }
+
+    public void setNextPost(PostStubDto nextPost) {
+        this.nextPost = nextPost;
+    }
+
+    // Inner class for previous/next post stubs
+    public static class PostStubDto {
+        private Long id;
+        private String title;
+
+        public PostStubDto(Post post) {
+            if (post != null) {
+                this.id = post.getId();
+                this.title = post.getTitle();
+            }
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
     }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
@@ -28,6 +28,30 @@ const FactlabBoardView = () => {
     });
 
     const textareaRef = useRef(null);
+
+    const formatToKST = (dateString) => {
+        if (!dateString) return '';
+        try {
+            // Assume UTC if no 'Z', add it for correct parsing
+            const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+            const date = new Date(utcDateString);
+            if (isNaN(date)) return dateString.replace('T', ' ').substring(0, 19);
+
+            // Add 9 hours for KST
+            date.setHours(date.getHours() + 9);
+
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const hours = String(date.getUTCHours()).padStart(2, '0');
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        } catch (e) {
+            return dateString.replace('T', ' ').substring(0, 19);
+        }
+    };
 
     // 게시글 데이터 로드
     const loadPost = async () => {
@@ -67,7 +91,7 @@ const FactlabBoardView = () => {
         try {
             const actualPostId = urlPostId || postId;
             const commentsData = await boardCommentApi.getComments(actualPostId);
-            
+
             // 댓글 데이터를 프론트엔드 형식으로 변환
             const processedComments = commentsData.map(comment => ({
                 ...comment,
@@ -81,7 +105,7 @@ const FactlabBoardView = () => {
                     date: reply.createdAt || reply.date
                 })) : []
             }));
-            
+
             setComments(processedComments);
         } catch (error) {
             console.error('댓글 로드 오류:', error);
@@ -300,7 +324,7 @@ const FactlabBoardView = () => {
         const comment = comments.find(c => c.id === commentId);
         const reply = comments.flatMap(c => c.replies || []).find(r => r.id === commentId);
         const targetComment = comment || reply;
-        
+
         if (targetComment?.userId === user?.id) {
             alert('본인 댓글은 신고할 수 없습니다.');
             return;
@@ -384,7 +408,7 @@ const FactlabBoardView = () => {
                 <div className="main-container">
                     {/* 좌측 광고 */}
                     <div className="main-side-ad">
-                        
+
                     </div>
                     {/* 메인 컨텐츠 */}
                     <div className="main-content">
@@ -392,7 +416,7 @@ const FactlabBoardView = () => {
                     </div>
                     {/* 우측 광고 */}
                     <div className="main-side-ad">
-                        
+
                     </div>
                 </div>
                 <Footer />
@@ -411,7 +435,7 @@ const FactlabBoardView = () => {
                 <div className="main-container">
                     {/* 좌측 광고 */}
                     <div className="main-side-ad">
-                        
+
                     </div>
                     {/* 메인 컨텐츠 */}
                     <div className="main-content">
@@ -422,7 +446,7 @@ const FactlabBoardView = () => {
                     </div>
                     {/* 우측 광고 */}
                     <div className="main-side-ad">
-                        
+
                     </div>
                 </div>
                 <Footer />
@@ -439,7 +463,7 @@ const FactlabBoardView = () => {
             <div className="main-container">
                 {/* 좌측 광고 */}
                 <div className="main-side-ad">
-                    
+
                 </div>
                 {/* 메인 컨텐츠 */}
                 <div className="main-content">
@@ -449,7 +473,7 @@ const FactlabBoardView = () => {
                             <h1 className="board-view-title">{post.title}</h1>
                             <div className="board-view-meta">
                                 <div className="board-view-info">
-                                    <strong>{post.author || post.authorName}</strong> | {post.createdAt || post.created_at} | 조회 {post.viewCount || post.view_count || 0}
+                                    <strong>{post.author || post.authorName}</strong> | {formatToKST(post.createdAt || post.created_at)} | 조회 {post.viewCount || post.view_count || 0}
                                 </div>
                                 <div className="board-view-vote">
                                     <button
@@ -481,8 +505,8 @@ const FactlabBoardView = () => {
                         <div className="board-view-actions">
                             <div className="board-view-action-left">
                                 <button className="btn" onClick={handleSharePost}>공유</button>
-                                <button 
-                                    className={`btn ${post.isAuthor ? 'disabled' : ''}`} 
+                                <button
+                                    className={`btn ${post.isAuthor ? 'disabled' : ''}`}
                                     onClick={post.isAuthor ? null : handleReportPost}
                                     disabled={post.isAuthor}
                                     title={post.isAuthor ? '본인 게시글은 신고할 수 없습니다' : ''}
@@ -534,22 +558,22 @@ const FactlabBoardView = () => {
                                 <div key={comment.id} className="board-view-comment-item">
                                     <div className="board-view-comment-header">
                                         <span className="board-view-comment-author">{comment.author}</span>
-                                        <span className="board-view-comment-date">{comment.date}</span>
+                                        <span className="board-view-comment-date">{formatToKST(comment.date)}</span>
                                     </div>
                                     <div className={`board-view-comment-content ${comment.isDeleted ? 'board-view-comment-deleted' : ''}`}>
                                         {comment.content}
                                     </div>
                                     {!comment.isDeleted && (
                                         <div className="board-view-comment-actions">
-                                            <a href="#" 
-                                               className={user?.id === comment.userId ? 'disabled' : ''}
-                                               onClick={(e) => {
-                                                   e.preventDefault();
-                                                   if (user?.id !== comment.userId) {
-                                                       handleLikeComment(comment.id);
-                                                   }
-                                               }}
-                                               title={user?.id === comment.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
+                                            <a href="#"
+                                                className={user?.id === comment.userId ? 'disabled' : ''}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (user?.id !== comment.userId) {
+                                                        handleLikeComment(comment.id);
+                                                    }
+                                                }}
+                                                title={user?.id === comment.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
                                             >
                                                 👍 추천 {comment.likes || 0}
                                             </a>
@@ -559,15 +583,15 @@ const FactlabBoardView = () => {
                                             }}>
                                                 답글
                                             </a>
-                                            <a href="#" 
-                                               className={user?.id === comment.userId ? 'disabled' : ''}
-                                               onClick={(e) => {
-                                                   e.preventDefault();
-                                                   if (user?.id !== comment.userId) {
-                                                       handleReportComment(comment.id);
-                                                   }
-                                               }}
-                                               title={user?.id === comment.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
+                                            <a href="#"
+                                                className={user?.id === comment.userId ? 'disabled' : ''}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (user?.id !== comment.userId) {
+                                                        handleReportComment(comment.id);
+                                                    }
+                                                }}
+                                                title={user?.id === comment.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
                                             >
                                                 신고
                                             </a>
@@ -587,33 +611,33 @@ const FactlabBoardView = () => {
                                         <div key={reply.id} className="board-view-reply-item">
                                             <div className="board-view-comment-header">
                                                 <span className="board-view-comment-author">{reply.author}</span>
-                                                <span className="board-view-comment-date">{reply.date}</span>
+                                                <span className="board-view-comment-date">{formatToKST(reply.date)}</span>
                                             </div>
                                             <div className="board-view-comment-content">
                                                 {reply.content}
                                             </div>
                                             <div className="board-view-comment-actions">
-                                                <a href="#" 
-                                                   className={user?.id === reply.userId ? 'disabled' : ''}
-                                                   onClick={(e) => {
-                                                       e.preventDefault();
-                                                       if (user?.id !== reply.userId) {
-                                                           handleLikeComment(reply.id, true, comment.id);
-                                                       }
-                                                   }}
-                                                   title={user?.id === reply.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
+                                                <a href="#"
+                                                    className={user?.id === reply.userId ? 'disabled' : ''}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (user?.id !== reply.userId) {
+                                                            handleLikeComment(reply.id, true, comment.id);
+                                                        }
+                                                    }}
+                                                    title={user?.id === reply.userId ? '본인 댓글에는 추천할 수 없습니다' : ''}
                                                 >
                                                     👍 추천 {reply.likes || 0}
                                                 </a>
-                                                <a href="#" 
-                                                   className={user?.id === reply.userId ? 'disabled' : ''}
-                                                   onClick={(e) => {
-                                                       e.preventDefault();
-                                                       if (user?.id !== reply.userId) {
-                                                           handleReportComment(reply.id);
-                                                       }
-                                                   }}
-                                                   title={user?.id === reply.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
+                                                <a href="#"
+                                                    className={user?.id === reply.userId ? 'disabled' : ''}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (user?.id !== reply.userId) {
+                                                            handleReportComment(reply.id);
+                                                        }
+                                                    }}
+                                                    title={user?.id === reply.userId ? '본인 댓글은 신고할 수 없습니다' : ''}
                                                 >
                                                     신고
                                                 </a>
@@ -634,7 +658,7 @@ const FactlabBoardView = () => {
                             {/* More comments button */}
                             <div className="board-view-more-comments">
                                 <button className="btn" onClick={handleLoadMoreComments}>
-                                    댓글 더보기 (64개 남음)
+                                    댓글 더보기
                                 </button>
                             </div>
                         </div>
@@ -644,27 +668,35 @@ const FactlabBoardView = () => {
                             <div className="board-view-nav-links">
                                 <div>
                                     <strong>이전글:</strong>{' '}
-                                    <a href="/board/view/1235" className="board-view-nav-link">
-                                        선거제도 개편에 대한 시민들의 의견은?
-                                    </a>
+                                    {post.previousPost ? (
+                                        <Link to={`/board/view/${post.previousPost.id}`} className="board-view-nav-link">
+                                            {post.previousPost.title}
+                                        </Link>
+                                    ) : (
+                                        <span>없음</span>
+                                    )}
                                 </div>
                                 <div>
                                     <strong>다음글:</strong>{' '}
-                                    <a href="/board/view/1233" className="board-view-nav-link">
-                                        오늘 발표된 경제 정책 분석해보겠습니다
-                                    </a>
+                                    {post.nextPost ? (
+                                        <Link to={`/board/view/${post.nextPost.id}`} className="board-view-nav-link">
+                                            {post.nextPost.title}
+                                        </Link>
+                                    ) : (
+                                        <span>없음</span>
+                                    )}
                                 </div>
                             </div>
                             <div className="board-view-nav-buttons">
-                                <a href="/board" className="btn">목록</a>
-                                <a href="/board/write" className="btn btn-primary">글쓰기</a>
+                                <Link to={`/board/${boardId || ''}`} className="btn">목록</Link>
+                                <Link to={`/board/write?boardId=${boardId || ''}`} className="btn btn-primary">글쓰기</Link>
                             </div>
                         </div>
                     </div>
                 </div>
                 {/* 우측 광고 */}
                 <div className="main-side-ad">
-                    
+
                 </div>
             </div>
             <Footer />

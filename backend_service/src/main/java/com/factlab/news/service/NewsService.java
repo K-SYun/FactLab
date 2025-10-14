@@ -262,6 +262,18 @@ public class NewsService {
         newsRepository.delete(news);
     }
 
+    // 여러 뉴스 일괄 삭제
+    public void bulkDeleteNews(List<Integer> newsIds) {
+        if (newsIds == null || newsIds.isEmpty()) {
+            return;
+        }
+        // 1. 연관된 모든 NewsSummary를 한 번에 삭제
+        newsSummaryRepository.deleteByNewsIdIn(newsIds);
+
+        // 2. 뉴스 기사들을 한 번에 삭제
+        newsRepository.deleteAllByIdInBatch(newsIds);
+    }
+
     // 모든 뉴스 삭제 (테스트용)
     public int deleteAllNews() {
         java.util.List<News> allNews = newsRepository.findAll();

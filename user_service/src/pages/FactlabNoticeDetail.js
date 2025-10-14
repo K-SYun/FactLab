@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import '../styles/Common.css';
 import '../styles/Notice.css';
 import { noticeApi } from '../services/noticeApi';
+import { formatToKST } from '../utils/dateFormatter';
 
 const FactlabNoticeDetail = () => {
   const { id } = useParams();
@@ -32,16 +33,6 @@ const FactlabNoticeDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (loading) {
@@ -121,7 +112,7 @@ const FactlabNoticeDetail = () => {
               <h1 className="news-notice-detail-title">{notice.title}</h1>
               <div className="news-notice-detail-meta">
                 <span>작성자: 관리자</span>
-                <span>작성일: {formatDate(notice.createdAt)}</span>
+                <span>작성일: {formatToKST(notice.createdAt)}</span>
                 <span>조회수: {(notice.viewCount || 0).toLocaleString()}</span>
               </div>
             </div>

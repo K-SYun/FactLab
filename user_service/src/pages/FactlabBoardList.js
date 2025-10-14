@@ -16,6 +16,27 @@ const FactlabBoardList = () => {
   // 실제 API 데이터 사용
   const { boards, loading, error, refetch } = useBoards();
 
+  const formatToKST = (dateString) => {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString.includes('Z') ? dateString : dateString + 'Z');
+        
+        const kstOffset = 9 * 60 * 60 * 1000;
+        const kstDate = new Date(date.getTime() + kstOffset);
+
+        const year = kstDate.getUTCFullYear();
+        const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(kstDate.getUTCDate()).padStart(2, '0');
+        const hours = String(kstDate.getUTCHours()).padStart(2, '0');
+        const minutes = String(kstDate.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(kstDate.getUTCSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    } catch (e) {
+        return dateString.replace('T', ' ').substring(0, 19);
+    }
+  };
+
   const categories = [
     { key: 'board', label: '게시판' },
     { key: 'hobby', label: '취미' },
@@ -225,7 +246,7 @@ const FactlabBoardList = () => {
               <div className="board-desc">{board.description}</div>
               <div className="board-stats">
                 <span>상태: {board.status === 'ACTIVE' ? '활성' : '비활성'}</span>
-                <span>생성일: {new Date(board.createdAt).toLocaleDateString()}</span>
+                <span>생성일: {formatToKST(board.createdAt)}</span>
               </div>
             </div>
           ))}

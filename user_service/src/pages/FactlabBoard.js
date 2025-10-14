@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/Common.css';
 import '../styles/Board.css';
+import { formatToKST } from '../utils/dateFormatter.js';
 
 const FactlabBoard = () => {
   const { boardId } = useParams();
@@ -140,28 +141,6 @@ const FactlabBoard = () => {
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = now - date;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return date.toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-    } else if (diffDays < 7) {
-      return `${diffDays}일 전`;
-    } else {
-      return date.toLocaleDateString('ko-KR', {
-        month: '2-digit',
-        day: '2-digit'
-      });
     }
   };
 
@@ -329,7 +308,7 @@ const FactlabBoard = () => {
                           {post.authorName}
                         </div>
                         <div className="board-post-col-date">
-                          {formatDate(post.createdAt)}
+                          {formatToKST(post.createdAt).substring(0, 10)}
                         </div>
                         <div className="board-post-col-likes">
                           {post.likeCount}

@@ -67,6 +67,7 @@
 @media (max-width: 768px) {
   .main-top-banner-ad {
     height: 80px !important; /* 모바일에서는 높이 축소 */
+    margin: 10px 15px 15px; /* 좌우 15px로 메인 컨텐츠와 정렬 */
   }
 
   .main-bottom-banner-ad,

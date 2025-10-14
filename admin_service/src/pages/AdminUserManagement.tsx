@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Using text labels instead of icons for compatibility
 import '../styles/AdminUserManagement.css';
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '../api/auth';
+import { formatToKST } from '../utils/dateFormatter';
 
 interface AdminUser {
   id: number;
@@ -204,8 +205,8 @@ const AdminUserManagement: React.FC = () => {
                     {user.isActive ? '활성' : '비활성'}
                   </span>
                 </td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>{user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '-'}</td>
+                <td>{formatToKST(user.createdAt).substring(0, 10)}</td>
+                <td>{user.lastLogin ? formatToKST(user.lastLogin) : '-'}</td>
                 <td className="admin-actions">
                   <button
                     className="admin-btn-icon admin-btn-edit"

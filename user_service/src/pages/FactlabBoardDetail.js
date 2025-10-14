@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { AdLayout } from '../components/ads';
 import { boardService } from '../services/boardApi';
 import '../styles/Board.css';
+import { formatToKST } from '../utils/dateFormatter';
 
 const FactlabBoardDetail = () => {
   const { boardId } = useParams();
@@ -162,26 +163,6 @@ const FactlabBoardDetail = () => {
     return totalElements - (currentPage * 20) - index;
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = now - date;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      // 오늘이면 시간만 표시
-      return date.toTimeString().slice(0, 5);
-    } else if (diffDays < 7) {
-      // 일주일 내이면 MM-DD 형식
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${month}-${day}`;
-    } else {
-      // 일주일 이상이면 YYYY-MM-DD 형식
-      return date.toISOString().split('T')[0];
-    }
-  };
-
   const renderPagination = () => {
     const pages = [];
     const startPage = Math.max(0, currentPage - 2);
@@ -320,7 +301,7 @@ const FactlabBoardDetail = () => {
                       </td>
                       <td className="author-cell">{post.author || '익명'}</td>
                       <td>{(post.viewCount || 0).toLocaleString()}</td>
-                      <td className="date-cell">{formatDate(post.createdAt)}</td>
+                      <td className="date-cell">{formatToKST(post.createdAt)}</td>
                     </tr>
                   ))
                 )}

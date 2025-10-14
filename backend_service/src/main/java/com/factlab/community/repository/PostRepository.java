@@ -162,4 +162,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * 특정 게시판의 일반 게시글만 조회 (공지 제외, 최신순 정렬)
      */
     Page<Post> findByBoard_IdAndIsNoticeFalseAndStatusOrderByCreatedAtDesc(Long boardId, PostStatus status, Pageable pageable);
+
+    /**
+     * 이전/다음 게시글 조회
+     */
+    Optional<Post> findTopByBoardIdAndIdLessThanOrderByIdDesc(Long boardId, Long id);
+    Optional<Post> findTopByBoardIdAndIdGreaterThanOrderByIdAsc(Long boardId, Long id);
 }

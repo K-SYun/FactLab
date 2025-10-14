@@ -161,4 +161,20 @@ public class AdminNewsService {
             throw new RuntimeException("뉴스를 찾을 수 없습니다: " + newsId);
         }
     }
+
+    public void requestBulkAIAnalysis(List<Integer> newsIds, String analysisType) {
+        if (newsIds == null || newsIds.isEmpty()) {
+            throw new IllegalArgumentException("뉴스 ID 목록이 비어있습니다.");
+        }
+
+        for (Integer newsId : newsIds) {
+            try {
+                // 개별 분석 요청 메서드 호출
+                requestAIAnalysis(newsId, analysisType);
+            } catch (Exception e) {
+                // 개별 실패는 로그만 남기고 계속 진행
+                System.err.println("AI analysis request failed for news ID: " + newsId + " - " + e.getMessage());
+            }
+        }
+    }
 }

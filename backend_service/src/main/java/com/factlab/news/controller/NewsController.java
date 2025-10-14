@@ -242,6 +242,20 @@ public class NewsController {
         }
     }
 
+    @PostMapping("/bulk/delete")
+    @Operation(summary = "뉴스 일괄 삭제", description = "여러 뉴스를 일괄로 삭제합니다.")
+    public ApiResponse<String> bulkDeleteNews(@RequestBody BulkActionRequest request) {
+        try {
+            if (request.newsIds == null || request.newsIds.isEmpty()) {
+                return ApiResponse.error("삭제할 뉴스의 ID 목록이 비어있습니다.");
+            }
+            newsService.bulkDeleteNews(request.newsIds);
+            return ApiResponse.success(request.newsIds.size() + "개의 뉴스가 삭제되었습니다.");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     // 모든 뉴스 삭제 (테스트용)
     @DeleteMapping
     @Operation(summary = "모든 뉴스 삭제", description = "모든 뉴스를 삭제합니다. (테스트용)")

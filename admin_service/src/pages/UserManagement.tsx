@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userApi, User, UserStats } from '../api/userApi';
+import { formatToKST } from '../utils/dateFormatter';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -448,10 +449,10 @@ const UserManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="admin-text-sm admin-text-gray-600">
-                    {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                    {formatToKST(user.createdAt).substring(0, 10)}
                   </td>
                   <td className="admin-text-sm admin-text-gray-600">
-                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('ko-KR') : '없음'}
+                    {user.lastLoginAt ? formatToKST(user.lastLoginAt) : '없음'}
                   </td>
                   <td>{getStatusBadge(user.status)}</td>
                   <td>

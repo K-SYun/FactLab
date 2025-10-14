@@ -4,63 +4,7 @@ import Footer from '../components/Footer';
 import '../styles/Common.css';
 import '../styles/Notice.css';
 import { noticeApi } from '../services/noticeApi';
-
-// 샘플 공지사항 데이터
-const sampleNotices = [
-  {
-    id: 1,
-    type: 'important',
-    category: 'important',
-    title: '서비스 이용약관 및 개인정보처리방침 개정 안내',
-    author: '관리자',
-    views: 1247,
-    date: '2024-12-30',
-    isImportant: true,
-    isNew: true
-  },
-  {
-    id: 2,
-    type: 'important',
-    category: 'important',
-    title: '2025년 신년 서비스 업데이트 안내',
-    author: '관리자',
-    views: 892,
-    date: '2024-12-28',
-    isImportant: true,
-    isNew: true
-  },
-  {
-    id: 3,
-    type: 'general',
-    category: 'general',
-    title: '커뮤니티 운영정책 변경 안내',
-    author: '운영팀',
-    views: 456,
-    date: '2024-12-25',
-    isImportant: false,
-    isNew: false
-  },
-  {
-    id: 4,
-    type: 'general',
-    category: 'general',
-    title: '정기 점검 일정 안내',
-    author: '기술팀',
-    views: 234,
-    date: '2024-12-22',
-    isImportant: false,
-    isNew: false
-  }
-];
-
-// NEW 아이콘 표시 여부 (3일 이내)
-const isNewNotice = (date) => {
-  const today = new Date();
-  const noticeDate = new Date(date);
-  const diffTime = today - noticeDate;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays <= 3;
-};
+import { formatToKST } from '../utils/dateFormatter';
 
 const FactlabNotice = () => {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -95,7 +39,7 @@ const FactlabNotice = () => {
           title: notice.title,
           author: notice.authorName || notice.user?.nickname || '관리자',
           views: notice.viewCount || 0,
-          date: notice.createdAt ? notice.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+          date: notice.createdAt, // 전체 날짜 및 시간 정보 유지
           isImportant: notice.isNotice,
           isNew: isNewNotice(notice.createdAt)
         }));
@@ -313,7 +257,7 @@ const FactlabNotice = () => {
                       </td>
                       <td>관리자</td>
                       <td>{notice.views ? notice.views.toLocaleString() : 0}</td>
-                      <td>{new Date(notice.date).toLocaleDateString('ko-KR')}</td>
+                      <td>{formatToKST(notice.date)}</td>
                     </tr>
                   ))}
                 </tbody>

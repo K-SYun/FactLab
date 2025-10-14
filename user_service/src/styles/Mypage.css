@@ -444,24 +444,24 @@
     border-color: #bd2130;
 }
 
-/* 마이페이지에서 main-container 사용 시 news-container 스타일 조정 */
-.main-container .news-container {
-    max-width: none; /* main-container의 그리드 제약을 따름 */
-    margin: 0; /* main-container가 이미 중앙 정렬 */
+/* 마이페이지에서 mypage-container 사용 시 news-container 스타일 조정 */
+.mypage-container .news-container {
+    max-width: none; /* mypage-container의 그리드 제약을 따름 */
+    margin: 0; /* mypage-container가 이미 중앙 정렬 */
     border: none; /* 중복 테두리 제거 */
     background-color: transparent; /* main-content가 배경 처리 */
-    padding: 0; /* main-container가 이미 패딩 제공 */
+    padding: 0; /* mypage-container가 이미 패딩 제공 */
 }
 
 /* 마이페이지 콘텐츠 영역을 다시 흰색 배경으로 */
-.main-container .news-mypage-content {
+.mypage-container .news-mypage-content {
     background-color: white;
     border-radius: 8px;
 
 }
 
 /* 페이지 헤더도 스타일 조정 */
-.main-container .news-page-header {
+.mypage-container .news-page-header {
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -486,14 +486,15 @@
         justify-content: center;
     }
     
-    /* 모바일에서 main-container 조정 */
-    .main-container {
+    /* 모바일에서 마이페이지의 mypage-container만 조정 */
+    .mypage-container {
         grid-template-columns: 1fr;
         padding: 10px;
     }
-    
-    .main-side-ad {
-        display: none; /* 모바일에서 사이드 광고 숨김 */
+
+    /* 마이페이지의 사이드 광고 숨김 */
+    .mypage-container:has(.news-mypage-content) .main-side-ad {
+        display: none;
     }
 }
 
