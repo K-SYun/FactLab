@@ -273,8 +273,7 @@ const AdDisplay = ({
                style={{ display: 'block' }}
                data-ad-client="ca-pub-1234567890123456"
                data-ad-slot={current_ad.ad_unit_id?.split('/')[1]}
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
+               data-ad-format="horizontal"></ins>
         </div>
       </div>
     );

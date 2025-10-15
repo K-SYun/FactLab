@@ -105,3 +105,17 @@
 .adsbygoogle[data-adsbygoogle-status="unfilled"]::after {
   content: "광고";
 }
+
+/* 모바일 광고 높이 강제 조정을 위한 애니메이션 */
+@media (max-width: 768px) {
+  .main-top-banner-ad {
+    animation: force-ad-height 0.1s forwards;
+  }
+}
+
+@keyframes force-ad-height {
+  to {
+    height: 80px !important;
+    min-height: 80px !important; /* 추가적인 강제 적용 */
+  }
+}

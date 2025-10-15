@@ -4,7 +4,7 @@ const AdBanner = ({
   adSlot,
   adFormat = 'auto',
   className = '',
-  fullWidthResponsive = true,
+  fullWidthResponsive = false,
   style = {}
 }) => {
   const adRef = useRef(null);

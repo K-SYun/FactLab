@@ -51,7 +51,7 @@ const AdLayout = ({ children, showSideAds = true, showTopAd = true, showBottomAd
           <AdBanner
             key="bottom-ad-2"
             className="main-bottom-banner-ad-second"
-            adSlot="9999999997" // TODO: 새 광고 슬롯 ID로 교체해야 합니다.
+            adSlot="1567406809" // TODO: 새 광고 슬롯 ID로 교체해야 합니다.
             adFormat="horizontal"
           />
         </>
