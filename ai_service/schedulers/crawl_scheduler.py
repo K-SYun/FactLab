@@ -177,39 +177,36 @@ class CrawlScheduler:
     def setup_schedule(self):
         """크롤링 스케줄 설정"""
         logger.info("Setting up crawling schedule...")
-        
-        # 2시간 간격으로 실행
-        # 네이버: 정시 (00분)
+
+        # 매일 아침 8시 크롤링 실행
         self.scheduler.add_job(
             self.crawl_naver_news,
-            CronTrigger(minute=0, second=0),  # 매 시간 정시
-            id='naver_crawl',
+            CronTrigger(hour=8, minute=0, second=0),
+            id='naver_crawl_daily_8am',
             max_instances=1,
             coalesce=True
         )
-        
-        # 다음: 20분 
         self.scheduler.add_job(
             self.crawl_daum_news,
-            CronTrigger(minute=20, second=0),  # 매 시간 20분
-            id='daum_crawl',
+            CronTrigger(hour=8, minute=2, second=0),  # 2분 간격
+            id='daum_crawl_daily_8am',
             max_instances=1,
             coalesce=True
         )
-        
-        # 구글: 40분 (향후 구현)
-        self.scheduler.add_job(
-            self.crawl_google_news,
-            CronTrigger(minute=40, second=0),  # 매 시간 40분
-            id='google_crawl',
-            max_instances=1,
-            coalesce=True
-        )
-        
-        logger.info("Crawling schedule configured:")
-        logger.info("  - Naver: Every hour at :00")
-        logger.info("  - Daum: Every hour at :20") 
-        logger.info("  - Google: Every hour at :40 (placeholder)")
+
+        # 구글 크롤링은 매일 8시 4분에 실행되도록 설정 (향후 구현)
+        # self.scheduler.add_job(
+        #     self.crawl_google_news,
+        #     CronTrigger(hour=8, minute=4, second=0),
+        #     id='google_crawl_daily_8am',
+        #     max_instances=1,
+        #     coalesce=True
+        # )
+
+        logger.info("Crawling schedule configured for once a day at 8 AM.")
+        logger.info("  - Naver (Daily): Every day at 08:00")
+        logger.info("  - Daum (Daily): Every day at 08:02")
+        # logger.info("  - Google (Daily): Every day at 08:04 (placeholder)")
     
     async def start_scheduler(self):
         """스케줄러 시작"""
