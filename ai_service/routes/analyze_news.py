@@ -31,23 +31,11 @@ def get_news_by_id(news_id: int):
         conn.close()
 
 def get_existing_analysis_type(news_id: int):
-    """기존 분석 타입 조회 - 사용하지 않음 (deprecated)"""
+    """기존 분석 타입 조회"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT analysis_type FROM news_summary WHERE news_id = %s", (news_id,))
-        result = cursor.fetchone()
-        return result['analysis_type'] if result else None
-    finally:
-        cursor.close()
-        conn.close()
-
-def get_analysis_type_by_summary_id(summary_id: int):
-    """summary_id로 분석 타입 조회"""
-    conn = get_db_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT analysis_type FROM news_summary WHERE id = %s", (summary_id,))
         result = cursor.fetchone()
         return result['analysis_type'] if result else None
     finally:
@@ -78,14 +66,11 @@ async def analyze_news(
                 cursor.close()
                 conn.close()
 
-        # 분석 타입 결정
-        # summary_id가 있으면 해당 레코드의 타입 사용 (재분석)
-        # 없으면 요청된 타입 사용 (신규 분석)
-        if summary_id:
-            existing_analysis_type = get_analysis_type_by_summary_id(summary_id)
-            final_analysis_type = existing_analysis_type or analysis_type or "COMPREHENSIVE"
-        else:
-            final_analysis_type = analysis_type or "COMPREHENSIVE"
+        # 기존 분석 타입 조회 (재분석인 경우)
+        existing_analysis_type = get_existing_analysis_type(news_id)
+        
+        # 분석 타입 결정: 기존 타입 > 요청 타입 > 기본값
+        final_analysis_type = existing_analysis_type or analysis_type or "COMPREHENSIVE"
         
         # 분석 타입 검증 및 매핑 
         type_mapping = {
@@ -98,8 +83,8 @@ async def analyze_news(
             raise HTTPException(status_code=400, detail=f"유효하지 않은 분석 타입입니다. 허용되는 값: {valid_types}")
         
         # 재분석인지 신규 분석인지 로그로 표시
-        if summary_id and 'existing_analysis_type' in locals() and existing_analysis_type:
-            logger.info(f"뉴스 {news_id} AI 재분석 요청 (Summary ID: {summary_id}, 타입: {final_analysis_type})")
+        if existing_analysis_type:
+            logger.info(f"뉴스 {news_id} AI 재분석 요청 (기존 타입 유지: {final_analysis_type})")
         else:
             logger.info(f"뉴스 {news_id} AI 신규 분석 요청 (타입: {final_analysis_type})")
         

@@ -69,16 +69,12 @@ class GeminiNewsAnalyzer:
 
             for attempt in range(max_retries):
                 try:
-                    logger.info(f"Attempting to call Gemini API ({attempt + 1}/{max_retries})...")
-                    start_time = time.time()
                     response = requests.post(
                         f"{self.api_url}?key={self.api_key}",
                         headers=headers,
                         data=json.dumps(payload),
                         timeout=60
                     )
-                    duration = time.time() - start_time
-                    logger.info(f"Gemini API responded in {duration:.2f} seconds.")
 
                     # 503 오류가 아니면 즉시 처리
                     if response.status_code != 503:
