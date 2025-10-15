@@ -54,7 +54,7 @@ const AdBanner = ({
           data-full-width-responsive={fullWidthResponsive}
         />
       ) : (
-        <div style={{ minHeight: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px' }}>
+        <div style={{ minHeight: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px' }}>
           {/* 광고 공간이 충분하지 않음 */}
         </div>
       )}
