@@ -28,7 +28,7 @@ export const mypageApi = {
   getUserProfile: (userId) => userApi.get(`/users/${userId}`),
   
   // 사용자 프로필 정보 업데이트 - 기존 백엔드 API 사용
-  updateUserProfile: (userId, profileData) => userApi.put(`/users/${userId}`, profileData),
+  updateUserProfile: (userId, profileData) => userApi.put(`/users/${userId}/profile`, profileData),
   
   // 사용자가 작성한 게시글 조회
   getUserPosts: (userId, page = 0, size = 10) => 

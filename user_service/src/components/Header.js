@@ -91,6 +91,7 @@ const Header = () => {
 
   return (
     <>
+      <div className="header-wrapper">
       <header className="news-header">
         <div className="news-header-content">
           <Link to="/" className="news-logo">
@@ -308,6 +309,7 @@ const Header = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </>
   );

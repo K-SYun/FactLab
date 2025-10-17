@@ -38,10 +38,8 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
 
     try {
       const result = await loginWithApi(formData.email, formData.password);
-      console.log('로그인 API 결과:', result);
 
       if (result.success) {
-        console.log('로그인 성공! 사용자 데이터:', result.data);
         alert(`${result.data.nickname}님, 로그인이 완료되었습니다!`);
 
         // 모달 닫기
@@ -57,11 +55,9 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
           }
         }
       } else {
-        console.error('로그인 실패:', result.error);
         alert(result.error || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      console.error('로그인 실패:', error);
       alert('로그인 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
@@ -77,13 +73,10 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
       const redirectUri = encodeURIComponent(`${window.location.origin}/auth/kakao/callback`);
       const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${kakaoClientId}&redirect_uri=${redirectUri}&state=login`;
 
-      console.log('카카오 로그인 URL:', kakaoAuthUrl);
-
       // 카카오 OAuth 페이지로 리디렉션
       window.location.href = kakaoAuthUrl;
 
     } catch (error) {
-      console.error('카카오 로그인 오류:', error);
       alert('카카오 로그인 중 오류가 발생했습니다.');
       setIsSubmitting(false);
     }
@@ -99,13 +92,10 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
       const scope = encodeURIComponent('openid email profile');
       const googleAuthUrl = `https://accounts.google.com/oauth/authorize?response_type=code&client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&state=login`;
 
-      console.log('구글 로그인 URL:', googleAuthUrl);
-
       // 구글 OAuth 페이지로 리디렉션
       window.location.href = googleAuthUrl;
 
     } catch (error) {
-      console.error('구글 로그인 오류:', error);
       alert('구글 로그인 중 오류가 발생했습니다.');
       setIsSubmitting(false);
     }
@@ -121,13 +111,10 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
       const state = Math.random().toString(36).substring(2, 15) + '_login'; // 로그인 구분을 위해 _login 추가
       const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naverClientId}&redirect_uri=${redirectUri}&state=${state}`;
 
-      console.log('네이버 로그인 URL:', naverAuthUrl);
-
       // 네이버 OAuth 페이지로 리디렉션
       window.location.href = naverAuthUrl;
 
     } catch (error) {
-      console.error('네이버 로그인 오류:', error);
       alert('네이버 로그인 중 오류가 발생했습니다.');
       setIsSubmitting(false);
     }
@@ -247,11 +234,11 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
               {isSubmitting ? '로그인 중...' : '로그인'}
             </button>
                     </form>
-          
-                    {/* <div className="divider">
+
+                    <div className="divider">
                       <span>또는</span>
                     </div>
-          
+
                     <div className="social-login">
                       <button
                         className="btn btn-social btn-naver"
@@ -269,7 +256,7 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
                         <img src="/images/kakao.svg" alt="Kakao logo" className="social-logo" />
                         {isSubmitting ? '연결 중...' : '카카오로 로그인'}
                       </button>
-          
+
                       <button
                         className="btn btn-social btn-google"
                         onClick={handleGoogleLogin}
@@ -278,7 +265,7 @@ const LoginModal = ({ isOpen, onClose, initialEmail = '', onLoginSuccess }) => {
                         <img src="/images/google.svg" alt="Google logo" className="social-logo" />
                         {isSubmitting ? '연결 중...' : '구글로 로그인'}
                       </button>
-                    </div> */}
+                    </div>
                     
                     <div className="register-link">            <span>아직 계정이 없으신가요?</span>
             <button type="button" className="link-btn" onClick={handleRegisterClick}>

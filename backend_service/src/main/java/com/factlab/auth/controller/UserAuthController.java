@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,9 @@ public class UserAuthController {
 
     @Autowired
     private EmailVerificationService emailVerificationService;
+
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
     
     /**
      * 이메일 중복 확인
@@ -74,7 +78,12 @@ public class UserAuthController {
         try {
             logger.info("이메일 인증 코드 발송 요청: {}", requestDto.getEmail());
 
-            boolean sent = emailVerificationService.sendVerificationCode(requestDto.getEmail());
+            boolean sent;
+            if ("dev".equals(activeProfile)) {
+                sent = emailVerificationService.sendVerificationCodeForDev(requestDto.getEmail());
+            } else {
+                sent = emailVerificationService.sendVerificationCode(requestDto.getEmail());
+            }
 
             if (sent) {
                 logger.info("이메일 인증 코드 발송 성공: {}", requestDto.getEmail());

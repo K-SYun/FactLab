@@ -11,7 +11,14 @@ RUN npm install
 COPY . .
 
 # Build React app for production
+ENV NODE_ENV=production
+ENV REACT_APP_API_URL=https://www.polradar.com/api
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
+
+# Remove console.log from production build (keep console.error and console.warn)
+RUN find /app/build/static/js -name "*.js" -type f -exec sed -i.bak -E 's/console\.(log|info|debug)\([^)]*\);//g' {} \; && \
+    find /app/build/static/js -name "*.js.bak" -type f -delete
 
 # Production stage - serve with Nginx
 FROM nginx:alpine

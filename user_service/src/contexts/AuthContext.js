@@ -107,23 +107,18 @@ export const AuthProvider = ({ children }) => {
 
   // 로그인 함수 (내부용)
   const login = (userData) => {
-    console.log('login 함수 호출됨:', userData);
     const currentDate = new Date().toISOString();
     const now = Date.now();
-    
+
     setUser(userData);
     setIsLoggedIn(true);
     setLoginDate(currentDate);
     setLastActivity(now);
-    
-    console.log('상태 설정 완료 - isLoggedIn: true, user:', userData);
-    
+
     // 로컬 스토리지에 저장
     localStorage.setItem('factlab_user', JSON.stringify(userData));
     localStorage.setItem('factlab_login_date', currentDate);
     localStorage.setItem('factlab_last_activity', now.toString());
-    
-    console.log('로컬 스토리지에 저장 완료');
     
     // 세션 타이머 시작
     const newTimeoutId = setTimeout(() => {
@@ -135,7 +130,10 @@ export const AuthProvider = ({ children }) => {
 
   // 백엔드 API를 통한 로그인 함수
   const loginWithApi = async (email, password) => {
-    console.log('loginWithApi 호출됨:', { email, password });
+    // 개발 환경에서만 로그 출력
+    if (process.env.NODE_ENV === 'development') {
+      console.log('loginWithApi 호출됨:', { email });
+    }
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -149,7 +147,9 @@ export const AuthProvider = ({ children }) => {
       });
 
       const result = await response.json();
-      console.log('백엔드 응답:', result);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('백엔드 응답 상태:', response.status);
+      }
 
       if (!result.success) {
         throw new Error(result.error || '로그인에 실패했습니다.');
@@ -163,13 +163,16 @@ export const AuthProvider = ({ children }) => {
         provider: result.data.provider || 'email',
       };
 
-      console.log('로그인 처리할 사용자 데이터:', userData);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('로그인 처리할 사용자 데이터:', userData);
+      }
       login(userData);
-      console.log('로그인 처리 완료, isLoggedIn:', isLoggedIn);
       return { success: true, data: userData };
-      
+
     } catch (error) {
-      console.error('로그인 오류:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('로그인 오류:', error);
+      }
       return { 
         success: false, 
         error: error.message || '로그인 중 오류가 발생했습니다.' 
@@ -179,7 +182,9 @@ export const AuthProvider = ({ children }) => {
 
   // 소셜 로그인 토큰으로 로그인 처리
   const loginWithSocialToken = async (userData) => {
-    console.log('소셜 로그인 처리:', userData);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('소셜 로그인 처리:', userData);
+    }
     
     // 소셜 로그인으로 받은 데이터로 내부 로그인 처리
     const processedUserData = {

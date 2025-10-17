@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "axios": "^1.11.0",
-    "http-proxy-middleware": "^2.0.6",
     "@ckeditor/ckeditor5-build-classic": "^39.0.2",
     "@ckeditor/ckeditor5-react": "^11.0.0",
+    "axios": "^1.11.0",
+    "http-proxy-middleware": "^2.0.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.7.0",
@@ -30,5 +30,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://backend-service:8080"
+  "proxy": "http://backend-service:8080",
+  "devDependencies": {
+    "babel-plugin-transform-remove-console": "^6.9.4"
+  }
 }

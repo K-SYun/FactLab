@@ -46,14 +46,15 @@ const SocialLoginCallback = () => {
 
           if (result.success && result.data) {
             setStatus(isSignup ? '회원가입 성공! 메인 페이지로 이동합니다...' : '로그인 성공! 메인 페이지로 이동합니다...');
-            
+
             // AuthContext의 로그인 함수 호출
             if (loginWithSocialToken) {
               await loginWithSocialToken(result.data);
             }
-            
-            alert(`${result.data.nickname}님, ${isSignup ? '회원가입 및 로그인' : '로그인'}이 완료되었습니다!`);
-            
+
+            const nickname = result.data.nickname || result.data.name || '사용자';
+            alert(`${nickname}님, ${isSignup ? '회원가입 및 로그인' : '로그인'}이 완료되었습니다!`);
+
             // 메인 페이지로 리디렉션
             setTimeout(() => {
               navigate('/');

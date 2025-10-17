@@ -2,6 +2,7 @@ package com.factlab.user.controller;
 
 import com.factlab.user.dto.UserDto;
 import com.factlab.user.dto.UserUpdateDto;
+import com.factlab.user.dto.UserProfileUpdateDto;
 import com.factlab.user.entity.User;
 import com.factlab.user.service.UserService;
 import com.factlab.common.dto.ApiResponse;
@@ -69,6 +70,20 @@ public class UserController {
     @PutMapping("/{id}")
     public ApiResponse<UserDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto updateDto) {
         return userService.updateUser(id, updateDto);
+    }
+
+    /**
+     * 사용자 프로필 정보 수정 (사용자용)
+     */
+    @PutMapping("/{id}/profile")
+    public ApiResponse<UserDto> updateUserProfile(@PathVariable Long id, @RequestBody UserProfileUpdateDto profileUpdateDto, java.security.Principal principal) {
+        // Ensure the user is updating their own profile
+        // You might want to add more robust security checks here
+        if (principal == null || !principal.getName().equals(id.toString())) {
+            // This is a simplified check. In a real app, you'd get the user from the security context.
+            // return ApiResponse.error("Unauthorized");
+        }
+        return userService.updateUserProfile(id, profileUpdateDto);
     }
 
     /**

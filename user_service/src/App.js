@@ -14,6 +14,7 @@ import FactlabMypage from './pages/FactlabMypage';
 import FactlabNotice from './pages/FactlabNotice';
 import FactlabNoticeDetail from './pages/FactlabNoticeDetail';
 import LoginCallback from './pages/LoginCallback';
+import SocialLoginCallback from './components/SocialLoginCallback';
 import AboutPage from './pages/AboutPage';
 
 // Bill pages
@@ -38,6 +39,7 @@ const App = () => (
         <Route path="/news_detail" element={<FactlabNewsDetail />} />
 
         <Route path="/login/callback" element={<LoginCallback />} />
+        <Route path="/auth/:provider/callback" element={<SocialLoginCallback />} />
         <Route path="/register" element={<FactlabRegister />} />
         <Route path="/mypage" element={<FactlabMypage />} />
         <Route path="/notice" element={<FactlabNotice />} />

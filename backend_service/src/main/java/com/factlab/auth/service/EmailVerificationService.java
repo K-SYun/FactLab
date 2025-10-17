@@ -136,4 +136,35 @@ public class EmailVerificationService {
     public int cleanupExpiredVerifications() {
         return emailVerificationRepository.deleteExpiredVerifications(LocalDateTime.now());
     }
+
+    /**
+     * 이메일 인증 코드 발송 (개발용)
+     */
+    @Transactional
+    public boolean sendVerificationCodeForDev(String email) {
+        try {
+            logger.info("이메일 인증 코드 발송 시작 (개발용): {}", email);
+
+            // 기존 인증 코드 삭제
+            emailVerificationRepository.deleteByEmail(email);
+            logger.debug("기존 인증 코드 삭제 완료: {}", email);
+
+            // 새로운 인증 코드 생성
+            String code = "123456"; // Fixed code for dev
+            LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(CODE_EXPIRY_MINUTES);
+            logger.debug("새 인증 코드 생성 완료 (개발용): email={}, code={}, expiresAt={}", email, code, expiresAt);
+
+            // 인증 코드 저장
+            EmailVerification verification = new EmailVerification(email, code, expiresAt);
+            emailVerificationRepository.save(verification);
+            logger.debug("인증 코드 DB 저장 완료: {}", email);
+
+            logger.info("이메일 인증 코드 발송 완료 (개발용): {}", email);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("이메일 발송 중 오류 발생 (개발용): email={}, error={}", email, e.getMessage(), e);
+            return false;
+        }
+    }
 }

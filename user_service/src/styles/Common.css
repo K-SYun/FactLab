@@ -14,6 +14,14 @@ body {
     font-size: 14px; /* 본문 기본 폰트 크기 */
 }
 
+/* Header Wrapper - 헤더와 메뉴를 함께 고정 */
+.header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: white;
+}
+
 /* Header */
 .news-header {
     background-color: white;
@@ -267,6 +275,7 @@ body {
     color: #333;
     margin: 0;
 }
+
 
 /* Mobile/Desktop Toggle */
 .desktop-auth {

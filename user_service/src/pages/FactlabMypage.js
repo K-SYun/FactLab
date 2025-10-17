@@ -19,6 +19,8 @@ const FactlabMypage = () => {
     nickname: '',
     email: '',
     intro: '',
+    gender: '',
+    birthDate: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -99,6 +101,8 @@ const FactlabMypage = () => {
             nickname: profile.nickname || '',
             email: profile.email || '',
             intro: profile.intro || '',
+            gender: profile.gender || '',
+            birthDate: profile.birthDate || '',
             level: profile.level || 1,
             activityScore: profile.activityScore || 0,
             joinDate: profile.joinDate || '',
@@ -385,7 +389,9 @@ const FactlabMypage = () => {
       // 프로필 정보 업데이트
       const updateData = {
         nickname: profileData.nickname,
-        intro: profileData.intro
+        intro: profileData.intro,
+        gender: profileData.gender,
+        birthDate: profileData.birthDate
       };
 
       const response = await mypageApi.updateUserProfile(user.id, updateData);
@@ -544,11 +550,11 @@ const FactlabMypage = () => {
     return (
       <>
         <Header />
-        <div className="mypage-container">
-          <div className="news-container">
+        <AdLayout>
+          <div className="mypage-container">
             <div className="news-mypage-loading">로딩 중...</div>
           </div>
-        </div>
+        </AdLayout>
         <Footer />
       </>
     );
@@ -558,17 +564,17 @@ const FactlabMypage = () => {
     return (
       <>
         <Header />
-        <div className="mypage-container">
-          <div className="news-container">
-            <div className="news-page-header">
-              <div className="news-page-header-title">👤 마이페이지</div>
+        <AdLayout>
+          <div className="mypage-container">
+            <div className="mypage-page-header">
+              <div className="mypage-page-header-title">👤 마이페이지</div>
             </div>
             <div className="news-mypage-empty news-mypage-empty-container">
               <p>로그인이 필요합니다.</p>
               <p><Link to="/login">로그인하기</Link></p>
             </div>
           </div>
-        </div>
+        </AdLayout>
         <Footer />
       </>
     );
@@ -577,15 +583,8 @@ const FactlabMypage = () => {
   return (
     <>
       <Header />
-      <div className="main-top-banner-ad">
-        🎯 상단 배너 광고 영역 (1200px x 90px)
-      </div>
-      <div className="mypage-container">
-        {/* 좌측 광고 */}
-        <div className="main-side-ad">
-
-        </div>
-        <div className="news-container">
+      <AdLayout>
+        <div className="mypage-container">
           <div className="mypage-page-header">
             <div className="mypage-page-header-title">👤 마이페이지</div>
           </div>
@@ -709,7 +708,7 @@ const FactlabMypage = () => {
                 </div>
 
                 <div className="news-mypage-form-group">
-                  <label className="news-mypage-form-label">닉네임</label>
+                  <label className="news-mypage-form-label">닉네임/별명 (게시판에 작성자로 표시됩니다.)</label>
                   <input
                     type="text"
                     className="news-mypage-form-input"
@@ -719,7 +718,25 @@ const FactlabMypage = () => {
                     maxLength="20"
                   />
                 </div>
-
+                <div className="news-mypage-form-group">
+                  <label className="news-mypage-form-label">성별 / 생년월일</label>
+                  <input
+                    type="text"
+                    className="news-mypage-form-input"
+                    name="gender"
+                    value={profileData.gender}
+                    onChange={handleInputChange}
+                    maxLength="3"
+                  />
+                  <input
+                    type="int"
+                    className="news-mypage-form-input"
+                    name="birth_date"
+                    value={profileData.birth_date}
+                    onChange={handleInputChange}
+                    maxLength="6"
+                  />
+                </div>
                 <div className="news-mypage-form-group">
                   <label className="news-mypage-form-label">자기소개</label>
                   <textarea
@@ -731,33 +748,6 @@ const FactlabMypage = () => {
                   ></textarea>
                 </div>
 
-                <div className="news-mypage-form-group">
-                  <label className="news-mypage-form-label">비밀번호 변경</label>
-                  <input
-                    type="password"
-                    className="news-mypage-form-input"
-                    name="currentPassword"
-                    value={profileData.currentPassword}
-                    onChange={handleInputChange}
-                    placeholder="현재 비밀번호"
-                  />
-                  <input
-                    type="password"
-                    className="news-mypage-form-input"
-                    name="newPassword"
-                    value={profileData.newPassword}
-                    onChange={handleInputChange}
-                    placeholder="새 비밀번호"
-                  />
-                  <input
-                    type="password"
-                    className="news-mypage-form-input"
-                    name="confirmPassword"
-                    value={profileData.confirmPassword}
-                    onChange={handleInputChange}
-                    placeholder="새 비밀번호 확인"
-                  />
-                </div>
 
                 <div>
                   <button className="news-btn news-btn-primary" onClick={saveProfile}>저장</button>
@@ -1089,11 +1079,7 @@ const FactlabMypage = () => {
             </div>
           </div>
         </div>
-        {/* 우측 광고 */}
-        <div className="main-side-ad">
-
-        </div>
-      </div>
+      </AdLayout>
       <Footer />
     </>
   );

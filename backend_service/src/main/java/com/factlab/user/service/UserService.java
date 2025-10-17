@@ -2,6 +2,7 @@ package com.factlab.user.service;
 
 import com.factlab.user.dto.UserDto;
 import com.factlab.user.dto.UserUpdateDto;
+import com.factlab.user.dto.UserProfileUpdateDto;
 import com.factlab.user.entity.User;
 import com.factlab.user.repository.UserRepository;
 import com.factlab.common.dto.ApiResponse;
@@ -115,6 +116,42 @@ public class UserService {
             return ApiResponse.success(userDto);
         } catch (Exception e) {
             return ApiResponse.error("사용자 정보 수정 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 사용자 프로필 정보 수정 (사용자용)
+     */
+    public ApiResponse<UserDto> updateUserProfile(Long id, UserProfileUpdateDto profileUpdateDto) {
+        try {
+            Optional<User> userOpt = userRepository.findById(id);
+            if (userOpt.isEmpty()) {
+                return ApiResponse.error("사용자를 찾을 수 없습니다.");
+            }
+
+            User user = userOpt.get();
+
+            if (profileUpdateDto.getNickname() != null && !profileUpdateDto.getNickname().trim().isEmpty()) {
+                if (!user.getNickname().equals(profileUpdateDto.getNickname()) && 
+                    userRepository.existsByNickname(profileUpdateDto.getNickname())) {
+                    return ApiResponse.error("이미 사용 중인 닉네임입니다.");
+                }
+                user.setNickname(profileUpdateDto.getNickname());
+            }
+
+            user.setGender(profileUpdateDto.getGender());
+            user.setBirthDate(profileUpdateDto.getBirthDate());
+
+            User savedUser = userRepository.save(user);
+
+            int postsCount = 0; // TODO: Add logic to get posts count
+            int commentsCount = 0; // TODO: Add logic to get comments count
+            int reportsCount = 0; // TODO: Add logic to get reports count
+
+            UserDto userDto = UserDto.fromEntityWithStats(savedUser, postsCount, commentsCount, reportsCount);
+            return ApiResponse.success(userDto);
+        } catch (Exception e) {
+            return ApiResponse.error("프로필 수정 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 

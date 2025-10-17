@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -67,6 +68,13 @@ public class User {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Gender gender;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
     public enum UserStatus {
         ACTIVE, WARNED, SUSPENDED, BANNED, INACTIVE
     }
@@ -77,6 +85,10 @@ public class User {
 
     public enum RegistrationMethod {
         EMAIL, GOOGLE, NAVER, KAKAO
+    }
+
+    public enum Gender {
+        MALE, FEMALE, OTHER, PRIVATE
     }
 
     // 기본 생성자
@@ -140,4 +152,10 @@ public class User {
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
+
+    public Gender getGender() { return gender; }
+    public void setGender(Gender gender) { this.gender = gender; }
+
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
 }

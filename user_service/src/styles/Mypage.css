@@ -1,6 +1,14 @@
 /* mypage.html 전용 스타일 */
 /* Common.css와 News.css에 없는, 이 페이지에서만 사용되는 스타일 정의 */
 
+/* 마이페이지 컨테이너 */
+.mypage-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    min-height: 530px;
+}
+
 /* 마이페이지 전용 헤더 */
 .mypage-page-header {
     background-color: white;
@@ -30,6 +38,7 @@
     border: 1px solid #ddd;
     padding: 15px;
     border-radius: 0.375rem; /* rounded-md */
+    min-height: 530px;
 }
 
 .news-mypage-sidebar-menu {
@@ -444,29 +453,12 @@
     border-color: #bd2130;
 }
 
-/* 마이페이지에서 mypage-container 사용 시 news-container 스타일 조정 */
-.mypage-container .news-container {
-    max-width: none; /* mypage-container의 그리드 제약을 따름 */
-    margin: 0; /* mypage-container가 이미 중앙 정렬 */
-    border: none; /* 중복 테두리 제거 */
-    background-color: transparent; /* main-content가 배경 처리 */
-    padding: 0; /* mypage-container가 이미 패딩 제공 */
-}
-
-/* 마이페이지 콘텐츠 영역을 다시 흰색 배경으로 */
+/* 마이페이지 콘텐츠 영역 배경 */
 .mypage-container .news-mypage-content {
     background-color: white;
     border-radius: 8px;
-
-}
-
-/* 페이지 헤더도 스타일 조정 */
-.mypage-container .news-page-header {
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px 20px;
-    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 모바일 반응형 */
