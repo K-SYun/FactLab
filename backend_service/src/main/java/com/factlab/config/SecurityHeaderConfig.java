@@ -20,14 +20,17 @@ public class SecurityHeaderConfig implements WebMvcConfigurer {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
             // 보안 헤더 추가
-            response.setHeader("X-Frame-Options", "DENY");
+            response.setHeader("X-Frame-Options", "SAMEORIGIN");  // DENY에서 SAMEORIGIN으로 변경 (광고 iframe 허용)
             response.setHeader("X-Content-Type-Options", "nosniff");
             response.setHeader("X-XSS-Protection", "1; mode=block");
             response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-            response.setHeader("Content-Security-Policy", 
-                "default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com; " +
-                "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; " +
-                "connect-src 'self' https:; frame-src https://googleads.g.doubleclick.net;");
+            response.setHeader("Content-Security-Policy",
+                "default-src 'self'; " +
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagservices.com; " +
+                "style-src 'self' 'unsafe-inline'; " +
+                "img-src 'self' data: https: http:; " +
+                "connect-src 'self' https: http:; " +
+                "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com;");
             
             // HTTPS에서만 HSTS 헤더 추가
             if (request.isSecure()) {
