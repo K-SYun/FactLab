@@ -11,6 +11,7 @@ import com.factlab.security.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,7 +34,7 @@ public class AdminAuthService {
     private final PasswordEncoder passwordEncoder;
     
     @Autowired
-    public AdminAuthService(AdminUserRepository adminUserRepository, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, PasswordEncoder passwordEncoder) {
+    public AdminAuthService(AdminUserRepository adminUserRepository, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, @Lazy PasswordEncoder passwordEncoder) {
         this.adminUserRepository = adminUserRepository;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
