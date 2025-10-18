@@ -227,10 +227,10 @@ const FactlabNewsDetail = () => {
     switch (analysisType) {
       case 'FACT_ANALYSIS':
         return [
-          { key: 'completely_true', label: '완전 사실', sublabel: '제시된 내용 모두 사실', emoji: '✅' },
-          { key: 'partially_true', label: '부분적으로 사실', sublabel: '일부만 사실', emoji: '🔸' },
-          { key: 'slightly_doubtful', label: '조금 의심스럽다', sublabel: '일부 내용 의심', emoji: '🔹' },
-          { key: 'completely_doubtful', label: '완전 의심', sublabel: '대부분 거짓', emoji: '❌' },
+          { key: 'fact', label: '완전 사실', sublabel: '제시된 내용 모두 사실', emoji: '✅' },
+          { key: 'partial_fact', label: '부분적으로 사실', sublabel: '일부만 사실', emoji: '🔸' },
+          { key: 'slight_doubt', label: '조금 의심스럽다', sublabel: '일부 내용 의심', emoji: '🔹' },
+          { key: 'doubt', label: '완전 의심', sublabel: '대부분 거짓', emoji: '❌' },
           { key: 'unknown', label: '모르겠다', sublabel: '판단하기 어려움', emoji: '❓' }
         ];
       case 'BIAS_ANALYSIS':

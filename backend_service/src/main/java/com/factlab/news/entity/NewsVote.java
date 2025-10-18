@@ -37,10 +37,25 @@ public class NewsVote {
     private LocalDateTime updatedAt;
     
     public enum VoteType {
+        // 사실 분석
         FACT("fact"),
         PARTIAL_FACT("partial_fact"),
         SLIGHT_DOUBT("slight_doubt"),
         DOUBT("doubt"),
+
+        // 편향 분석
+        RIGHT_BIAS("right_bias"),
+        SLIGHT_RIGHT("slight_right"),
+        SLIGHT_LEFT("slight_left"),
+        LEFT_BIAS("left_bias"),
+
+        // 종합 분석
+        RELIABLE_NEUTRAL("reliable_neutral"),
+        RELIABLE_RIGHT("reliable_right"),
+        RELIABLE_LEFT("reliable_left"),
+        PROBLEMATIC("problematic"),
+
+        // 공통
         UNKNOWN("unknown");
         
         private final String value;
