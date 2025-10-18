@@ -47,7 +47,45 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(prodCorsConfigurationSource()))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth
+                        // ========== 공개 API (인증 불필요) ==========
+                        // 헬스체크
+                        .requestMatchers("/api/health", "/actuator/health").permitAll()
+                        // 인증 API
+                        .requestMatchers("/api/admin/auth/**", "/api/auth/**").permitAll()
+                        // Swagger
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // ========== 사용자 API (인증 불필요) ==========
+                        // 뉴스 조회
+                        .requestMatchers(HttpMethod.GET, "/api/news/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/news/*/view").permitAll()
+                        // 게시판/게시글/댓글 조회
+                        .requestMatchers(HttpMethod.GET, "/api/boards/**", "/api/posts/**", "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/boards/*/view").permitAll()
+                        // 트렌딩/팝업
+                        .requestMatchers(HttpMethod.GET, "/api/trending/**", "/api/popups/**").permitAll()
+
+                        // ========== 사용자 API (로그인 필요) ==========
+                        // 투표
+                        .requestMatchers(HttpMethod.POST, "/api/news/*/vote").authenticated()
+                        // 댓글/게시글 작성
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**", "/api/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/comments/**", "/api/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**", "/api/posts/**").authenticated()
+                        // 마이페이지 (본인 정보만 조회/수정 가능)
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/profile").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/user/social-accounts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/user/social-accounts/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/social-accounts/**").authenticated()
+
+                        // ========== 관리자 API (ADMIN 권한 필요) ==========
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/news-summary/**").hasRole("ADMIN")
+
+                        // ========== 기타 모든 요청 ==========
+                        .anyRequest().authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

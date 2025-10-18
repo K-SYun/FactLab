@@ -47,21 +47,11 @@ class NewsScheduler:
     
     def setup_schedule(self):
         """스케줄 설정"""
-        # 매 시간마다 빠른 업데이트
-        schedule.every().hour.do(self.quick_news_update)
-        
-        # 매일 오전 6시에 전체 뉴스 수집
-        schedule.every().day.at("06:00").do(self.collect_and_process_news)
-        
-        # 매일 오후 12시에 전체 뉴스 수집
-        schedule.every().day.at("12:00").do(self.collect_and_process_news)
-        
-        # 매일 오후 6시에 전체 뉴스 수집
-        schedule.every().day.at("18:00").do(self.collect_and_process_news)
-        
+        # 매일 오전 8시에 전체 뉴스 수집 (1회)
+        schedule.every().day.at("08:00").do(self.collect_and_process_news)
+
         logger.info("News collection schedule set up:")
-        logger.info("- Quick updates: Every hour")
-        logger.info("- Full collection: 6:00, 12:00, 18:00 daily")
+        logger.info("- 매일 오전 08:00에 전체 뉴스 수집 (1회)")
     
     def run_scheduler(self):
         """스케줄러 실행"""

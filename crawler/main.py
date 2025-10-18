@@ -35,12 +35,19 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factlab_user:password@loc
 crawler_manager = UnifiedCrawlerManager(DATABASE_URL)
 # AI 분석기는 관리자에서 별도 처리
 
+@app.on_event("startup")
+async def startup_event():
+    """서비스 시작 시 스케줄러 시작"""
+    logger.info("🚀 Starting news scheduler...")
+    news_scheduler.start()
+    logger.info("✅ News scheduler started successfully")
 
-   # """서비스 시작 시 스케줄러 시작"""
-
-
-   # """서비스 종료 시 스케줄러 중지"""
-
+@app.on_event("shutdown")
+async def shutdown_event():
+    """서비스 종료 시 스케줄러 중지"""
+    logger.info("🛑 Stopping news scheduler...")
+    news_scheduler.stop()
+    logger.info("✅ News scheduler stopped successfully")
 
 @app.get("/")
 def root():
