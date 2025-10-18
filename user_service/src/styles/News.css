@@ -594,6 +594,26 @@
     color: #6666cc;
 }
 
+.vote_option.right_bias {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.vote_option.slight_right {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.vote_option.slight_left {
+    border-color: #fd7e14;
+    color: #fd7e14;
+}
+
+.vote_option.left_bias {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
 /* 투표 결과 */
 .vote_results {
     margin-top: 15px;
