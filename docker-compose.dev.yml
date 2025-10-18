@@ -60,7 +60,7 @@ services:
   backend-service:
     build:
       context: ./backend_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "8080:8080"
       - "5005:5005"  # Debug port
@@ -73,6 +73,8 @@ services:
       - .env.dev
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - TZ=Asia/Seoul
+      - JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Seoul
       - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - LOGGING_LEVEL_SQL=DEBUG
       - SPRING_JPA_SHOW_SQL=true

@@ -84,6 +84,8 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Seoul
+      - JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Seoul
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/factlab
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-factlab_user}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
