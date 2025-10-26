@@ -23,7 +23,7 @@ from app.localization.messages import msg
 # 각 크롤러 import
 from .naver_crawler import NaverMobileCrawler
 from .daum_crawler import DaumMobileCrawler  
-from .googel_crawler import GoogleNewsCrawler
+
 from .nass_crawler import NassApiCrawler
 
 # 스케줄링
@@ -55,7 +55,7 @@ class UnifiedCrawlerManager:
         # 크롤러 초기화
         self.naver_crawler = NaverMobileCrawler()
         self.daum_crawler = DaumMobileCrawler()
-        self.google_crawler = GoogleNewsCrawler()
+
         self.nass_crawler = NassApiCrawler()
         
         # 스케줄러 설정
@@ -202,57 +202,7 @@ class UnifiedCrawlerManager:
             await self.log_crawl_result("daum", 0, 0, f"ERROR: {str(e)}")
             return {'source': 'daum', 'total_saved': 0, 'error': str(e)}
     
-    async def crawl_google_news(self) -> Dict[str, int]:
-        """구글 RSS 뉴스 크롤링"""
-        start_time = datetime.now()
-        logger.info(f"🔥 구글 뉴스 크롤링 시작 - {start_time}")
-        
-        try:
-            total_saved = 0
-            category_stats = {}
-            
-            for category in self.categories:
-                # 구글 RSS 크롤링
-                google_items = self.google_crawler.crawl_rss(category)
-                
-                if google_items:
-                    if self.db_manager:
-                        result = self.db_manager.save_news_batch(google_items)
-                        saved = result.get('saved', 0)
-                    else:
-                        saved = await self.save_to_factlab_db(google_items, "google")
-                    
-                    total_saved += saved
-                    category_stats[category] = {
-                        'crawled': len(google_items),
-                        'saved': saved
-                    }
-                    logger.info(f"구글 {category}: {saved}개 저장")
-                else:
-                    category_stats[category] = {'crawled': 0, 'saved': 0}
-                
-                # 카테고리 간 간격
-                await asyncio.sleep(3)
-            
-            end_time = datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            
-            logger.info(f"✅ 구글 크롤링 완료 - 총 {total_saved}개 저장, {duration:.1f}초 소요")
-            
-            # 로그 저장
-            await self.log_crawl_result("google", total_saved, duration, "SUCCESS", category_stats)
-            
-            return {
-                'source': 'google',
-                'total_saved': total_saved,
-                'duration': duration,
-                'categories': category_stats
-            }
-            
-        except Exception as e:
-            logger.error(f"❌ 구글 크롤링 오류: {e}")
-            await self.log_crawl_result("google", 0, 0, f"ERROR: {str(e)}")
-            return {'source': 'google', 'total_saved': 0, 'error': str(e)}
+
 
     async def crawl_bills(self, days: int = 30) -> Dict[str, int]:
         """국회 법안 크롤링"""
@@ -410,40 +360,30 @@ class UnifiedCrawlerManager:
             conn.close()
     
     def setup_schedule(self):
-        """크롤링 스케줄 설정 - 2시간 간격, 20분씩 분산"""
+        """크롤링 스케줄 설정 - 매일 아침 7시 실행"""
         logger.info("🕐 크롤링 스케줄 설정 중...")
         
-        # 네이버: 매 2시간 정시 (00분) - 짝수 시간에만 실행
+        # 네이버: 매일 아침 7시 00분
         self.scheduler.add_job(
             self.crawl_naver_news,
-            CronTrigger(hour='0,2,4,6,8,10,12,14,16,18,20,22', minute=0, second=0),  # 2시간 간격
+            CronTrigger(hour=7, minute=0, second=0),
             id='naver_crawl',
             max_instances=1,
             coalesce=True
         )
         
-        # 다음: 매 2시간 20분 - 짝수 시간에만 실행
+        # 다음: 매일 아침 7시 10분
         self.scheduler.add_job(
             self.crawl_daum_news,
-            CronTrigger(hour='0,2,4,6,8,10,12,14,16,18,20,22', minute=20, second=0),  # 2시간 간격, 20분 분산
+            CronTrigger(hour=7, minute=10, second=0),
             id='daum_crawl',
             max_instances=1,
             coalesce=True
         )
         
-        # 구글: 매 2시간 40분 - 짝수 시간에만 실행
-        self.scheduler.add_job(
-            self.crawl_google_news,
-            CronTrigger(hour='0,2,4,6,8,10,12,14,16,18,20,22', minute=40, second=0),  # 2시간 간격, 40분 분산
-            id='google_crawl',
-            max_instances=1,
-            coalesce=True
-        )
-        
         logger.info("✅ 크롤링 스케줄 설정 완료:")
-        logger.info("  - 네이버: 2시간 간격 정시 (00:00, 02:00, 04:00, ...)")
-        logger.info("  - 다음: 2시간 간격 20분 (00:20, 02:20, 04:20, ...)")
-        logger.info("  - 구글: 2시간 간격 40분 (00:40, 02:40, 04:40, ...)")
+        logger.info("  - 네이버: 매일 07:00")
+        logger.info("  - 다음: 매일 07:10")
     
     async def start_scheduler(self):
         """스케줄러 시작"""
@@ -463,8 +403,7 @@ class UnifiedCrawlerManager:
             await self.crawl_naver_news()
             await asyncio.sleep(5)
             await self.crawl_daum_news()
-            await asyncio.sleep(5)
-            await self.crawl_google_news()
+
     
     async def stop_scheduler(self):
         """스케줄러 중지"""
@@ -506,9 +445,7 @@ class UnifiedCrawlerManager:
         await asyncio.sleep(10)  # 간격
 
         results['naver'] = await self.crawl_naver_news()
-        await asyncio.sleep(10)  # 간격
-        
-        results['google'] = await self.crawl_google_news()
+
         
         end_time = datetime.now()
         total_duration = (end_time - start_time).total_seconds()
