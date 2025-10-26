@@ -79,22 +79,6 @@ async def manual_crawl_daum():
         logger.error(f"다음 크롤링 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/crawl/google")
-async def manual_crawl_google():
-    """구글 뉴스 수동 크롤링"""
-    try:
-        manager = get_manager()
-        result = await manager.crawl_google_news()
-        
-        return {
-            "success": True,
-            "message": "구글 크롤링 완료",
-            **result
-        }
-        
-    except Exception as e:
-        logger.error(f"구글 크롤링 오류: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 # 전역 크롤링 상태 저장
 crawl_progress = {
@@ -161,6 +145,20 @@ async def stream_crawl_progress():
             "Access-Control-Allow-Headers": "*"
         }
     )
+
+@router.get("/scheduler/status")
+async def get_scheduler_status():
+    """스케줄러 상태 조회"""
+    try:
+        manager = get_manager()
+        status = manager.get_scheduler_status()
+        return {
+            "success": True,
+            "scheduler": status,
+        }
+    except Exception as e:
+        logger.error(f"스케줄러 상태 조회 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/crawl/all/schedule")
 async def schedule_crawl_all_with_progress(background_tasks: BackgroundTasks):
@@ -396,26 +394,6 @@ async def run_crawl_with_progress_DISABLED():
             "crawl_type": "none"  # 크롤링 종료
         })
 
-@router.get("/scheduler/status")
-async def get_scheduler_status():
-    """스케줄러 상태 조회"""
-    try:
-        manager = get_manager()
-        status = manager.get_scheduler_status()
-        
-        return {
-            "success": True,
-            "scheduler": status,
-            "description": {
-                "naver": "2시간 간격 정시 (00:00, 02:00, 04:00, ...) 실행",
-                "daum": "2시간 간격 20분 (00:20, 02:20, 04:20, ...) 실행", 
-                "google": "2시간 간격 40분 (00:40, 02:40, 04:40, ...) 실행"
-            }
-        }
-        
-    except Exception as e:
-        logger.error(f"스케줄러 상태 조회 오류: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/scheduler/start")
 async def start_scheduler(background_tasks: BackgroundTasks):

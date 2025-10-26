@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.crawlers.crawler_manager import UnifiedCrawlerManager
 from app.api.crawler_api import router as crawler_router
 # AI 분석은 관리자에서 별도 처리
-from app.scheduler.news_scheduler import news_scheduler
 from app.localization.messages import msg
 import logging
 import os
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="FactLab Crawler AI Service", version="1.0.0")
 
 # API 라우터 등록
-app.include_router(crawler_router, prefix="/crawler")
+app.include_router(crawler_router)
 
 # CORS 설정 추가
 app.add_middleware(
@@ -38,16 +37,16 @@ crawler_manager = UnifiedCrawlerManager(DATABASE_URL)
 @app.on_event("startup")
 async def startup_event():
     """서비스 시작 시 스케줄러 시작"""
-    logger.info("🚀 Starting news scheduler...")
-    news_scheduler.start()
-    logger.info("✅ News scheduler started successfully")
+    logger.info("🚀 Starting UnifiedCrawlerManager scheduler...")
+    await crawler_manager.start_scheduler()
+    logger.info("✅ UnifiedCrawlerManager scheduler started successfully")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """서비스 종료 시 스케줄러 중지"""
-    logger.info("🛑 Stopping news scheduler...")
-    news_scheduler.stop()
-    logger.info("✅ News scheduler stopped successfully")
+    logger.info("🛑 Stopping UnifiedCrawlerManager scheduler...")
+    await crawler_manager.stop_scheduler()
+    logger.info("✅ UnifiedCrawlerManager scheduler stopped successfully")
 
 @app.get("/")
 def root():
@@ -154,20 +153,6 @@ async def analyze_news(news_id: int):
         logger.error(f"Error analyzing news {news_id}: {e}")
         raise HTTPException(status_code=500, detail=f"AI 분석 실패: {str(e)}")
 
-@app.post("/scheduler/run-now")
-async def run_scheduler_now(background_tasks: BackgroundTasks):
-    """즉시 뉴스 수집 실행"""
-    background_tasks.add_task(news_scheduler.run_now)
-    return {"message": "News collection started immediately"}
-
-@app.get("/scheduler/status")
-async def get_scheduler_status():
-    """스케줄러 상태 확인"""
-    return {
-        "is_running": news_scheduler.is_running,
-        "status": "active" if news_scheduler.is_running else "stopped"
-    }
-
 @app.get("/db/test")
 async def test_database():
     """데이터베이스 연결 테스트"""
@@ -217,3 +202,57 @@ async def get_categories():
     except Exception as e:
         logger.error(f"Error getting categories: {e}")
         return {"error": str(e)}
+
+# 카드뉴스 생성 엔드포인트
+@app.post("/api/card-news/generate")
+async def generate_card_news(request_data: dict):
+    """AI 분석 완료된 뉴스로 카드뉴스 생성"""
+    try:
+        from app.ai.card_news_generator import CardNewsGenerator
+
+        news_data = request_data.get("news", {})
+        num_slides = request_data.get("num_slides", 5)
+
+        # 필수 데이터 검증
+        if not news_data:
+            raise HTTPException(status_code=400, detail="뉴스 데이터가 없습니다.")
+
+        news_id = news_data.get("newsId")
+        title = news_data.get("newsTitle", "")
+        content = news_data.get("newsContent", "")
+        summary = news_data.get("aiSummary", "")
+        claim = news_data.get("aiClaim", "")
+        keywords = news_data.get("aiKeywords", "")
+        thumbnail_url = news_data.get("newsThumbnailUrl", "")
+
+        if not news_id or not title:
+            raise HTTPException(status_code=400, detail="필수 데이터가 누락되었습니다.")
+
+        # 카드뉴스 생성기 초기화
+        generator = CardNewsGenerator()
+
+        # 카드뉴스 생성
+        card_news = generator.generate_card_news_complete(
+            news_id=news_id,
+            title=title,
+            content=content,
+            summary=summary,
+            claim=claim,
+            keywords=keywords,
+            thumbnail_url=thumbnail_url,
+            num_slides=num_slides
+        )
+
+        logger.info(f"Card news generated successfully for news {news_id}")
+
+        return {
+            "success": True,
+            "message": "카드뉴스 생성 성공",
+            "card_news": card_news
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating card news: {e}")
+        raise HTTPException(status_code=500, detail=f"카드뉴스 생성 실패: {str(e)}")
