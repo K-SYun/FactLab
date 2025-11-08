@@ -16,9 +16,9 @@
 }
 
 
-/* 사이드 광고 - 200px 너비 (그리드와 일치) */
+/* 사이드 광고 - 160px 너비 */
 .main-side-ad {
-  width: 200px;
+  width: 160px;
   min-height: 600px;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
